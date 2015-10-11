@@ -12,9 +12,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.vzome.core.math.DomUtils;
-import com.vzome.core.render.Renderable;
 
-public class ViewModel implements Renderable
+public class ViewModel
 {
     /**
 	 * The original frustum.
