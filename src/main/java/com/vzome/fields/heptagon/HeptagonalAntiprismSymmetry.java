@@ -9,6 +9,7 @@ import com.vzome.core.math.RealVector;
 import com.vzome.core.math.symmetry.AbstractSymmetry;
 import com.vzome.core.math.symmetry.Axis;
 import com.vzome.core.math.symmetry.Direction;
+import com.vzome.core.math.symmetry.GeometryDerivations;
 import com.vzome.core.math.symmetry.Permutation;
 import com.vzome.core.math.symmetry.Symmetry;
 
@@ -18,9 +19,18 @@ public class HeptagonalAntiprismSymmetry extends AbstractSymmetry
     private static final double SKEW_FACTOR = Math .sin( (3.0d/7.0d) * Math.PI );
 	private Axis preferredAxis;
 
+	private AlgebraicVector orbitTriangleNormal;
+
 	public HeptagonalAntiprismSymmetry( AlgebraicField field, String frameColor, String defaultStyle )
 	{
 		super( 14, field, frameColor, defaultStyle );
+		
+		this .orbitTriangleNormal = new AlgebraicVector( field .createRational( -5 ), field .createRational( 0 ), field .createRational( 5 ) );
+        
+        for ( Direction orbit : mDirectionList )
+        {
+        	this .setDotLocation( orbit );
+		}
 	}
 
 	@Override
@@ -42,7 +52,6 @@ public class HeptagonalAntiprismSymmetry extends AbstractSymmetry
         Direction blueOrbit = createZoneOrbit( frameColor, 0, 7, axis0, true );
         blueOrbit .createAxis( 0, 7, axis0 );
         blueOrbit .createAxis( 7, 7, axis0 );
-        blueOrbit .setDotLocation( 0d, 1d );
 
         AlgebraicNumber one = hf .one();
         AlgebraicNumber s = hf .sigmaReciprocal(); // 1 / sigma
@@ -99,6 +108,26 @@ public class HeptagonalAntiprismSymmetry extends AbstractSymmetry
         mMatrices[ 11 ] = mMatrices[ 4 ] .times( mMatrices[ 7 ] );
         mMatrices[ 12 ] = mMatrices[ 5 ] .times( mMatrices[ 7 ] );
         mMatrices[ 13 ] = mMatrices[ 6 ] .times( mMatrices[ 7 ] );
+    }
+    
+    @Override
+    public Direction createNewZoneOrbit( String name, int prototype, int rotatedPrototype, AlgebraicVector norm )
+    {
+    	Direction orbit = super .createNewZoneOrbit( name, prototype, rotatedPrototype, norm );
+    	this .setDotLocation( orbit );
+    	return orbit;
+    }
+    
+    private void setDotLocation( Direction orbit )
+    {
+    	Axis dotZone = orbit .getAxisBruteForce( new RealVector( -5d, 0.1d, 5d ) ); // the upper triangle on the left of the ball
+    	AlgebraicVector intersection =
+    			GeometryDerivations .linePlaneIntersection( getField() .origin( 3 ), dotZone .normal(),
+    														this .orbitTriangleNormal, this .orbitTriangleNormal );
+    	double x = intersection .getComponent( AlgebraicVector .X ) .evaluate();
+    	double y = intersection .getComponent( AlgebraicVector .Y ) .evaluate();
+    	orbit .setDotLocation( x + 10d, y ); // orbit triangle wants positive numbers!
+    	System .out .println( orbit .getName() + " " + x + " " + y );
     }
 
 	@Override

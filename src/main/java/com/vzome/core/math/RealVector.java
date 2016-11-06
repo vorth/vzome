@@ -17,7 +17,7 @@ public class RealVector {
 
 	private static final NumberFormat FORMAT = NumberFormat .getNumberInstance( Locale .US );
 
-    public static final RealVector DIRECTION_0 = new RealVector( 10d, 0.1d, -0.1d );
+    public static final RealVector DIRECTION_0 = new RealVector( 10d, 0.1d, -0.2d );
 	
 	static {
         FORMAT .setMaximumFractionDigits( 5 );

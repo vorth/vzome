@@ -6,6 +6,7 @@ import com.vzome.core.algebra.AlgebraicField;
 import com.vzome.core.algebra.AlgebraicMatrix;
 import com.vzome.core.algebra.AlgebraicVector;
 import com.vzome.core.algebra.PentagonField;
+import com.vzome.core.math.RealVector;
 
 /**
  * @author Scott Vorthmann
@@ -19,11 +20,20 @@ public class OctahedralSymmetry extends AbstractSymmetry
     
     private final String frameColor;
     
+	private AlgebraicVector blackTriangleNormal;
+
     public OctahedralSymmetry( AlgebraicField field, String frameColor, String defaultStyle )
     {
         super( ORDER, field, frameColor, defaultStyle );
         this.frameColor = frameColor;
         tetrahedralSubgroup = closure( new int[] { 0, 2, 4 } );
+        
+		this .blackTriangleNormal = new AlgebraicVector( field .createRational( 2 ), field .createRational( 1 ), field .createRational( 5 ) );
+
+        for ( Direction orbit : mDirectionList )
+        {
+        	this .setDotLocation( orbit );
+		}
     }
     
     @Override
@@ -131,6 +141,26 @@ public class OctahedralSymmetry extends AbstractSymmetry
             int rotation = this.getMapping( prototype, rotatedPrototype );
             dir.createAxis( prototype, rotation, norm );
         }
+    }
+    
+    private void setDotLocation( Direction orbit )
+    {
+    	Axis dotZone = orbit .getAxisBruteForce( new RealVector( 0.2d, 0.1d, 5d ) ); // the lower triangle on the upper right of the "front" of the ball
+    	AlgebraicVector intersection =
+    			GeometryDerivations .linePlaneIntersection( getField() .origin( 3 ), dotZone .normal(),
+    														this .blackTriangleNormal, this .blackTriangleNormal );
+    	double x = intersection .getComponent( AlgebraicVector .X ) .evaluate();
+    	double y = intersection .getComponent( AlgebraicVector .Y ) .evaluate();
+    	orbit .setDotLocation( x, y );
+    	System .out .println( orbit .getName() + " " + x + " " + y );
+    }
+    
+    @Override
+    public Direction createNewZoneOrbit( String name, int prototype, int rotatedPrototype, AlgebraicVector norm )
+    {
+    	Direction orbit = super .createNewZoneOrbit( name, prototype, rotatedPrototype, norm );
+    	this .setDotLocation( orbit );
+    	return orbit;
     }
 
     @Override

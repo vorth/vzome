@@ -92,7 +92,7 @@ public abstract class AbstractSymmetry implements Symmetry
 //        for ( int i = 0; i < order; i++ ) {
 //            if ( initialPerms[ i ] )
 //                System .out .println( i + " = " + mMatrices[ i ] .toString() );
-//        }        
+//        }
     }
     
     protected abstract void createFrameOrbit( String frameColor );

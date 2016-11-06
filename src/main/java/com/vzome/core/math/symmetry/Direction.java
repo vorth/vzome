@@ -217,7 +217,7 @@ public class Direction implements Comparable<Direction>, Iterable<Axis>
         return this .getAxisBruteForce( vector );
     }
     
-    Axis getAxisBruteForce( RealVector vector )
+    public Axis getAxisBruteForce( RealVector vector )
     {        
         Axis closestAxis = null;
         double maxCosine = -1d;

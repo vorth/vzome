@@ -18,10 +18,19 @@ public class IcosahedralSymmetry extends AbstractSymmetry
     private final int[][] INCIDENCES = new int[60][3];
     
 	public final Permutation IDENTITY = new Permutation( this, null );
+
+	private AlgebraicVector spruceNeg47;
     
     public IcosahedralSymmetry( AlgebraicField field, String defaultStyle )
     {
         super( 60, field, "blue", defaultStyle );
+        
+        this .spruceNeg47 = getDirection( "spruce" ) .getCanonicalAxis( Symmetry.MINUS, 47 ) .normal();
+        
+        for ( Direction orbit : mDirectionList )
+        {
+        	this .setDotLocation( orbit );
+		}
         
         for ( int i = 0; i < this.INCIDENCES.length; i++ ) {
             this .INCIDENCES[ i ][ 0 ] = getPermutation( i ) .mapIndex( 30 );
@@ -78,6 +87,26 @@ public class IcosahedralSymmetry extends AbstractSymmetry
         }
     }
     
+    @Override
+    public Direction createNewZoneOrbit( String name, int prototype, int rotatedPrototype, AlgebraicVector norm )
+    {
+    	Direction orbit = super .createNewZoneOrbit( name, prototype, rotatedPrototype, norm );
+    	this .setDotLocation( orbit );
+    	return orbit;
+    }
+    
+    private void setDotLocation( Direction orbit )
+    {
+    	Axis dotZone = orbit .getCanonicalAxis( Symmetry.MINUS, 47 ); // the upper right triangle on the "front" of the ball
+    	AlgebraicVector intersection =
+    			GeometryDerivations .linePlaneIntersection( getField() .origin( 3 ), dotZone .normal(),
+    														this .spruceNeg47, this .spruceNeg47 );
+    	double x = intersection .getComponent( AlgebraicVector .X ) .evaluate();
+    	double y = intersection .getComponent( AlgebraicVector .Y ) .evaluate();
+    	orbit .setDotLocation( x, y );
+    	System .out .println( orbit .getName() + " " + x + " " + y );
+    }
+
     @Override
     public int[] getIncidentOrientations( int orientation )
     {
