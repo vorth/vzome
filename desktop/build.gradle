@@ -89,6 +89,8 @@ sourceSets {
 }
 
 dependencies {
+    compile     group: 'javax.servlet',     name: 'servlet-api',       version:'2.5'
+    compile     group: 'org.eclipse.jetty', name: 'jetty-servlet',     version:'7.6.0.v20120127'
     compile group: 'com.vzome.core', name: 'vzome-core', version:'0.16.0'
     compile group: 'java3d', name: 'j3dcore', version:'1.6.0-pre12'
     compile group: 'java3d', name: 'j3dutils', version:'1.6.0-pre12'

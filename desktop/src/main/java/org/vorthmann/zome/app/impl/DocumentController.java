@@ -16,6 +16,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -25,15 +26,22 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.vecmath.Point3d;
 import javax.vecmath.Quat4d;
 
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.vorthmann.j3d.J3dComponentFactory;
 import org.vorthmann.j3d.MouseTool;
 import org.vorthmann.j3d.MouseToolDefault;
@@ -371,6 +379,52 @@ public class DocumentController extends DefaultController implements J3dComponen
         mRenderedModel .addListener( partsController );
 
         copyThisView(); // initialize the "copied" view at startup.
+        
+        Server server = new Server( 8532 );
+        try {
+	        server.setHandler(new HelloHandler());
+
+	        server.start();
+//	        server.join();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+
+    public class HelloHandler extends AbstractHandler
+    {
+        public void handle( String target,
+        		Request baseRequest,
+        		HttpServletRequest request,
+        		HttpServletResponse response ) throws IOException,
+        		ServletException
+        {
+            response.setContentType("text/html; charset=utf-8");
+
+            PrintWriter out = response.getWriter();
+            Controller controller = DocumentController.this;
+            
+            String action = target .substring( 1 );
+            StringTokenizer tokens = new StringTokenizer( target, "/" );
+            int num = tokens .countTokens();
+            for ( int i = 0; i < num-1; i++)
+            {
+				String subName = tokens .nextToken();
+				controller = controller .getSubController( subName );
+			}
+            
+            try {
+				controller .actionPerformed( new ActionEvent( this, 0, tokens .nextToken() ) );
+	            out.println("<h1>" + action + "</h1>");
+	            response.setStatus( HttpServletResponse.SC_OK );
+			} catch (Throwable e) {
+	            out.println("<h1>FAILURE</h1>");
+				e.printStackTrace();
+	            response.setStatus( HttpServletResponse.SC_BAD_REQUEST );
+			}
+            baseRequest.setHandled(true);
+        }
     }
 
     @Override
