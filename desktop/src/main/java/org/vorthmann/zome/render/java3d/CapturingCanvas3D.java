@@ -55,6 +55,13 @@ public class CapturingCanvas3D extends Canvas3D
             Dimension size = this.getSize();
             int sizeX = size .width;
             int sizeY = size .height;
+            if ( sizeX > sizeY ) {
+            	sizeX = (int) Math .floor( 4320f * ( (float) sizeY / (float) sizeX ) );
+            	sizeY = 4320;
+            } else {
+            	sizeY = (int) Math .floor( 4320f * ( (float) sizeX / (float) sizeY ) );
+            	sizeX = 4320;
+            }
 
             //              float aspectRatio = ((float) sizeX) / ((float) sizeY);
             //				int max = m_imageHandler .getMaxSize();
