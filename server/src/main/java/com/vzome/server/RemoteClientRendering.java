@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vzome.core.math.RealVector;
 import com.vzome.core.model.Manifestation;
 import com.vzome.core.model.Strut;
+import com.vzome.core.render.Color;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderingChanges;
 import com.vzome.desktop.controller.RenderingViewer;
@@ -23,10 +24,28 @@ class RemoteClientRendering implements RenderingChanges, RenderingViewer, Proper
 {
 	private final Session session;
 	private final ObjectMapper objectMapper = new ObjectMapper();
+	private final ThrottledQueue queue = new ThrottledQueue( 20, 1000 ); // 25 gets/second
 
-	public RemoteClientRendering( Session session )
+	public RemoteClientRendering( Session session, String bkgdColor )
 	{
 		this .session = session;
+		if ( bkgdColor != null ) {
+			int rgb =  Integer .parseInt( bkgdColor, 16 );
+			String color = new Color( rgb ) .toWebString();
+			this .session .getRemote() .sendString( "{ \"render\": \"background\", \"color\": \"" + color + "\" }", null );
+		}
+		
+		Thread consumer = new Thread( new Runnable() {
+			@Override
+			public void run() {
+				while (true)
+					if ( ! queue .isEmpty()) {
+						session .getRemote() .sendString( (String) queue .get(), null );
+					}
+			}
+		} );
+
+        consumer.start();
 	}
 
 	@Override
@@ -80,8 +99,7 @@ class RemoteClientRendering implements RenderingChanges, RenderingViewer, Proper
 				String startJson = this .objectMapper .writeValueAsString( start );
 				String endJson = this .objectMapper .writeValueAsString( end );
 				String color = rm .getColor() .toWebString();
-				this .session .getRemote() .sendString( "{ \"render\": \"segment\", \"start\": "
-						+ startJson + ", \"end\": " + endJson  + ", \"color\": \"" + color + "\" }", null );
+				this .queue .add( "{ \"render\": \"segment\", \"start\": " + startJson + ", \"end\": " + endJson  + ", \"color\": \"" + color + "\" }" );
 			} catch ( JsonProcessingException e ) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -111,8 +129,5 @@ class RemoteClientRendering implements RenderingChanges, RenderingViewer, Proper
 	public void shapeChanged(RenderedManifestation manifestation) {}
 
 	@Override
-	public void propertyChange( PropertyChangeEvent evt )
-	{
-		//this .session .getRemote() .sendString( "property " + evt .getPropertyName() + " now: " + evt .getNewValue(), null );
-	}
+	public void propertyChange( PropertyChangeEvent chg ) {}
 }

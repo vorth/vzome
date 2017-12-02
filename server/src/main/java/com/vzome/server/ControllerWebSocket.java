@@ -62,7 +62,8 @@ public class ControllerWebSocket implements WebSocketListener
         } else {
             APP .doAction( "openURL-" + urlStr, null );
             docController = (Controller3d) APP .getSubController( urlStr );
-            RemoteClientRendering clientRendering = new RemoteClientRendering( session );
+        		String bkgdColor = docController .getProperty( "backgroundColor" );
+            RemoteClientRendering clientRendering = new RemoteClientRendering( session, bkgdColor );
             docController .attachViewer( clientRendering, clientRendering, null, "custom" );
 	    		try {
 	    			docController .doAction( "finish.load", null );
