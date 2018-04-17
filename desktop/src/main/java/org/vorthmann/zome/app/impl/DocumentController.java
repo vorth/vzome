@@ -1466,6 +1466,9 @@ public class DocumentController extends DefaultController implements J3dComponen
         case "bookmark":
             return new ToolFactoryController( this .documentModel .getBookmarkFactory() );
         
+        case "module":
+            return new ToolFactoryController( this .documentModel .getModuleFactory() );
+        
         case "snapshot.2d": {
             if ( mSnapshot == null ) {
                 Java2dExporter exporter = new Java2dExporter( mViewPlatform.getView(), this.mApp.getColors(), this.sceneLighting, this.currentSnapshot );

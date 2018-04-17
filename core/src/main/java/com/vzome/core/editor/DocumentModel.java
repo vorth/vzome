@@ -216,7 +216,8 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 		
 		this .kind .registerToolFactories( this .toolFactories, this .tools );
 		
-        this .bookmarkFactory = new BookmarkTool.Factory( tools );
+		this .bookmarkFactory = new BookmarkTool.Factory( tools );
+		this .moduleFactory = new ModuleTool.Factory( tools );
 		this .mEditorModel .addSelectionSummaryListener( this .bookmarkFactory );
 
 		this .bookmarkFactory .createPredefinedTool( "ball at origin" );
@@ -1124,7 +1125,7 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 
 	private static final NumberFormat FORMAT = NumberFormat .getNumberInstance( Locale .US );
 
-	private AbstractToolFactory bookmarkFactory;
+	private AbstractToolFactory bookmarkFactory, moduleFactory;
 
     /**
      * @deprecated As of 8/11/2016:
@@ -1455,6 +1456,11 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 	public FieldApplication getFieldApplication()
 	{
 		return this .kind;
+	}
+
+	public Factory getModuleFactory()
+	{
+		return this .moduleFactory;
 	}
 
 	public Factory getBookmarkFactory()
