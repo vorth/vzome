@@ -48,7 +48,8 @@ import org.vorthmann.ui.Controller;
 import org.vorthmann.ui.DefaultController;
 import org.vorthmann.ui.ExclusiveAction;
 
-import com.vzome.desktop.controller.ViewPlatformControlPanel;
+import com.vzome.desktop.controller.CameraControlPanel;
+import com.vzome.desktop.controller.Controller3d;
 
 public class DocumentFrame extends JFrame implements PropertyChangeListener, ControlActions
 {
@@ -80,11 +81,11 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
 
     private JLabel statusText;
 
-    private Controller viewPlatform;
+    private Controller cameraController;
 
     private Controller lessonController;
     
-    private JDialog polytopesDialog;
+    private JDialog polytopesDialog, importScaleDialog;
 
 	private final boolean developerExtras;
 	
@@ -118,14 +119,13 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
     	this .appUI = appUI;
     }
         
-    public DocumentFrame( final Controller controller )
+    public DocumentFrame( final Controller3d controller, final J3dComponentFactory factory3d )
     {
         mController = controller;
         mController .addPropertyListener( this );
         toolsController = mController .getSubController( "tools" );
         
         int dismissDelay = ToolTipManager.sharedInstance().getDismissDelay();
-
         // Keep the tool tip showing
         ToolTipManager.sharedInstance().setDismissDelay( 20000 );
 
@@ -196,9 +196,9 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                 String cmd = e.getActionCommand();
                 switch ( cmd ) {
                 
-            	case "close":
-            		closeWindow();
-            		break;
+                case "close":
+                    closeWindow();
+                    break;
 
 //            	case "openURL":
 //                    String url = JOptionPane .showInputDialog( DocumentFrame.this, "Enter the URL for an online .vZome file.", "Open URL",
@@ -213,7 +213,7 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
 //                    }
 //                    break;
 //                    
-            	case "save":
+                case "save":
                     if ( mFile == null ) {
                         saveAsAction .actionPerformed( e );
                     }
@@ -222,7 +222,7 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                     }
                     break;
 
-            	case "saveDefault":
+                case "saveDefault":
                     // this is basically "save a copy...", with a hard-coded file path.
                     String fieldName = mController.getProperty( "field.name" );
                     String fieldLabel = mController.getProperty( "field.label" );
@@ -260,7 +260,7 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                     }
                     break;
                     
-            	case "snapshot.2d":
+                case "snapshot.2d":
                     if ( snapshot2dFrame == null ) {
                         snapshot2dFrame = new Snapshot2dFrame( mController.getSubController( "snapshot.2d" ), new FileDialog( DocumentFrame.this ) );
                     }
@@ -271,51 +271,64 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                     snapshot2dFrame.setVisible( true );
                     break;
 
-            	case "redoUntilEdit":
-                    String number = JOptionPane.showInputDialog( null, "Enter the edit number.", "Set Edit Number",
-                            JOptionPane.PLAIN_MESSAGE );
-                    try {
-                        mController .doAction( "redoUntilEdit." + number, new ActionEvent( DocumentFrame.this, ActionEvent.ACTION_PERFORMED, "redoUntilEdit." + number ) );
-                    } catch ( Exception e1 ) {
-                        errors .reportError( Controller.USER_ERROR_CODE, new Object[]{ e1 } );
-                    }
-                    break;
-
-            	case "showToolsPanel":
+                case "showToolsPanel":
                     tabbedPane .setSelectedIndex( 1 );  // should be "tools" tab
                     break;
 
-            	case "showPolytopesDialog":
-            		Controller polytopesController = mController .getSubController( "polytopes" );
-            		if ( polytopesDialog == null )
-            	        polytopesDialog = new PolytopesDialog( DocumentFrame.this, polytopesController );
+                case "importVefWithScale":
+                {
+                    cmd = "import.vef";
+                    Controller importScaleController = mController .getSubController( "importScale" );
+                    if ( importScaleDialog == null || importScaleDialog.getTitle() != cmd) {
+                        importScaleDialog = new LengthDialog( DocumentFrame.this, importScaleController, "Set Import Scale Factor",
+                            new ControllerFileAction( new FileDialog( DocumentFrame.this ), true, cmd, "vef", controller ) );
+                    }
+                    importScaleDialog .setVisible( true );
+                }
+                    break;
+
+                case "import.vef.tetrahedral":
+                {
+                    Controller importScaleController = mController .getSubController( "importScale" );
+                    if ( importScaleDialog == null || importScaleDialog.getTitle() != cmd) {
+                        importScaleDialog = new LengthDialog( DocumentFrame.this, importScaleController, "Set Import Scale Factor",
+                            new ControllerFileAction( new FileDialog( DocumentFrame.this ), true, cmd, "vef", controller ) );
+                    }
+                    importScaleDialog .setVisible( true );
+                }
+                    break;
+
+                case "showPolytopesDialog":
+                    Controller polytopesController = mController .getSubController( "polytopes" );
+                    if ( polytopesDialog == null )
+                        polytopesDialog = new PolytopesDialog( DocumentFrame.this, polytopesController );
                     try {
-                    	polytopesController .doAction( "setQuaternion", new ActionEvent( DocumentFrame.this, ActionEvent.ACTION_PERFORMED, "setQuaternion" ) );
+                    	    polytopesController .doAction( "setQuaternion", new ActionEvent( DocumentFrame.this, ActionEvent.ACTION_PERFORMED, "setQuaternion" ) );
                     } catch ( Exception e1 ) {
                         errors .reportError( Controller.USER_ERROR_CODE, new Object[]{ e1 } );
                     }
                     polytopesDialog .setVisible( true );
-                	break;
+                    break;
                 
                 case "showPythonWindow":
-                	if ( pythonFrame == null ) {
-                		pythonFrame = new JFrame( "Python Scripting" );
-                		pythonFrame .setContentPane( new PythonConsolePanel( pythonFrame, mController ) );
-                	}
-                	pythonFrame .pack();
-                	pythonFrame .setVisible( true );
-                	break;
+                    if ( pythonFrame == null ) {
+                        pythonFrame = new JFrame( "Python Scripting" );
+                        pythonFrame .setContentPane( new PythonConsolePanel( pythonFrame, mController ) );
+                    }
+                    pythonFrame .pack();
+                    pythonFrame .setVisible( true );
+                    break;
                 
                 case "showZomicWindow":
-                	if ( zomicFrame == null ) {
-                    	zomicFrame = new JFrame( "Zomic Scripting" );
+                    if ( zomicFrame == null ) {
+                        zomicFrame = new JFrame( "Zomic Scripting" );
                         zomicFrame .setContentPane( new ZomicEditorPanel( zomicFrame, mController ) );
-                	}
+                    }
                     zomicFrame .pack();
                     zomicFrame .setVisible( true );
-                	break;
+                    break;
                 
-            	case "setItemColor":
+                case "setItemColor":
                     Color color = JColorChooser.showDialog( DocumentFrame.this, "Choose Object Color", null );
                     if ( color == null )
                         return;
@@ -329,18 +342,18 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                     color = JColorChooser.showDialog( DocumentFrame.this, "Choose Background Color", null );
                     if ( color != null )
                     	mController .setProperty( "backgroundColor", Integer.toHexString( color.getRGB() & 0xffffff ) );
-                	break;
+                    break;
                 
                 case "usedOrbits":
-                	mController .actionPerformed( e ); // TO DO exclusive
-                	break;
+                    mController .actionPerformed( e ); // TO DO exclusive
+                    break;
                 
                 case "rZomeOrbits":
                 case "predefinedOrbits":
                 case "setAllDirections":
-                	delegate = mController .getSubController( "symmetry." + system );
-                	delegate .actionPerformed( e );
-                	break;
+                    delegate = mController .getSubController( "symmetry." + system );
+                    delegate .actionPerformed( e );
+                    break;
                 
                 case "configureShapes":
                     JDialog shapesDialog = shapesDialogs.get( system );
@@ -350,7 +363,7 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                         shapesDialogs .put( system, shapesDialog );
                     }
                     shapesDialog .setVisible( true );
-                	break;
+                    break;
                 
                 case "configureDirections":
                     JDialog symmetryDialog = directionsDialogs.get( system );
@@ -365,13 +378,13 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                 case "addBookmark":
                     String numStr = toolsController .getProperty( "next.tool.number" );
                     int bookmarkNum = Integer .parseInt( numStr );
-            		String bookmarkId = "bookmark." + bookmarkNum;
-                	String bookmarkName = (String) JOptionPane .showInputDialog( (Component) e .getSource(),
-                			"Name the new bookmark:", "New Selection Bookmark",
-                					JOptionPane.PLAIN_MESSAGE, null, null, bookmarkId );
-                	if ( ( bookmarkName == null ) || ( bookmarkName .length() == 0 ) ) {
-                		return;
-                	}
+                    String bookmarkId = "bookmark." + bookmarkNum;
+                    String bookmarkName = (String) JOptionPane .showInputDialog( (Component) e .getSource(),
+                            "Name the new bookmark:", "New Selection Bookmark",
+                            JOptionPane.PLAIN_MESSAGE, null, null, bookmarkId );
+                    if ( ( bookmarkName == null ) || ( bookmarkName .length() == 0 ) ) {
+                        return;
+                    }
                     mController .actionPerformed( new ActionEvent( e .getSource(), e.getID(), "newTool/" + bookmarkId + "/" + bookmarkName ) );
                     break;
 
@@ -380,6 +393,23 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                     {
                         system = cmd .substring( "setSymmetry.".length() );
                         mController .actionPerformed( e ); // TODO getExclusiveAction
+                    }
+                    else if ( cmd .startsWith( "execCommandLine/" ) )
+                    {
+                        if ( mFile == null ) {
+                            JOptionPane .showMessageDialog( DocumentFrame.this, "You must save your model before you can run a shell command.",
+                                    "Command Failure", JOptionPane .ERROR_MESSAGE );
+                            return;
+                        }
+                        String cmdLine = cmd .substring( "execCommandLine/" .length() );
+                        cmdLine = cmdLine .replace( "{}", mFile .getName() );
+                        logger.log( Level.INFO, "executing command line: " + cmdLine );
+                        try {
+                            Runtime .getRuntime() .exec( cmdLine, null, mFile .getParentFile() );
+                        } catch ( IOException ioe ) {
+                            System .err .println( "Runtime.exec() failed on " + cmdLine );
+                            ioe .printStackTrace();
+                        }
                     }
                     else if ( cmd .startsWith( "showProperties-" ) )
                     {
@@ -397,7 +427,7 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
 
         // -------------------------------------- create panels and tools
 
-        viewPlatform = mController .getSubController( "viewPlatform" );
+        cameraController = mController .getSubController( "camera" );
         lessonController = mController .getSubController( "lesson" );
         lessonController .addPropertyListener( this );
 
@@ -463,7 +493,7 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                     leftCenterPanel .add(  modeAndStatusPanel, BorderLayout.PAGE_START );
                 }
 
-                modelPanel = new ModelPanel( mController, this, this .isEditor, fullPower );
+                modelPanel = new ModelPanel( (Controller3d) mController, factory3d, (ControlActions) this, this .isEditor, fullPower );
                 leftCenterPanel .add( modelPanel, BorderLayout.CENTER );
             }
             outerPanel.add( leftCenterPanel, BorderLayout.CENTER );
@@ -477,8 +507,7 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
 
             JPanel rightPanel = new JPanel( new BorderLayout() );
             {
-                Component trackballCanvas = ( (J3dComponentFactory) mController ) .createJ3dComponent( "controlViewer" );
-                viewControl = new ViewPlatformControlPanel( trackballCanvas, viewPlatform );
+                viewControl = new CameraControlPanel( factory3d, cameraController );
                 // this is probably moot for reader mode
                 rightPanel .add( viewControl, BorderLayout.PAGE_START );
                 
@@ -487,18 +516,22 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                 modelArticleEditPanel .setLayout( modelArticleCardLayout );
                 if ( this .isEditor )
                 {
-                    JPanel buildPanel = new StrutBuilderPanel( DocumentFrame.this, mController .getProperty( "symmetry" ), mController, this );
+                    Controller sbController = controller .getSubController( "strutBuilder" );
+                    JPanel buildPanel = new StrutBuilderPanel( DocumentFrame.this, mController .getProperty( "symmetry" ), sbController, this );
                     if ( this .fullPower )
                     {
                         tabbedPane .addTab( "build", buildPanel );
                         if ( mController .propertyIsTrue( "original.tools" ) )
                         {
-                        	ToolsPanel toolsPanel = new ToolsPanel( DocumentFrame.this, toolsController );
+                            ToolsPanel toolsPanel = new ToolsPanel( DocumentFrame.this, toolsController );
                             tabbedPane .addTab( "tools", toolsPanel );
                         }
                         
                         JPanel bomPanel = new PartsPanel( mController .getSubController( "parts" ) );
                         tabbedPane .addTab( "parts", bomPanel );
+                        
+                        JPanel measurePanel = new MeasurePanel( mController .getSubController( "measure" ) );
+                        tabbedPane .addTab( "measure", measurePanel );
                         
                         modelArticleEditPanel .add( tabbedPane, "model" );
                     }
@@ -602,7 +635,7 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
 
                 if ( ! mController .userHasEntitlement( "model.edit" ) )
                 {
-                	mController .doAction( "switchToArticle", e );
+                    mController .doAction( "switchToArticle", e );
                     if ( url != null )
                         title = url .toExternalForm();
                     migrated = false;
@@ -655,6 +688,9 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                 JOptionPane .showMessageDialog( DocumentFrame.this,
                         e .getLocalizedMessage(),
                         "Error Loading Document", JOptionPane.ERROR_MESSAGE );
+                // setting "visible" to FALSE will remove this document from the application controller's 
+                // document collection so its document count is correct and it cleans up correctly 
+                mController .setProperty( "visible", Boolean.FALSE );
                 DocumentFrame.this .dispose();
             }
             
@@ -682,133 +718,138 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
     @Override
     public AbstractButton setButtonAction( String command, Controller controller, AbstractButton control )
     {
-    	control .setActionCommand( command );
-    	boolean enable = true;
-    	switch ( command ) {
-    	
-    	// TODO: find a better way to disable these... they are found in OrbitPanel.java
-    	case "predefinedOrbits":
-    	case "usedOrbits":
-    	case "setAllDirections":
+        control .setActionCommand( command );
+        boolean enable = true;
+        switch ( command ) {
+
+        // TODO: find a better way to disable these... they are found in OrbitPanel.java
+        case "predefinedOrbits":
+        case "usedOrbits":
+        case "setAllDirections":
             enable = fullPower;
             break;
-            
-    	case "save":
-    	case "saveAs":
-    	case "saveDefault":
-    		enable = this .canSave;
-    		break;
 
-    	default:
-        	if ( command .startsWith( "export." ) ) {
-        		enable = this .canSave;
-        	}
-    	}
-    	control .setEnabled( enable );
+        case "save":
+        case "saveAs":
+        case "saveDefault":
+            enable = this .canSave;
+            break;
+
+        default:
+            if ( command .startsWith( "export." ) ) {
+                enable = this .canSave;
+            }
+        }
+        control .setEnabled( enable );
         if ( control .isEnabled() )
         {
-        	ActionListener actionListener = controller;
-        	switch ( command ) {
-            
-    		// these can fall through to the ApplicationController
-        	case "quit":
-        	case "new":
-        	case "new-rootTwo":
-        	case "new-rootThree":
-        	case "new-heptagon":
-        	case "new-snubDodec":
-        	case "openURL":
-        	case "showAbout":
+            ActionListener actionListener = controller;
+            switch ( command ) {
 
-        	// these will be handled by the DocumentController
-        	case "toggleWireframe":
-        	case "toggleOrbitViews":
-        	case "toggleStrutScales":
-        	case "toggleFrameLabels":
-        	case "toggleOutlines":
-        		actionListener = controller;
-        		break;
+            // these can fall through to the ApplicationController
+            case "quit":
+            case "new":
+            case "new-rootTwo":
+            case "new-rootThree":
+            case "new-heptagon":
+            case "new-snubDodec":
+            case "openURL":
+            case "showAbout":
 
-			case "open":
-        	case "newFromTemplate":
-        	case "openDeferringRedo":
-        		actionListener = new ControllerFileAction( new FileDialog( this ), true, command, "vZome", controller );
-        		break;
-                
-        	case "import.vef":
-        		actionListener = new ControllerFileAction( new FileDialog( this ), true, command, "vef", controller );
-        		break;
-                
-        	case "saveAs":
-        		actionListener = saveAsAction;
-        		break;
-
-        	case "save":
-        	case "saveDefault":
-        	case "close":
-        	case "snapshot.2d":
-        	case "showToolsPanel":
-        	case "setItemColor":
-        	case "setBackgroundColor":
-        	case "showPolytopesDialog":
-        	case "showZomicWindow":
-        	case "showPythonWindow":
-        	case "rZomeOrbits":
-        	case "predefinedOrbits":
-        	case "usedOrbits":
-        	case "setAllDirections":
-        	case "configureShapes":
-        	case "configureDirections":
-        	case "redoUntilEdit":
-        	case "addBookmark":
-        		actionListener = this .localActions;
+                // these will be handled by the DocumentController
+            case "toggleWireframe":
+            case "toggleOrbitViews":
+            case "toggleStrutScales":
+            case "toggleFrameLabels":
+            case "toggleNormals":
+            case "toggleOutlines":
+                actionListener = controller;
                 break;
-                                                
-        	case "capture-animation":
-        		actionListener = new ControllerFileAction( new FileDialog( this ), false, command, "png", controller );
+
+            case "open":
+            case "newFromTemplate":
+            case "openDeferringRedo":
+                actionListener = new ControllerFileAction( new FileDialog( this ), true, command, "vZome", controller );
                 break;
-                                                
-        	default:
-        		if ( command .startsWith( "openResource-" ) ) {
-        			actionListener = controller;
-        		}
-        		else if ( command .startsWith( "setSymmetry." ) ) {
-        			actionListener = this .localActions;
-        		}
-        		else if ( command .startsWith( "showProperties-" ) ) {
-        			actionListener = this .localActions;
-        		}
-        		else if ( command .startsWith( "capture." ) ) {
-        			String ext = command .substring( "capture." .length() );
-            		actionListener = new ControllerFileAction( new FileDialog( this ), false, command, ext, controller );
-        		}
-        		else if ( command .startsWith( "export." ) ) {
-        			String ext = command .substring( "export." .length() );
-        			switch ( ext ) {
-        			case "vrml": ext = "wrl"; break;
-        			case "size": ext = "txt"; break;
-        			case "partslist": ext = "txt"; break;
-        			case "partgeom": ext = "vef"; break;
-					default:
-						break;
-					}
-            		actionListener = new ControllerFileAction( new FileDialog( this ), false, command, ext, controller );
-        		}
-        		else {
-            		actionListener = getExclusiveAction( command, controller );
+
+            case "saveAs":
+                actionListener = saveAsAction;
+                break;
+
+            case "save":
+            case "saveDefault":
+            case "close":
+            case "snapshot.2d":
+            case "showToolsPanel":
+            case "setItemColor":
+            case "setBackgroundColor":
+            case "showPolytopesDialog":
+            case "showZomicWindow":
+            case "showPythonWindow":
+            case "rZomeOrbits":
+            case "predefinedOrbits":
+            case "usedOrbits":
+            case "setAllDirections":
+            case "configureShapes":
+            case "configureDirections":
+            case "addBookmark":
+            case "importVefWithScale":
+            case "import.vef.tetrahedral":
+                actionListener = this .localActions;
+                break;
+
+            case "capture-animation":
+                actionListener = new ControllerFileAction( new FileDialog( this ), false, command, "png", controller );
+                break;
+
+            default:
+                if ( command .startsWith( "openResource-" ) ) {
+                    actionListener = controller;
+                }
+                else if ( command .startsWith( "setSymmetry." ) ) {
+                    actionListener = this .localActions;
+                }
+                else if ( command .startsWith( "execCommandLine/" ) ) {
+                    actionListener = this .localActions;
+                }
+                else if ( command .startsWith( "showProperties-" ) ) {
+                    actionListener = this .localActions;
+                }
+                else if ( command .startsWith( "capture." ) ) {
+                    String ext = command .substring( "capture." .length() );
+                    actionListener = new ControllerFileAction( new FileDialog( this ), false, command, ext, controller );
+                }
+                else if ( command .startsWith( "export2d." ) ) {
+                    String ext = command .substring( "export2d." .length() );
+                    actionListener = new ControllerFileAction( new FileDialog( this ), false, command, ext, controller );
+                }
+                else if ( command .startsWith( "export." ) ) {
+                    String ext = command .substring( "export." .length() );
+                    switch ( ext ) {
+                    case "vrml": ext = "wrl"; break;
+                    case "size": ext = "txt"; break;
+                    case "partslist": ext = "txt"; break;
+                    case "partgeom": ext = "vef"; break;
+                    default:
+                        break;
+                    }
+                    actionListener = new ControllerFileAction( new FileDialog( this ), false, command, ext, controller );
+                }
+                else {
+                    actionListener = getExclusiveAction( command, controller );
                     this .mExcluder .addExcludable( control );
-        		}
+                }
                 break;
-        	}
-        	control .addActionListener( actionListener );
+            }
+            control .addActionListener( actionListener );
         }
-    	return control;
+        return control;
     }
     
     @Override
     public JMenuItem setMenuAction( String command, Controller controller, JMenuItem menuItem )
     {
-    	return (JMenuItem) this .setButtonAction( command, controller, menuItem );
+        return (JMenuItem) this .setButtonAction( command, controller, menuItem );
     }
 
 	@Override

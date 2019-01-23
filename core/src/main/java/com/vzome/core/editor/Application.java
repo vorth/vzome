@@ -5,12 +5,11 @@ package com.vzome.core.editor;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import javax.vecmath.Vector3f;
@@ -28,8 +27,8 @@ import com.vzome.core.exporters.DaeExporter;
 import com.vzome.core.exporters.DxfExporter;
 import com.vzome.core.exporters.Exporter3d;
 import com.vzome.core.exporters.HistoryExporter;
-import com.vzome.core.exporters.JsonExporter;
 import com.vzome.core.exporters.LiveGraphicsExporter;
+import com.vzome.core.exporters.ObservableJsonExporter;
 import com.vzome.core.exporters.OffExporter;
 import com.vzome.core.exporters.OpenGLExporter;
 import com.vzome.core.exporters.POVRayExporter;
@@ -43,6 +42,12 @@ import com.vzome.core.exporters.SegExporter;
 import com.vzome.core.exporters.StlExporter;
 import com.vzome.core.exporters.VRMLExporter;
 import com.vzome.core.exporters.VefExporter;
+import com.vzome.core.exporters.VsonExporter;
+import com.vzome.core.exporters.WebviewJsonExporter;
+import com.vzome.core.exporters2d.PDFExporter;
+import com.vzome.core.exporters2d.PostScriptExporter;
+import com.vzome.core.exporters2d.SVGExporter;
+import com.vzome.core.exporters2d.SnapshotExporter;
 import com.vzome.core.kinds.GoldenFieldApplication;
 import com.vzome.core.kinds.HeptagonFieldApplication;
 import com.vzome.core.kinds.RootThreeFieldApplication;
@@ -51,36 +56,38 @@ import com.vzome.core.kinds.SnubDodecFieldApplication;
 import com.vzome.core.render.Color;
 import com.vzome.core.render.Colors;
 import com.vzome.core.viewing.Lights;
+import com.vzome.fields.sqrtphi.SqrtPhiFieldApplication;
 
 public class Application
 {
-    private final Map<String, FieldApplication> fieldApps = new HashMap<>();
-    
+    private final Map<String, Supplier<FieldApplication> > fieldAppSuppliers = new HashMap<>();
+
     private final Colors mColors;
 
     private final Command.FailureChannel failures;
-    
+
     private final Properties properties;
 
-    private Map<String, Exporter3d> exporters = new HashMap<>();
+    private final Map<String, Exporter3d> exporters = new HashMap<>();
 
-    private Lights mLights = new Lights();
-    
+    private final Lights mLights = new Lights();
+
+    private final Map<String, Supplier<SnapshotExporter>> exporters2d = new HashMap<>();
+
     private static final Logger logger = Logger.getLogger( "com.vzome.core.editor" );
 
     public Application( boolean enableCommands, Command.FailureChannel failures, Properties overrides )
     {
         this .failures = failures;
-        
+
         properties = loadDefaults();
         if ( overrides != null )
         {
         	properties .putAll( overrides );
         }
         properties .putAll( loadBuildProperties() );
-        
+
         mColors = new Colors( properties );
-//        File prefsFolder = new File( System.getProperty( "user.home" ), "vZome-Preferences" );
 
         for ( int i = 1; i <= 3; i++ ) {
             Color color = mColors .getColorPref( "light.directional." + i );
@@ -91,12 +98,14 @@ public class Application
         mLights .setBackgroundColor( mColors .getColor( Colors.BACKGROUND ) );
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
+
+        this .exporters .put( "vson", new VsonExporter( null, this .mColors, this .mLights, null ) );
+        this .exporters .put( "observable", new ObservableJsonExporter( null, this .mColors, this .mLights, null ) );
         this .exporters .put( "pov", new POVRayExporter( null, this .mColors, this .mLights, null ) );
         this .exporters .put( "opengl", new OpenGLExporter( null, this .mColors, this .mLights, null ) );
         this .exporters .put( "dae", new DaeExporter( null, this .mColors, this .mLights, null ) );
         this .exporters .put( "LiveGraphics", new LiveGraphicsExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "json", new JsonExporter( null, this .mColors, this .mLights, null ) );
+        this .exporters .put( "json", new WebviewJsonExporter( null, this .mColors, this .mLights, null ) );
         this .exporters .put( "step", new STEPExporter( null, this .mColors, this .mLights, null ) );
         this .exporters .put( "vrml", new VRMLExporter( null, this .mColors, this .mLights, null ) );
         this .exporters .put( "off", new OffExporter( null, this .mColors, this .mLights, null ) );
@@ -109,10 +118,22 @@ public class Application
         this .exporters .put( "pdb", new PdbExporter( null, this .mColors, this .mLights, null ) );
         this .exporters .put( "seg", new SegExporter( null, this .mColors, this .mLights, null ) );
         this .exporters .put( "ply", new PlyExporter( this .mColors, this .mLights ) );
-        
         this .exporters .put( "history", new HistoryExporter( null, this .mColors, this .mLights, null ) );
+        
+        this .exporters2d .put( "pdf", PDFExporter::new );
+        this .exporters2d .put( "svg", SVGExporter::new );
+        this .exporters2d .put( "ps",  PostScriptExporter::new );
+
+        // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        this.fieldAppSuppliers.put("golden", GoldenFieldApplication::new);
+        this.fieldAppSuppliers.put("rootTwo", RootTwoFieldApplication::new);
+		this.fieldAppSuppliers.put("rootThree", RootThreeFieldApplication::new);
+        this.fieldAppSuppliers.put("dodecagon", RootThreeFieldApplication::new);
+        this.fieldAppSuppliers.put("heptagon", HeptagonFieldApplication::new);
+        this.fieldAppSuppliers.put("snubDodec", SnubDodecFieldApplication::new);
+        this.fieldAppSuppliers.put( "sqrtPhi", SqrtPhiFieldApplication::new);
     }
-    
+
     public DocumentModel loadDocument( InputStream bytes ) throws Exception
     {
         Document xml = null;
@@ -128,7 +149,7 @@ public class Application
 //            String errorCode = "XML is bad:  " + e.getMessage() + " at line " + e.getLineNumber() + ", column "
 //                    + e.getColumnNumber();
             logger .severe( e .getMessage() );
-            throw e; 
+            throw e;
         }
 
         Element element = xml .getDocumentElement();
@@ -149,8 +170,7 @@ public class Application
         }
         else
             logger .fine( "supported format: " + tns );
-        
-        
+
         String fieldName = element .getAttribute( "field" );
         if ( fieldName .isEmpty() )
             // field is qualified in the Zome interchange format
@@ -158,7 +178,7 @@ public class Application
         if ( fieldName .isEmpty() )
             fieldName = "golden";
         FieldApplication kind = this .getDocumentKind( fieldName );
-        
+
         return new DocumentModel( kind, failures, element, this );
     }
 
@@ -185,47 +205,16 @@ public class Application
 
 	public FieldApplication getDocumentKind( String name )
 	{
-		// This is lazy, so we don't initialize anything the user doesn't need.
-		
-        FieldApplication kind = fieldApps .get( name );
-        if ( kind == null ) {
-        	switch ( name ) {
-
-        	case "golden":
-		        kind = new GoldenFieldApplication();
-				break;
-
-        	case "rootTwo":
-		        kind = new RootTwoFieldApplication();
-				break;
-
-        	case "rootThree":
-		        kind = new RootThreeFieldApplication();
-		        fieldApps .put( "dodecagon", kind ); // for legacy documents
-				break;
-
-        	case "heptagon":
-		        kind = new HeptagonFieldApplication();
-				break;
-
-        	case "snubDodec":
-		        kind = new SnubDodecFieldApplication();
-				break;
-
-			default:
-				return null;
-			}
-            fieldApps .put( kind .getName(), kind );
+        Supplier<FieldApplication> supplier = fieldAppSuppliers.get(name);
+        if( supplier != null ) {
+            return supplier.get();
         }
-        
-		return kind;
+        throw new IllegalArgumentException("Unknown Application Type " + name);
 	}
 
 	public Set<String> getFieldNames()
 	{
-		// Cannot get the keyset from fieldApps, since we are being lazy in constructing that.
-		
-		return new HashSet( Arrays.asList( "golden", "rootTwo", "rootThree", "heptagon", "snubDodec" ) );
+        return fieldAppSuppliers.keySet();
 	}
 
 	public static Properties loadDefaults()
@@ -250,7 +239,7 @@ public class Application
         try {
             ClassLoader cl = Application.class.getClassLoader();
             InputStream in = cl.getResourceAsStream( defaultRsrc );
-            if ( in != null ) 
+            if ( in != null )
             	defaults .load( in );
         } catch ( IOException ioe ) {
             logger.warning( "problem reading build properties: " + defaultRsrc );
@@ -277,4 +266,13 @@ public class Application
 	{
 		return this .properties .getProperty( "version" );
 	}
+
+    public SnapshotExporter getSnapshotExporter( String format )
+    {
+        Supplier<SnapshotExporter> supplier = this .exporters2d .get( format );
+        if ( supplier == null )
+            throw new RuntimeException();
+        else
+            return supplier.get();
+    }
 }

@@ -10,8 +10,12 @@ import static com.vzome.core.editor.ChangeSelection.ActionEnum.SELECT;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -49,8 +53,6 @@ import com.vzome.core.construction.FreePoint;
 import com.vzome.core.construction.Point;
 import com.vzome.core.construction.Polygon;
 import com.vzome.core.construction.Segment;
-import com.vzome.core.construction.SegmentCrossProduct;
-import com.vzome.core.construction.SegmentJoiningPoints;
 import com.vzome.core.editor.ManifestationColorMappers.CentroidNearestSpecialOrbitColorMap;
 import com.vzome.core.editor.ManifestationColorMappers.ManifestationColorMapper;
 import com.vzome.core.editor.ManifestationColorMappers.NearestSpecialOrbitColorMap;
@@ -58,12 +60,19 @@ import com.vzome.core.editor.ManifestationColorMappers.SystemCentroidColorMap;
 import com.vzome.core.editor.ManifestationColorMappers.SystemColorMap;
 import com.vzome.core.editor.Snapshot.SnapshotAction;
 import com.vzome.core.exporters.Exporter3d;
+import com.vzome.core.exporters.ObservableJsonExporter;
 import com.vzome.core.exporters.OpenGLExporter;
 import com.vzome.core.exporters.POVRayExporter;
 import com.vzome.core.exporters.PartGeometryExporter;
+import com.vzome.core.exporters.VsonExporter;
+import com.vzome.core.exporters2d.Java2dExporter;
+import com.vzome.core.exporters2d.Java2dSnapshot;
+import com.vzome.core.exporters2d.SnapshotExporter;
 import com.vzome.core.math.DomUtils;
 import com.vzome.core.math.Projection;
+import com.vzome.core.math.QuaternionProjection;
 import com.vzome.core.math.RealVector;
+import com.vzome.core.math.TetrahedralProjection;
 import com.vzome.core.math.symmetry.Axis;
 import com.vzome.core.math.symmetry.Direction;
 import com.vzome.core.math.symmetry.IcosahedralSymmetry;
@@ -112,7 +121,7 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 	
 	private RenderedModel renderedModel;
 	
-	private Camera defaultView;
+	private Camera defaultCamera;
 	
 	private final String coreVersion;
     
@@ -138,6 +147,8 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 
 	private final FieldApplication kind;
 
+	private final Application app;
+
     public void addPropertyChangeListener( PropertyChangeListener listener )
     {
     	propertyChangeSupport .addPropertyChangeListener( listener );
@@ -162,12 +173,20 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 	{
 		super();
 		this .kind = kind;
+        this .app = app;
 		this .field = kind .getField();
 		AlgebraicVector origin = this .field .origin( 3 );
 		this .originPoint = new FreePoint( origin );
 		this .failures = failures;
 		this .mXML = xml;
-		this .sceneLighting = app .getLights();
+		this .sceneLighting = new Lights( app .getLights() );
+		if ( xml != null ) {
+	        Element lightsXml = ( this .mXML == null )? null : (Element) this .mXML .getElementsByTagName( "sceneModel" ) .item( 0 );
+	        if ( lightsXml != null ) {
+		        	String colorString = lightsXml .getAttribute( "background" );
+		        	this .sceneLighting .setBackgroundColor( Color .parseColor( colorString ) );
+	        }
+		}
 		
 		this .coreVersion = app .getCoreVersion();
 
@@ -217,11 +236,11 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 		this .kind .registerToolFactories( this .toolFactories, this .tools );
 		
         this .bookmarkFactory = new BookmarkTool.Factory( tools );
-		this .mEditorModel .addSelectionSummaryListener( (SelectionSummary.Listener) this .bookmarkFactory );
+		this .mEditorModel .addSelectionSummaryListener( this .bookmarkFactory );
 
 		this .bookmarkFactory .createPredefinedTool( "ball at origin" );
         
-		this .defaultView = new Camera();
+		this .defaultCamera = new Camera();
         Element views = ( this .mXML == null )? null : (Element) this .mXML .getElementsByTagName( "Viewing" ) .item( 0 );
         if ( views != null ) {
             NodeList nodes = views .getChildNodes();
@@ -233,7 +252,7 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
         			if ( ( name == null || name .isEmpty() )
         		    || ( "default" .equals( name ) ) )
         			{
-        				this .defaultView = new Camera( viewElem );
+        				this .defaultCamera = new Camera( viewElem );
         			}
         		}
             }
@@ -248,6 +267,12 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 				String str = editNumber + ": " + DomUtils .toString( xml );
 				DocumentModel.this .firePropertyChange( "current.edit.xml", null, str );
 			}
+
+            @Override
+            public void publishChanges()
+            {
+                mEditorModel .notifyListeners();
+            }
 		});
 
         lesson .addPropertyChangeListener( new PropertyChangeListener()
@@ -341,9 +366,13 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 			edit = new AffineTransformAll( this.mSelection, this.mRealizedModel, this.mEditorModel.getCenterPoint(), groupInSelection );
 			break;
 			
-		case "Parallelepiped":
-			edit = new Parallelepiped( this.mSelection, this.mRealizedModel );
-			break;
+        case "Parallelepiped":
+            edit = new Parallelepiped( this.mSelection, this.mRealizedModel );
+            break;
+
+        case "PolarZonohedron":
+            edit = new PolarZonohedron( this.mSelection, this.mRealizedModel, this .symmetrySystems .get( xml .getAttribute( "symmetry" ) ) );
+            break;
 
 		case "HeptagonSubdivision":
 			edit = new HeptagonSubdivision( this.mSelection, this.mRealizedModel, groupInSelection );
@@ -379,9 +408,18 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 		case "InvertSelection":
 			edit = new InvertSelection( this.mSelection, this.mRealizedModel, groupInSelection );
 			break;
-		case "JoinPoints":
-			edit = new JoinPoints( this.mSelection, this.mRealizedModel, groupInSelection );
-			break;
+        case "JoinPoints":
+            edit = new JoinPoints( this.mSelection, this.mRealizedModel, groupInSelection );
+            break;
+        case ConvexHull2d.NAME:
+            edit = mEditorModel.convexHull2d();
+            break;
+        case ConvexHull3d.NAME:
+            edit = mEditorModel.convexHull3d();
+            break;
+        case JoinSkewLines.NAME:
+            edit = mEditorModel.joinSkewLines();
+            break;
 		case "NewCentroid":
 			edit = new Centroid( this.mSelection, this.mRealizedModel, groupInSelection );
 			break;
@@ -430,9 +468,15 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 			edit = new SelectAutomaticStruts( this .symmetrySystems .get( xml .getAttribute( "symmetry" ) ),
                     this .mSelection, this .mRealizedModel );
 			break;
-		case "SelectCollinear":
-			edit = new SelectCollinear( this .mSelection, this .mRealizedModel );
-			break;
+        case "SelectCollinear":
+            edit = new SelectCollinear( this .mSelection, this .mRealizedModel );
+            break;
+        case SelectByDiameter.NAME:
+            edit = mEditorModel.selectByDiameter();
+            break;
+        case SelectByRadius.NAME:
+            edit = mEditorModel.selectByRadius();
+            break;
 		case "ValidateSelection":
 			edit = new ValidateSelection( this.mSelection );
 			break;
@@ -452,9 +496,18 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 		case RealizeMetaParts.NAME:
 			edit = new RealizeMetaParts( mSelection, mRealizedModel );
 			break;
-		case ShowVertices.NAME:
-			edit = new ShowVertices( mSelection, mRealizedModel );
+		case ReplaceWithShape.NAME:
+			edit = new ReplaceWithShape( mSelection, mRealizedModel, null );
 			break;
+        case ShowVertices.NAME:
+            edit = new ShowVertices( mSelection, mRealizedModel );
+            break;
+        case ShowNormals.NAME:
+            edit = new ShowNormals( mSelection, mRealizedModel );
+            break;
+        case "Validate2Manifold":
+            edit = new Validate2Manifold( mSelection, mRealizedModel );
+            break;
 		case "Symmetry4d":
 			QuaternionicSymmetry h4symm = this .kind .getQuaternionSymmetry( "H_4" );
 			edit = new Symmetry4d( this.mSelection, this.mRealizedModel, h4symm, h4symm );
@@ -517,6 +570,34 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 		return out .toString();
 	}
 
+	public String copyRenderedModel( String format )
+	{
+	    StringWriter out = new StringWriter();
+	    switch ( format ) {
+
+        case "vson":
+            VsonExporter vsonEx = new VsonExporter( this .getCamera(), null, null, this .getRenderedModel() );
+            try {
+                vsonEx .doExport( null, out, 0, 0 );
+            } catch (IOException e) {
+                // TODO fail better here
+                e.printStackTrace();
+            }
+            break;
+
+        case "observable":
+            ObservableJsonExporter ojex = new ObservableJsonExporter( this .getCamera(), null, null, this .getRenderedModel() );
+            try {
+                ojex .doExport( null, out, 0, 0 );
+            } catch (IOException e) {
+                // TODO fail better here
+                e.printStackTrace();
+            }
+            break;
+	    }
+	    return out .toString();
+	}
+
 	public void pasteVEF( String vefContent )
 	{
         if( vefContent != null && vefContent.startsWith("vZome VEF" )) {
@@ -537,26 +618,26 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 
     public boolean doEdit( String action )
     {
-    	// TODO break all these cases out as dedicated DocumentModel methods
-    	
-    	if ( this .mEditorModel .mSelection .isEmpty() && action .equals( "hideball" ) ) {
-    		action = "showHidden";
-		}
+        // TODO break all these cases out as dedicated DocumentModel methods
 
-    	Command command = this .kind .getLegacyCommand( action );
-    	if ( command != null )
-    	{
-    		CommandEdit edit = new CommandEdit( (AbstractCommand) command, mEditorModel, false );
+        if ( this .mEditorModel .mSelection .isEmpty() && action .equals( "hideball" ) ) {
+            action = "showHidden";
+        }
+
+        Command command = this .kind .getLegacyCommand( action );
+        if ( command != null )
+        {
+            CommandEdit edit = new CommandEdit( (AbstractCommand) command, mEditorModel, false );
             this .performAndRecord( edit );
             return true;
-    	}
-    	
-//      if ( action.equals( "sixLattice" ) )
-//      edit = new SixLattice( mSelection, mRealizedModel, mDerivationModel );
+        }
 
-  // not supported currently, so I don't have to deal with the mTargetManifestation problem
-//  if ( action .equals( "reversePanel" ) )
-//      edit = new ReversePanel( mTargetManifestation, mSelection, mRealizedModel, mDerivationModel );
+        //      if ( action.equals( "sixLattice" ) )
+        //      edit = new SixLattice( mSelection, mRealizedModel, mDerivationModel );
+
+        // not supported currently, so I don't have to deal with the mTargetManifestation problem
+        //  if ( action .equals( "reversePanel" ) )
+        //      edit = new ReversePanel( mTargetManifestation, mSelection, mRealizedModel, mDerivationModel );
 
         UndoableEdit edit = null;
         switch (action) {
@@ -602,6 +683,12 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 		case "SelectParallelStruts":
 			edit = mEditorModel.selectParallelStruts();
 			break;
+        case SelectByDiameter.NAME:
+            edit = mEditorModel.selectByDiameter();
+            break;
+        case SelectByRadius.NAME:
+            edit = mEditorModel.selectByRadius();
+            break;
 		case "invertSelection":
 			edit = mEditorModel.invertSelection();
 			break;
@@ -610,6 +697,9 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 			break;
 		case "ungroup":
 			edit = mEditorModel.ungroupSelection();
+			break;
+		case "validate-2-manifold":
+			edit = mEditorModel .validate2Manifold();
 			break;
 		case "assertSelection":
 			edit = new ValidateSelection( mSelection );
@@ -632,6 +722,15 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 		case "joinBallsAllPossible":
 			edit = new JoinPoints( mSelection, mRealizedModel, false, JoinPoints.JoinModeEnum.ALL_POSSIBLE );
 			break;
+        case ConvexHull2d.NAME:
+            edit = mEditorModel.convexHull2d();
+            break;
+        case ConvexHull3d.NAME:
+            edit = mEditorModel.convexHull3d();
+            break;
+        case JoinSkewLines.NAME:
+            edit = mEditorModel.joinSkewLines();
+            break;
 		case "ballAtOrigin":
 			edit = new ShowPoint( originPoint, mSelection, mRealizedModel, false );
 			break;
@@ -673,7 +772,11 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 			edit = new Parallelepiped( mSelection, mRealizedModel );
 			break;
 			
-		case "dodecagonsymm":
+        case "polarZonohedron":
+            edit = new PolarZonohedron( mSelection, mRealizedModel, mEditorModel.getSymmetrySystem() );
+            break;
+
+        case "dodecagonsymm":
 			edit = new DodecagonSymmetry( mSelection, mRealizedModel, mEditorModel.getCenterPoint(),
 					this .mEditorModel .getSymmetrySystem() .getSymmetry(), false );
 			break;
@@ -703,12 +806,15 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 				String symmetrySystemName = mEditorModel .getSymmetrySystem().getName();
 				edit = getColorMapper(mapperName, symmetrySystemName);
 	        } 
-			else if ( ShowVertices.NAME .toLowerCase() .equals( action .toLowerCase() ) ) {
-	    		edit = new ShowVertices( mSelection, mRealizedModel );
-	    	} 
+            else if ( ShowVertices.NAME .toLowerCase() .equals( action .toLowerCase() ) ) {
+                edit = new ShowVertices( mSelection, mRealizedModel );
+            } 
+            else if ( ShowNormals.NAME .toLowerCase() .equals( action .toLowerCase() ) ) {
+                edit = new ShowNormals( mSelection, mRealizedModel );
+            } 
 			else if ( action .toLowerCase() .equals( "chainballs" ) ) {
-	    		edit = new JoinPoints( mSelection, mRealizedModel, false, JoinPoints.JoinModeEnum.CHAIN_BALLS );
-	    	}
+			    edit = new JoinPoints( mSelection, mRealizedModel, false, JoinPoints.JoinModeEnum.CHAIN_BALLS );
+			}
 		}
 
         if ( edit == null )
@@ -722,11 +828,11 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 
     @Override
 	public void performAndRecord( UndoableEdit edit )
-	{
+    {
         if ( edit == null )
             return;
         if ( edit instanceof NoOp )
-        	return;
+            return;
 
         try {
             synchronized ( this .mHistory ) {
@@ -740,15 +846,15 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
         {
             Throwable cause = re.getCause();
             if ( cause instanceof Command.Failure )
-            	this .failures .reportFailure( (Command.Failure) cause );
+                this .failures .reportFailure( (Command.Failure) cause );
             else if ( cause != null )
-            	this .failures .reportFailure( new Command.Failure( cause ) );
+                this .failures .reportFailure( new Command.Failure( cause ) );
             else
-            	this .failures .reportFailure( new Command.Failure( re ) );
+                this .failures .reportFailure( new Command.Failure( re ) );
         }
         catch ( Command.Failure failure )
         {
-        	this .failures .reportFailure( failure );
+            this .failures .reportFailure( failure );
         }
         this .changes++;
     }
@@ -759,22 +865,38 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
     	if ( "ball" .equals( paramName ) )
     		edit = mEditorModel .setSymmetryCenter( singleConstruction );
     	else if ( "strut" .equals( paramName ) )
-    		edit = mEditorModel .setSymmetryAxis( (Segment) singleConstruction );
+    		edit = mEditorModel .setSymmetryAxis( singleConstruction );
     	if ( edit != null )
     		this .performAndRecord( edit );
 	}
 	
-	public RealVector getLocation( Construction target )
-	{
-		if ( target instanceof Point)
-			return this .renderedModel .renderVector( ( (Point) target ).getLocation() );
-		else if ( target instanceof Segment )
-			return this .renderedModel .renderVector( ( (Segment) target ).getStart() );
-		else if ( target instanceof Polygon )
-			return this .renderedModel .renderVector( ( (Polygon) target ).getVertices()[ 0 ] );
-		else
-			return new RealVector( 0, 0, 0 );
-	}
+    public RealVector getLocation( Construction target )
+    {
+        if ( target instanceof Point)
+            return this .renderedModel .renderVector( ( (Point) target ).getLocation() );
+        else if ( target instanceof Segment )
+            return this .renderedModel .renderVector( ( (Segment) target ).getStart() );
+        else if ( target instanceof Polygon )
+            return this .renderedModel .renderVector( ( (Polygon) target ).getVertex( 0 ) );
+        else
+            return new RealVector( 0, 0, 0 );
+    }
+
+    public RealVector getCentroid( Construction target )
+    {
+        AlgebraicVector v;
+        if ( target instanceof Point)
+            v = ( (Point) target ).getLocation();
+        else if ( target instanceof Segment ) {
+            v = ((Segment) target). getCentroid( );
+        }
+        else if ( target instanceof Polygon )
+            v = ((Polygon) target). getCentroid( );
+        else
+            v = this.getField().origin(3);
+        
+        return this .renderedModel .renderVector( v );
+    }
 
 	public RealVector getParamLocation( String string )
 	{
@@ -822,6 +944,12 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
         this .performAndRecord( edit );
     }
 
+	public void replaceWithShape( Manifestation ballOrStrut )
+	{
+        UndoableEdit edit = new ReplaceWithShape( mSelection, mRealizedModel, ballOrStrut );
+        this .performAndRecord( edit );
+	}
+
     public Color getSelectionColor()
     {
     	Manifestation last = null;
@@ -833,165 +961,176 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
     
     public void finishLoading( boolean openUndone, boolean asTemplate ) throws Command.Failure
     {
-    	if ( mXML == null )
-    		return;
-
-        // TODO: record the edition, version, and revision on the format, so we can report a nice
-        //   error if we fail to understand some command in the history.  If the revision is
-        //   greater than Version .SVN_REVISION:
-        //    "This document was created using $file.edition $file.version, and contains commands that
-        //      $Version.edition does not understand.  You may need a newer version of
-        //      $Version.edition, or a copy of $file.edition $file.version."
-        //   (Adjust that if $Version.edition == $file.edition, to avoid confusion.)
-
-        String tns = mXML .getNamespaceURI();
-        XmlSaveFormat format = XmlSaveFormat.getFormat( tns );
-        if ( format == null )
-            return; // already checked and reported version compatibility,
-        // up in the constructor
-
-        int scale = 0;
-        String scaleStr = mXML .getAttribute( "scale" );
-        if ( ! scaleStr .isEmpty() )
-            scale = Integer.parseInt( scaleStr );
-        OrbitSet.Field orbitSetField = new OrbitSet.Field()
-        {
-            @Override
-            public OrbitSet getGroup( String name )
-            {
-                SymmetrySystem system = symmetrySystems .get( name );
-            	return system .getOrbits();
-            }
-
-            @Override
-            public QuaternionicSymmetry getQuaternionSet( String name )
-            {
-                return kind .getQuaternionSymmetry( name);
-            }
-        };
-        
-        String writerVersion = mXML .getAttribute( "version" );
-        String buildNum = mXML .getAttribute( "buildNumber" );
-        if ( buildNum != null )
-        	writerVersion += " build " + buildNum;
-        format .initialize( field, orbitSetField, scale, writerVersion, new Properties() );
-
-        Element hist = (Element) mXML .getElementsByTagName( "EditHistory" ) .item( 0 );
-        if ( hist == null )
-            hist = (Element) mXML .getElementsByTagName( "editHistory" ) .item( 0 );
-        int editNum = Integer.parseInt( hist .getAttribute( "editNumber" ) );
-        
-        List<Integer> implicitSnapshots = new ArrayList<>();
-
-        // if we're opening a template document, we don't want to inherit its lesson or saved views
-        if ( !asTemplate )
-        {
-        	Map<String, Camera> viewPages = new HashMap<>();
-            Element views = (Element) mXML .getElementsByTagName( "Viewing" ) .item( 0 );
-            if ( views != null ) {
-                // make a notes page for each saved view
-                //  ("edited" property change will be fired, to trigger migration semantics)
-            	// migrate saved views to notes pages
-                NodeList nodes = views .getChildNodes();
-                for ( int i = 0; i < nodes .getLength(); i++ ) {
-                    Node node = nodes .item( i );
-            		if ( node instanceof Element ) {
-            			Element viewElem = (Element) node;
-            			String name = viewElem .getAttribute( "name" );
-            			if ( name != null && ! name .isEmpty() && ! "default" .equals( name ) )
-            			{
-                			Camera view = new Camera( viewElem );
-            				viewPages .put( name, view ); // named view to migrate to a lesson page
-            			}
-            		}
-            	}
-            }
-
-            Element notesXml = (Element) mXML .getElementsByTagName( "notes" ) .item( 0 );
-            if ( notesXml != null ) 
-            	lesson .setXml( notesXml, editNum, this .defaultView );
-            
-            // add migrated views to the end of the lesson
-            for (Entry<String, Camera> namedView : viewPages .entrySet()) {
-                lesson .addPage( namedView .getKey(), "This page was a saved view created by an older version of vZome.", namedView .getValue(), -editNum );
-            }
-            for (PageModel page : lesson) {
-                int snapshot = page .getSnapshot();
-                if ( ( snapshot < 0 ) && ( ! implicitSnapshots .contains(-snapshot) ) )
-                    implicitSnapshots .add(-snapshot);
-            }
-
-            Collections .sort( implicitSnapshots );
-            
-            for (PageModel page : lesson) {
-                int snapshot = page .getSnapshot();
-                if ( snapshot < 0 )
-                    page .setSnapshot( implicitSnapshots .indexOf(-snapshot) );
-            }
-        }
-
-        UndoableEdit[] explicitSnapshots = null;
-        if ( ! implicitSnapshots .isEmpty() )
-        {
-            Integer highest = implicitSnapshots .get( implicitSnapshots .size() - 1 );
-            explicitSnapshots = new UndoableEdit[ highest + 1 ];
-            for (int i = 0; i < implicitSnapshots .size(); i++)
-            {
-                Integer editNumInt = implicitSnapshots .get( i );
-                explicitSnapshots[ editNumInt ] = new Snapshot( i, this );
-            }
-        }
-        
         try {
-            int lastDoneEdit = openUndone? 0 : Integer.parseInt( hist .getAttribute( "editNumber" ) );
-            String lseStr = hist .getAttribute( "lastStickyEdit" );
-            int lastStickyEdit = ( ( lseStr == null ) || lseStr .isEmpty() )? -1 : Integer .parseInt( lseStr );
-            NodeList nodes = hist .getChildNodes();
-            for ( int i = 0; i < nodes .getLength(); i++ ) {
-                Node kid = nodes .item( i );
-                if ( kid instanceof Element ) {
-                    Element editElem = (Element) kid;
-                    mHistory .loadEdit( format, editElem, this );
+            if ( mXML == null )
+                return;
+
+            // TODO: record the edition, version, and revision on the format, so we can report a nice
+            //   error if we fail to understand some command in the history.  If the revision is
+            //   greater than Version .SVN_REVISION:
+            //    "This document was created using $file.edition $file.version, and contains commands that
+            //      $Version.edition does not understand.  You may need a newer version of
+            //      $Version.edition, or a copy of $file.edition $file.version."
+            //   (Adjust that if $Version.edition == $file.edition, to avoid confusion.)
+
+            String tns = mXML .getNamespaceURI();
+            XmlSaveFormat format = XmlSaveFormat.getFormat( tns );
+            if ( format == null )
+                return; // already checked and reported version compatibility,
+            // up in the constructor
+
+            int scale = 0;
+            String scaleStr = mXML .getAttribute( "scale" );
+            if ( ! scaleStr .isEmpty() )
+                scale = Integer.parseInt( scaleStr );
+            OrbitSet.Field orbitSetField = new OrbitSet.Field()
+            {
+                @Override
+                public OrbitSet getGroup( String name )
+                {
+                    SymmetrySystem system = symmetrySystems .get( name );
+                    return system .getOrbits();
+                }
+
+                @Override
+                public QuaternionicSymmetry getQuaternionSet( String name )
+                {
+                    return kind .getQuaternionSymmetry( name);
+                }
+            };
+
+            String writerVersion = mXML .getAttribute( "version" );
+            String buildNum = mXML .getAttribute( "buildNumber" );
+            if ( buildNum != null )
+                writerVersion += " build " + buildNum;
+            format .initialize( field, orbitSetField, scale, writerVersion, new Properties() );
+
+            Element hist = (Element) mXML .getElementsByTagName( "EditHistory" ) .item( 0 );
+            if ( hist == null )
+                hist = (Element) mXML .getElementsByTagName( "editHistory" ) .item( 0 );
+            int editNum = Integer.parseInt( hist .getAttribute( "editNumber" ) );
+
+            List<Integer> implicitSnapshots = new ArrayList<>();
+
+            // if we're opening a template document, we don't want to inherit its lesson or saved views
+            if ( !asTemplate )
+            {
+                Map<String, Camera> viewPages = new HashMap<>();
+                Element views = (Element) mXML .getElementsByTagName( "Viewing" ) .item( 0 );
+                if ( views != null ) {
+                    // make a notes page for each saved view
+                    //  ("edited" property change will be fired, to trigger migration semantics)
+                    // migrate saved views to notes pages
+                    NodeList nodes = views .getChildNodes();
+                    for ( int i = 0; i < nodes .getLength(); i++ ) {
+                        Node node = nodes .item( i );
+                        if ( node instanceof Element ) {
+                            Element viewElem = (Element) node;
+                            String name = viewElem .getAttribute( "name" );
+                            if ( name != null && ! name .isEmpty() && ! "default" .equals( name ) )
+                            {
+                                Camera view = new Camera( viewElem );
+                                viewPages .put( name, view ); // named view to migrate to a lesson page
+                            }
+                        }
+                    }
+                }
+
+                Element notesXml = (Element) mXML .getElementsByTagName( "notes" ) .item( 0 );
+                if ( notesXml != null ) 
+                    lesson .setXml( notesXml, editNum, this .defaultCamera );
+
+                // add migrated views to the end of the lesson
+                for (Entry<String, Camera> namedView : viewPages .entrySet()) {
+                    lesson .addPage( namedView .getKey(), "This page was a saved view created by an older version of vZome.", namedView .getValue(), -editNum );
+                }
+                for (PageModel page : lesson) {
+                    int snapshot = page .getSnapshot();
+                    if ( ( snapshot < 0 ) && ( ! implicitSnapshots .contains(-snapshot) ) )
+                        implicitSnapshots .add(-snapshot);
+                }
+
+                Collections .sort( implicitSnapshots );
+
+                for (PageModel page : lesson) {
+                    int snapshot = page .getSnapshot();
+                    if ( snapshot < 0 )
+                        page .setSnapshot( implicitSnapshots .indexOf(-snapshot) );
                 }
             }
-            mHistory .synchronize( lastDoneEdit, lastStickyEdit, explicitSnapshots );
-        } catch ( Throwable t )
-        {
-        	String fileVersion = mXML .getAttribute( "coreVersion" );
-        	if ( this .fileIsTooNew( fileVersion ) ) {
-        		String message = "This file was authored with a newer version, " + format .getToolVersion( mXML );
-            	throw new Command.Failure( message, t );
-        	} else {
-        		String message = "There was a problem opening this file.  Please send the file to bugs@vzome.com.";
-            	throw new Command.Failure( message, t );
-        	}
+
+            UndoableEdit[] explicitSnapshots = null;
+            if ( ! implicitSnapshots .isEmpty() )
+            {
+                Integer highest = implicitSnapshots .get( implicitSnapshots .size() - 1 );
+                explicitSnapshots = new UndoableEdit[ highest + 1 ];
+                for (int i = 0; i < implicitSnapshots .size(); i++)
+                {
+                    Integer editNumInt = implicitSnapshots .get( i );
+                    explicitSnapshots[ editNumInt ] = new Snapshot( i, this );
+                }
+            }
+
+            // This has to before any of the tools are defined, in mHistory .synchronize() below
+            Element toolsXml = (Element) mXML .getElementsByTagName( "Tools" ) .item( 0 );
+            if ( toolsXml != null )
+                this .tools .loadFromXml( toolsXml );
+
+            try {
+                int lastDoneEdit = openUndone? 0 : Integer.parseInt( hist .getAttribute( "editNumber" ) );
+                String lseStr = hist .getAttribute( "lastStickyEdit" );
+                int lastStickyEdit = ( ( lseStr == null ) || lseStr .isEmpty() )? -1 : Integer .parseInt( lseStr );
+                NodeList nodes = hist .getChildNodes();
+                for ( int i = 0; i < nodes .getLength(); i++ ) {
+                    Node kid = nodes .item( i );
+                    if ( kid instanceof Element ) {
+                        Element editElem = (Element) kid;
+                        mHistory .loadEdit( format, editElem, this );
+                    }
+                }
+                mHistory .synchronize( lastDoneEdit, lastStickyEdit, explicitSnapshots );
+            } catch ( Throwable t )
+            {
+                String fileVersion = mXML .getAttribute( "coreVersion" );
+                if ( this .fileIsTooNew( fileVersion ) ) {
+                    String message = "This file was authored with a newer version, " + format .getToolVersion( mXML );
+                    throw new Command.Failure( message, t );
+                } else {
+                    String message = "There was a problem opening this file.  Please send the file to bugs@vzome.com.";
+                    throw new Command.Failure( message, t );
+                }
+            }
+
+            this .migrated = openUndone || format.isMigration() || ! implicitSnapshots .isEmpty();
+        } 
+        finally {
+            if(logger.isLoggable(Level.FINE)) {
+                double duration = (System.nanoTime() - startTime) / 1000000000D;
+                logger.fine( "Document @ " + System.identityHashCode(this) + 
+                        " loaded in " + duration + " seconds" 
+                        + (mXML == null ? " (new)" : " from XML") );
+            }
         }
-
-        // This has to wait until all the tools are defined, in mHistory .synchronize() above
-        Element toolsXml = (Element) mXML .getElementsByTagName( "Tools" ) .item( 0 );
-        if ( toolsXml != null )
-        	this .tools .loadFromXml( toolsXml );
-
-        this .migrated = openUndone || format.isMigration() || ! implicitSnapshots .isEmpty();
     }
+    private final long startTime = System.nanoTime();
     
     boolean fileIsTooNew( String fileVersion )
     {
-    	if ( fileVersion == null || "" .equals( fileVersion ) )
-    		return false;
-    	String[] fvTokens = fileVersion .split( "\\." );
-    	String[] cvTokens = this .coreVersion .split( "\\." );
-    	for (int i = 0; i < cvTokens.length; i++) {
-    		try {
-    			int codepart = Integer .parseInt( cvTokens[ i ] );
-    			int filepart = Integer .parseInt( fvTokens[ i ] );
-    			if ( filepart > codepart )
-    				return true;
-			} catch ( NumberFormatException e ) {
-				return false;
-			}
-		}
-    	return false;
+        if ( fileVersion == null || "" .equals( fileVersion ) )
+            return false;
+        String[] fvTokens = fileVersion .split( "\\." );
+        String[] cvTokens = this .coreVersion .split( "\\." );
+        for (int i = 0; i < cvTokens.length; i++) {
+            try {
+                int codepart = Integer .parseInt( cvTokens[ i ] );
+                int filepart = Integer .parseInt( fvTokens[ i ] );
+                if ( filepart > codepart )
+                    return true;
+            } catch ( NumberFormatException e ) {
+                return false;
+            }
+        }
+        return false;
     }
 
     public Element getDetailsXml( Document doc )
@@ -1011,17 +1150,17 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
      */
     public void serialize( OutputStream out ) throws Exception
     {
-    	Properties props = new Properties();
-    	props .setProperty( "edition", "vZome" );
-    	props .setProperty( "version", "5.0" );
-    	this .serialize( out, props );
+        Properties props = new Properties();
+        props .setProperty( "edition", "vZome" );
+        props .setProperty( "version", "5.0" );
+        this .serialize( out, props );
     }
 
     public void serialize( OutputStream out, Properties editorProps ) throws Exception
     {
-    	DocumentBuilderFactory factory = DocumentBuilderFactory .newInstance();
-    	factory .setNamespaceAware( true );
-    	DocumentBuilder builder = factory .newDocumentBuilder();
+        DocumentBuilderFactory factory = DocumentBuilderFactory .newInstance();
+        factory .setNamespaceAware( true );
+        DocumentBuilder builder = factory .newDocumentBuilder();
         Document doc = builder .newDocument();
 
         Element vZomeRoot = doc .createElementNS( XmlSaveFormat.CURRENT_FORMAT, "vzome:vZome" );
@@ -1060,7 +1199,7 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
         vZomeRoot .appendChild( childElement );
 
         childElement = doc .createElement( "Viewing" );
-        Element viewXml = this .defaultView .getXML( doc );
+        Element viewXml = this .defaultCamera .getXML( doc );
         childElement .appendChild( viewXml );
         vZomeRoot .appendChild( childElement );
 
@@ -1075,30 +1214,39 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
     
     public void doScriptAction( String command, String script )
     {
-    	UndoableEdit edit = null;
-    	if ( command.equals( "runZomicScript" ) || command.equals( "zomic" ) )
-    	{
-    		edit = new RunZomicScript( mSelection, mRealizedModel, script, mEditorModel.getCenterPoint(),
-					(IcosahedralSymmetry) this .mEditorModel .getSymmetrySystem() .getSymmetry() );
-    		this .performAndRecord( edit );
-    	}
-    	else if ( command.equals( "runPythonScript" ) || command.equals( "py" ) )
-    	{
-    		edit = new RunPythonScript( mSelection, mRealizedModel, script, mEditorModel.getCenterPoint() );
-    		this .performAndRecord( edit );
-    	}
-    	//    else if ( command.equals( "import.zomod" ) )
-    	//        edit = new RunZomodScript( mSelection, mRealizedModel, script, mEditorModel.getCenterPoint(), mField .getSymmetry( "icosahedral" ) );
-    	else if ( command.equals( "import.vef" ) || command.equals( "vef" ) )
-    	{
-    		Segment symmAxis = mEditorModel .getSymmetrySegment();
-    		AlgebraicVector quat = ( symmAxis == null ) ? null : symmAxis.getOffset();
-    		if ( quat != null )
-    			quat = quat .scale( field .createPower( - 5 ) );
-    		AlgebraicNumber scale = field .createPower( 5 );
-    		edit = new LoadVEF( mSelection, mRealizedModel, script, quat, scale );
-    		this .performAndRecord( edit );
-    	}
+        UndoableEdit edit = null;
+        if ( command.equals( "runZomicScript" ) || command.equals( "zomic" ) )
+        {
+            edit = new RunZomicScript( mSelection, mRealizedModel, script, mEditorModel.getCenterPoint(),
+                    (IcosahedralSymmetry) this .mEditorModel .getSymmetrySystem() .getSymmetry() );
+            this .performAndRecord( edit );
+        }
+        else if ( command.equals( "runPythonScript" ) || command.equals( "py" ) )
+        {
+            edit = new RunPythonScript( mSelection, mRealizedModel, script, mEditorModel.getCenterPoint() );
+            this .performAndRecord( edit );
+        }
+        //    else if ( command.equals( "import.zomod" ) )
+        //        edit = new RunZomodScript( mSelection, mRealizedModel, script, mEditorModel.getCenterPoint(), mField .getSymmetry( "icosahedral" ) );
+    }
+    
+    public void importVEF( AlgebraicNumber scale, String script )
+    {
+        Segment symmAxis = mEditorModel .getSymmetrySegment();
+        AlgebraicVector quaternion = ( symmAxis == null ) 
+                ? null 
+                : symmAxis.getOffset() .scale( scale.reciprocal() );
+        Projection projection = quaternion == null
+                ? null
+                : new QuaternionProjection(field, null, quaternion);
+        UndoableEdit edit = new LoadVEF( mSelection, mRealizedModel, script, projection, scale );
+        this .performAndRecord( edit );
+    }
+
+    public void importVEFTetrahedralProjection( AlgebraicNumber scale, String script )
+    {
+        UndoableEdit edit = new LoadVEF( mSelection, mRealizedModel, script, new TetrahedralProjection(field), scale );
+        this .performAndRecord( edit );
     }
 
     public AlgebraicField getField()
@@ -1222,62 +1370,9 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
         return man.getClass().getSimpleName();
     }
 
-	public void undo( boolean useBlocks )
-	{
-		mHistory .undo( useBlocks );
-        this .mEditorModel .notifyListeners();
-	}
-
-	public void redo( boolean useBlocks ) throws Command.Failure
-	{
-		mHistory .redo( useBlocks );
-        this .mEditorModel .notifyListeners();
-	}
-
-	public void undo()
-	{
-		mHistory .undo();
-        this .mEditorModel .notifyListeners();
-	}
-
-	public void redo() throws Command.Failure
-	{
-		mHistory .redo();
-        this .mEditorModel .notifyListeners();
-	}
-
-	public void undoToBreakpoint()
-	{
-		mHistory .undoToBreakpoint();
-        this .mEditorModel .notifyListeners();
-	}
-
 	public void undoToManifestation( Manifestation man )
 	{
 		mHistory .undoToManifestation( man );
-        this .mEditorModel .notifyListeners();
-	}
-
-	public void redoToBreakpoint() throws Command.Failure
-	{
-		mHistory .redoToBreakpoint();
-        this .mEditorModel .notifyListeners();
-	}
-
-	public void setBreakpoint()
-	{
-		mHistory .setBreakpoint();
-	}
-
-	public void undoAll()
-	{
-		mHistory .undoAll();
-        this .mEditorModel .notifyListeners();
-	}
-
-	public void redoAll( int i ) throws Command .Failure
-	{
-		mHistory .redoAll( i );
         this .mEditorModel .notifyListeners();
 	}
 
@@ -1293,24 +1388,33 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 
     public void createStrut( Point point, Axis zone, AlgebraicNumber length )
     {
-    	UndoableEdit edit = new StrutCreation( point, zone, length, this .mRealizedModel );
+        UndoableEdit edit = new StrutCreation( point, zone, length, this .mRealizedModel );
         this .performAndRecord( edit );
     }
 
-	public Exporter3d getNaiveExporter( String format, Camera view, Colors colors, Lights lights, RenderedModel currentSnapshot )
+	public Exporter3d getNaiveExporter( String format, Camera camera, Colors colors, Lights lights, RenderedModel currentSnapshot )
 	{
-        Exporter3d exporter = null;
-        if ( format.equals( "pov" ) )
-            exporter = new POVRayExporter( view, colors, lights, currentSnapshot );
-        else if ( format.equals( "opengl" ) )
-        	exporter = new OpenGLExporter( view, colors, lights, currentSnapshot );
+	    Exporter3d exporter = null;
+	    switch ( format ) {
 
-        boolean inArticleMode = (renderedModel != currentSnapshot);
-        if(exporter != null && exporter.needsManifestations() && inArticleMode ) {
-            throw new IllegalStateException("The " + format + " exporter can only operate on the current model, not article pages.");
+        case "pov":
+            exporter = new POVRayExporter( camera, colors, lights, currentSnapshot );
+            break;
+
+        case "opengl":
+            exporter = new OpenGLExporter( camera, colors, lights, currentSnapshot );
+            break;
+
+        default:
+            break;
         }
-        return exporter;
-    }
+
+	    boolean inArticleMode = (renderedModel != currentSnapshot);
+	    if ( exporter != null && exporter.needsManifestations() && inArticleMode ) {
+	        throw new IllegalStateException("The " + format + " exporter can only operate on the current model, not article pages.");
+	    }
+	    return exporter;
+	}
 
 	/*
 	 * These exporters fall in two categories: rendering and geometry.  The ones that support the currentSnapshot
@@ -1336,12 +1440,12 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 	
 	// TODO move all the parameters inside this object!
 	
-	public Exporter3d getStructuredExporter( String format, Camera view, Colors colors, Lights lights, RenderedModel mRenderedModel )
+	public Exporter3d getStructuredExporter( String format, Camera camera, Colors colors, Lights lights, RenderedModel mRenderedModel )
 	{
-        if ( format.equals( "partgeom" ) )
-        	return new PartGeometryExporter( view, colors, lights, mRenderedModel, mSelection );
-        else
-        	return null;
+	    if ( format.equals( "partgeom" ) )
+	        return new PartGeometryExporter( camera, colors, lights, mRenderedModel, mSelection );
+	    else
+	        return null;
 	}
 
 	public LessonModel getLesson()
@@ -1352,16 +1456,16 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
     @Override
     public void recordSnapshot( int id )
     {
-    	RenderedModel snapshot = ( renderedModel == null )? null : renderedModel .snapshot();
-    	if ( thumbnailLogger .isLoggable( Level.FINER ) )
-    		thumbnailLogger .finer( "recordSnapshot: " + id );
-    	numSnapshots = Math .max( numSnapshots, id + 1 );
-    	if ( id >= snapshots.length )
-    	{
-    		int newLength = Math .max( 2 * snapshots .length, numSnapshots );
-    		snapshots = Arrays .copyOf( snapshots, newLength );
-    	}
-    	snapshots[ id ] = snapshot;
+        RenderedModel snapshot = ( renderedModel == null )? null : renderedModel .snapshot();
+        if ( thumbnailLogger .isLoggable( Level.FINER ) )
+            thumbnailLogger .finer( "recordSnapshot: " + id );
+        numSnapshots = Math .max( numSnapshots, id + 1 );
+        if ( id >= snapshots.length )
+        {
+            int newLength = Math .max( 2 * snapshots .length, numSnapshots );
+            snapshots = Arrays .copyOf( snapshots, newLength );
+        }
+        snapshots[ id ] = snapshot;
     }
 
     @Override
@@ -1371,11 +1475,11 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
         action .actOnSnapshot( snapshot );
 	}
 
-	public void addSnapshotPage( Camera view )
+	public void addSnapshotPage( Camera camera )
 	{
         int id = numSnapshots;
         this .performAndRecord( new Snapshot( id, this ) );
-        lesson .newSnapshotPage( id, view );
+        lesson .newSnapshotPage( id, camera );
 	}
 
 	public RenderedModel getRenderedModel()
@@ -1383,9 +1487,9 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 		return this .renderedModel;
 	}
 	
-	public Camera getViewModel()
+	public Camera getCamera()
 	{
-	    return this .defaultView;
+	    return this .defaultCamera;
 	}
 
     public void generatePolytope( String group, String renderGroup, int index, int edgesToRender, AlgebraicVector quaternion, AlgebraicNumber[] edgeScales )
@@ -1404,18 +1508,7 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
     	return mEditorModel .getSymmetrySegment();
     }
 
-	public Segment getPlaneAxis( Polygon panel )
-	{
-		AlgebraicVector[] vertices = panel.getVertices();
-		FreePoint p0 = new FreePoint( vertices[ 0 ] );
-		FreePoint p1 = new FreePoint( vertices[ 1 ] );
-		FreePoint p2 = new FreePoint( vertices[ 2 ] );
-		Segment s1 = new SegmentJoiningPoints( p0, p1 );
-		Segment s2 = new SegmentJoiningPoints( p1, p2 );
-		return new SegmentCrossProduct( s1, s2 );
-	}
-
-	public RealizedModel getRealizedModel()
+    public RealizedModel getRealizedModel()
 	{
 		return this .mRealizedModel;
 	}
@@ -1437,8 +1530,8 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
     
     public void setSymmetrySystem( String name )
     {
-    	SymmetrySystem system = this .symmetrySystems .get( name );
-    	this .mEditorModel .setSymmetrySystem( system );
+        SymmetrySystem system = this .symmetrySystems .get( name );
+        this .mEditorModel .setSymmetrySystem( system );
     }
 
 	public FieldApplication getFieldApplication()
@@ -1450,4 +1543,32 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 	{
 		return this .bookmarkFactory;
 	}
+
+    public EditHistory getHistoryModel()
+    {
+        return this .mHistory;
+    }
+    
+    public EditorModel getEditorModel()
+    {
+        return this .mEditorModel;
+    }
+
+    public Java2dSnapshot capture2d( RenderedModel model, int height, int width, Camera camera, Lights lights,
+            boolean drawLines, boolean doLighting ) throws Exception
+    {
+        Java2dExporter captureSnapshot = new Java2dExporter();
+        Java2dSnapshot snapshot = captureSnapshot .render2d( model, camera, lights, height, width, drawLines, doLighting );
+        
+        return snapshot;
+    }
+
+    public void export2d( Java2dSnapshot snapshot, String format, File file, boolean doOutlines, boolean monochrome ) throws Exception
+    {
+        SnapshotExporter exporter = this .app .getSnapshotExporter( format );
+        // A try-with-resources block closes the resource even if an exception occurs
+        try ( Writer out = new FileWriter( file ) ) {
+            exporter .export( snapshot, out, doOutlines, monochrome );
+        }
+    }
 }

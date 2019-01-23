@@ -77,8 +77,14 @@ public class ChangeOfBasis extends Transformation
 
             AlgebraicMatrix transform = newMatrix .times( oldMatrix .inverse() );
             
-            // now transform has the transition matrix
-//            System .out .println( transform .toString() );
+//            ObjectMapper mapper = new ObjectMapper();
+//            try {
+//            	    System .out .println( mapper .writeValueAsString( transform ) );
+//            } catch (JsonProcessingException e) {
+//            	    // TODO Auto-generated catch block
+//            	    e.printStackTrace();
+//            }
+
             return setStateVariables( transform, loc, false );
         }
         else

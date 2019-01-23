@@ -4,18 +4,28 @@ group = 'com.vzome'
 version = '6.0'
 
 task wrapper(type: Wrapper) {
-   gradleVersion = '4.1' //version required
+   gradleVersion = '4.5.1' //version required
 }
+
+// these environment variables are available during a Jenkins build
+ext.buildNumber = System.getenv( "BUILD_NUMBER" ) ?: 'SNAPSHOT'
+ext.gitCommit = System.getenv( "GIT_COMMIT" ) ?: 'HEAD'
+ext.appName = 'vZome'
+ext.edition = appName
 
 // Specify common settings for all subprojects
 subprojects {
 
   apply plugin: 'java'
   apply plugin: 'maven'
+  apply plugin: 'eclipse'
 
   compileJava {
+	// set these to 9 for Java 9
+	// set them to 1.8 for Java 8
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
+    options.encoding = 'UTF-8'
   }
 
   repositories {
@@ -26,6 +36,13 @@ subprojects {
     maven { url 'http://repository.springsource.com/maven/bundles/external' }
 
     ivy { // not really an Ivy repo, but this pattern lets us automate the bare JAR downloads for java3d/*
+    // This failed due to issues mentioned here:
+    //   https://discuss.gradle.org/t/gradle-fails-to-download-a-dependency-if-http-head-is-not-supported-by-a-web-server/9885/3
+    //   https://discuss.gradle.org/t/use-github-releases-as-dependency-repository-plugin/15944/7
+    //  url "https://github.com/hharrison/"
+    //  layout "pattern", {
+    //    artifact "[organization]-core/releases/downloads/[revision]/[artifact].[ext]"
+    
       url "http://jogamp.org/deployment"
       layout "pattern", {
         artifact "[organization]/[revision]/[artifact].[ext]"
@@ -46,26 +63,9 @@ project(':desktop') {
     }
 }
 
-
-// These options apply to all java projects
-// More info at http://www.javaworld.com/article/2073587/javac-s--xlint-options.html
-gradle.projectsEvaluated {
-	tasks.withType(JavaCompile) {
-		options.compilerArgs \
-		<< "-Xdiags:verbose" \
-		<< "-Xlint:all" \
-		<< "-Xlint:cast" \
-		<< "-Xlint:deprecation" \
-		<< "-Xlint:divzero" \
-		<< "-Xlint:empty" \
-		<< "-Xlint:fallthrough" \
-		<< "-Xlint:finally" \
-		<< "-Xlint:overrides" \
-		<< "-Xlint:path" \
-		<< "-Xlint:rawtypes" \
-		<< "-Xlint:unchecked" \
-		<< "-Xlint:-serial" 
-		// TODO: Enable the serial warning and look into fixing ~33 issues. 
-		// Most of them are classes which extend a generic Collection or Exception.
-	}
+project(':server') {
+    dependencies {
+        compile project(':desktop')
+    }
 }
+
