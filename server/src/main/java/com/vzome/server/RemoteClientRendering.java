@@ -29,6 +29,7 @@ import com.vzome.core.model.Strut;
 import com.vzome.core.render.Color;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderingChanges;
+import com.vzome.desktop.controller.CameraController;
 import com.vzome.desktop.controller.RenderingViewer;
 
 class RemoteClientRendering implements RenderingChanges, RenderingViewer, PropertyChangeListener
@@ -72,10 +73,21 @@ class RemoteClientRendering implements RenderingChanges, RenderingViewer, Proper
 	public void setEye( int eye ) {}
 
 	@Override
-	public void setViewTransformation( Matrix4d trans, int eye ) {}
+	public void setViewTransformation( Matrix4d trans, int eye )
+	{
+	    if ( eye == CameraController.Viewer.MONOCULAR ) {
+	        Quat4d quaternion = new Quat4d();
+	        trans .get( quaternion );
+	        ObjectNode node = this .objectMapper .createObjectNode();
+	        node .set( "view", this .asTreeWithView( quaternion ) );
+	    }
+	}
 
 	@Override
-	public void setPerspective( double fov, double aspectRatio, double near, double far ) {}
+	public void setPerspective( double fov, double aspectRatio, double near, double far )
+	{
+	    
+	}
 
 	@Override
 	public void setOrthographic( double halfEdge, double near, double far ) {}

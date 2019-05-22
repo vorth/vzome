@@ -84,6 +84,7 @@ public class ControllerWebSocket implements WebSocketListener
                     }
             }
         } );
+        consumer.start();
         LOG.info( "WebSocket Connect: {}", session );
         publish( "info", "You are now connected to " + this.getClass().getName() );
 
@@ -108,6 +109,7 @@ public class ControllerWebSocket implements WebSocketListener
                 publish( "error", "Document load FAILURE: " + urlStr );
                 return;
             }
+
             String bkgdColor = docController .getProperty( "backgroundColor" );
             if ( bkgdColor != null ) {
                 ObjectNode wrapper = this .objectMapper .createObjectNode();
@@ -116,9 +118,18 @@ public class ControllerWebSocket implements WebSocketListener
                 wrapper .put( "color", new Color( rgb ) .toWebString() );
                 publish( wrapper );
             }
-            consumer.start();
-            RemoteClientRendering clientRendering = new RemoteClientRendering( new RemoteClientRendering.JsonSink() {
-                
+            
+            Controller cameraController = docController .getSubController( "camera" );
+            ObjectNode cameraNode = this .objectMapper .createObjectNode();
+            cameraNode .put( "position", cameraController .getProperty( "position" ) );
+            cameraNode .put( "lookAt", cameraController .getProperty( "lookAtPoint" ) );
+            cameraNode .put( "upDir", cameraController .getProperty( "upDir" ) );
+            ObjectNode wrapper = this .objectMapper .createObjectNode();
+            wrapper .set( "cameraTransform", cameraNode );
+            publish( wrapper );
+            
+            RemoteClientRendering clientRendering = new RemoteClientRendering( new RemoteClientRendering.JsonSink()
+            {
                 @Override
                 public void sendJson( JsonNode node ) {
                     publish( node );

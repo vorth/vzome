@@ -82,8 +82,6 @@ public class CameraController extends DefaultController implements Controller3d
     public void setPerspective( boolean value )
     {
         model .setPerspective( value );
-        updateViewersTransformation();
-        updateViewersProjection();
     }
 
     public void getViewOrientation( Vector3d lookDir, Vector3d upDir )
@@ -95,6 +93,8 @@ public class CameraController extends DefaultController implements Controller3d
     public void addViewer( CameraController.Viewer viewer )
     {
         mViewers .add( viewer );
+        updateViewersTransformation();
+        updateViewersProjection();
     }
 
     public void removeViewer( CameraController.Viewer viewer )
@@ -422,11 +422,15 @@ public class CameraController extends DefaultController implements Controller3d
             return Boolean .toString( model .isStereo() );
 
         case "viewDistance":
-            return Float .toString(  model .getViewDistance() );
+            return Float .toString( model .getViewDistance() );
 
         case "lookAtPoint":
             Point3d lookAt = model .getLookAtPoint();
             return lookAt.toString();
+
+        case "position":
+            Point3d position = model .getPosition( 0d );
+            return position.toString();
 
         case "lookDir":
         {

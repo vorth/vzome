@@ -145,7 +145,22 @@ public class Camera implements Renderable
 	{
 		return (float) mDistance;
 	}
-	
+
+    public Point3d getPosition( double angle )
+    {
+        Point3d eyePoint = new Point3d( mLookAtPoint );
+        Vector3d dir = new Vector3d( mLookDirection );
+        if ( angle != 0d ) {
+            double[] rotMat = new double[16];
+            AxisAngle4d rotAA = new AxisAngle4d( mUpDirection, angle );
+            set( rotAA, rotMat );
+            transform( rotMat, dir );
+        }
+        dir .scale( -mDistance );
+        eyePoint .add( dir );
+        return eyePoint;
+    }
+
 	public void getViewOrientation( Vector3d lookDir, Vector3d upDir )
 	{
 		lookDir .set( mLookDirection );
@@ -247,60 +262,60 @@ public class Camera implements Renderable
      */
     private static void lookAt( double[] mat, Point3d eye, Point3d center, Vector3d up)
     {
-    	double forwardx,forwardy,forwardz,invMag;
-    	double upx,upy,upz;
-    	double sidex,sidey,sidez;
+        double forwardx,forwardy,forwardz,invMag;
+        double upx,upy,upz;
+        double sidex,sidey,sidez;
 
-    	forwardx =  eye.x - center.x;
-    	forwardy =  eye.y - center.y;
-    	forwardz =  eye.z - center.z;
+        forwardx =  eye.x - center.x;
+        forwardy =  eye.y - center.y;
+        forwardz =  eye.z - center.z;
 
-    	invMag = 1.0/Math.sqrt( forwardx*forwardx + forwardy*forwardy + forwardz*forwardz);
-    	forwardx = forwardx*invMag;
-    	forwardy = forwardy*invMag;
-    	forwardz = forwardz*invMag;
+        invMag = 1.0/Math.sqrt( forwardx*forwardx + forwardy*forwardy + forwardz*forwardz);
+        forwardx = forwardx*invMag;
+        forwardy = forwardy*invMag;
+        forwardz = forwardz*invMag;
 
 
-    	invMag = 1.0/Math.sqrt( up.x*up.x + up.y*up.y + up.z*up.z);
-    	upx = up.x*invMag;
-    	upy = up.y*invMag;
-    	upz = up.z*invMag;
+        invMag = 1.0/Math.sqrt( up.x*up.x + up.y*up.y + up.z*up.z);
+        upx = up.x*invMag;
+        upy = up.y*invMag;
+        upz = up.z*invMag;
 
-    	// side = Up cross forward
-    	sidex = upy*forwardz-forwardy*upz;
-    	sidey = upz*forwardx-upx*forwardz;
-    	sidez = upx*forwardy-upy*forwardx;
+        // side = Up cross forward
+        sidex = upy*forwardz-forwardy*upz;
+        sidey = upz*forwardx-upx*forwardz;
+        sidez = upx*forwardy-upy*forwardx;
 
-    	invMag = 1.0/Math.sqrt( sidex*sidex + sidey*sidey + sidez*sidez);
-    	sidex *= invMag;
-    	sidey *= invMag;
-    	sidez *= invMag;
+        invMag = 1.0/Math.sqrt( sidex*sidex + sidey*sidey + sidez*sidez);
+        sidex *= invMag;
+        sidey *= invMag;
+        sidez *= invMag;
 
-    	// recompute up = forward cross side
+        // recompute up = forward cross side
 
-    	upx = forwardy*sidez-sidey*forwardz;
-    	upy = forwardz*sidex-forwardx*sidez;
-    	upz = forwardx*sidey-forwardy*sidex;
+        upx = forwardy*sidez-sidey*forwardz;
+        upy = forwardz*sidex-forwardx*sidez;
+        upz = forwardx*sidey-forwardy*sidex;
 
-    	// transpose because we calculated the inverse of what we want
-    	mat[0] = sidex;
-    	mat[1] = sidey;
-    	mat[2] = sidez;
+        // transpose because we calculated the inverse of what we want
+        mat[0] = sidex;
+        mat[1] = sidey;
+        mat[2] = sidez;
 
-    	mat[4] = upx;
-    	mat[5] = upy;
-    	mat[6] = upz;
+        mat[4] = upx;
+        mat[5] = upy;
+        mat[6] = upz;
 
-    	mat[8] =  forwardx;
-    	mat[9] =  forwardy;
-    	mat[10] = forwardz;
+        mat[8] =  forwardx;
+        mat[9] =  forwardy;
+        mat[10] = forwardz;
 
-    	mat[3] = -eye.x*mat[0] + -eye.y*mat[1] + -eye.z*mat[2];
-    	mat[7] = -eye.x*mat[4] + -eye.y*mat[5] + -eye.z*mat[6];
-    	mat[11] = -eye.x*mat[8] + -eye.y*mat[9] + -eye.z*mat[10];
+        mat[3] = -eye.x*mat[0] + -eye.y*mat[1] + -eye.z*mat[2];
+        mat[7] = -eye.x*mat[4] + -eye.y*mat[5] + -eye.z*mat[6];
+        mat[11] = -eye.x*mat[8] + -eye.y*mat[9] + -eye.z*mat[10];
 
-    	mat[12] = mat[13] = mat[14] = 0;
-    	mat[15] = 1;
+        mat[12] = mat[13] = mat[14] = 0;
+        mat[15] = 1;
     }
 
 
@@ -310,16 +325,7 @@ public class Camera implements Renderable
      */
     public void getViewTransform( Matrix4d matrix, double angle )
     {
-        Point3d eyePoint = new Point3d( mLookAtPoint );
-        Vector3d dir = new Vector3d( mLookDirection );
-        if ( angle != 0d ) {
-            double[] rotMat = new double[16];
-            AxisAngle4d rotAA = new AxisAngle4d( mUpDirection, angle );
-            set( rotAA, rotMat );
-            transform( rotMat, dir );
-        }
-        dir .scale( -mDistance );
-        eyePoint .add( dir );
+        Point3d eyePoint = this .getPosition( angle );
         
         double[] mat = new double[16];
         lookAt( mat, eyePoint, mLookAtPoint, mUpDirection );
