@@ -188,7 +188,7 @@ public class DefaultController implements Controller
             mNextController .setProperty( name, value );
     }
 
-    final private void setNextController( Controller controller, String name )
+    final protected void setNextController( Controller controller, String name )
     {
         this .name = name;
         mNextController = (DefaultController) controller;

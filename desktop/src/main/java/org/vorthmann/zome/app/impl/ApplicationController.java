@@ -37,10 +37,11 @@ import com.vzome.core.math.symmetry.Axis;
 import com.vzome.core.math.symmetry.Symmetry;
 import com.vzome.core.model.Connector;
 import com.vzome.core.model.Strut;
+import com.vzome.core.render.Color;
 import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderedModel;
-import com.vzome.core.viewing.Lights;
+import com.vzome.core.viewing.SceneModel;
 
 public class ApplicationController extends DefaultController
 {
@@ -134,23 +135,26 @@ public class ApplicationController extends DefaultController
         };
         modelApp = new com.vzome.core.editor.Application( true, failures, properties );
 
-        Colors colors = modelApp .getColors();
-        Lights lights = modelApp .getLights();
-
         if ( rvFactory != null ) {
             this .rvFactory = rvFactory;
         }
         else
         {
             boolean useEmissiveColor = ! propertyIsTrue( "no.glowing.selection" );
+
+            Colors colors = modelApp .getColors();
+            Color color = colors .getColorPref( "highlight" );
+            if ( ! useEmissiveColor )
+                color = colors .getColorPref( "highlight.mac" );
+
             // need this set up before we do any loadModel
             String factoryName = getProperty( "RenderingViewer.Factory.class" );
             if ( factoryName == null )
                 factoryName = "org.vorthmann.zome.render.java3d.Java3dFactory";
             try {
                 Class<?> factoryClass = Class.forName( factoryName );
-                Constructor<?> constructor = factoryClass .getConstructor( new Class<?>[] { Lights.class, Colors.class, Boolean.class } );
-                this .rvFactory = (J3dComponentFactory) constructor.newInstance( new Object[] { lights, colors, useEmissiveColor } );
+                Constructor<?> constructor = factoryClass .getConstructor( new Class<?>[] { Color.class, Boolean.class } );
+                this .rvFactory = (J3dComponentFactory) constructor.newInstance( new Object[] { color, useEmissiveColor } );
             } catch ( Exception e ) {
                 mErrors.reportError( "Unable to instantiate RenderingViewer.Factory class: " + factoryName, new Object[] {} );
                 System.exit( 0 );
@@ -581,7 +585,7 @@ public class ApplicationController extends DefaultController
         return new String[0];
     }
 
-    public Lights getLights()
+    public SceneModel getLights()
     {
         return modelApp .getLights();
     }

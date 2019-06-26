@@ -33,13 +33,12 @@ public class Colors implements Iterable<String>
     public static final String
         RGB_CUSTOM = "rgb.custom",
         RGB_ORBIT = "rgb.orbit",
-        PREFIX = "",
-    	BACKGROUND = PREFIX + "background",
-    	PANEL = PREFIX + "panel",
-    	HIGHLIGHT = PREFIX + "highlight",
-    	HIGHLIGHT_MAC = HIGHLIGHT + ".mac",
-    	CONNECTOR = PREFIX + "connector",
-		DIRECTION = PREFIX + "direction.",
+        BACKGROUND = "background",
+        PANEL = "panel",
+        HIGHLIGHT = "highlight",
+        HIGHLIGHT_MAC = HIGHLIGHT + ".mac",
+        CONNECTOR = "connector",
+        DIRECTION = "direction.",
         PLANE = DIRECTION + "plane.";
     
     private final Map<String, Color> mColors = new TreeMap<>(); // TreeMap is automatically ordered (sorted)
@@ -82,8 +81,13 @@ public class Colors implements Iterable<String>
 
     public float[] getVectorPref( String name )
     {
-        float[] result = NO_VECTOR;
         String pref = properties .getProperty( name );
+        return parseVector( pref );
+    }
+    
+    public static float[] parseVector( String pref )
+    {
+        float[] result = NO_VECTOR;
         if ( pref == null || pref.equals( "" ) )
             return result;
         result = result.clone();

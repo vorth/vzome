@@ -23,7 +23,7 @@ import com.vzome.core.render.Color;
  * @author Scott Vorthmann
  *
  */
-public class Lights //extends DefaultController
+public class SceneModel
 {
     private final PropertyChangeSupport pcs = new PropertyChangeSupport( this );
     
@@ -54,13 +54,13 @@ public class Lights //extends DefaultController
     private Color backgroundColor;
     
 
-    public Lights()
+    public SceneModel()
     {
         super();
     }
 
 
-    public Lights( Lights prototype )
+    public SceneModel( SceneModel prototype )
     {
         this();
         
@@ -75,7 +75,7 @@ public class Lights //extends DefaultController
     }
 
 
-    public Lights( Element element )
+    public SceneModel( Element element )
     {
         this();
         String str = element .getAttribute( "background" );

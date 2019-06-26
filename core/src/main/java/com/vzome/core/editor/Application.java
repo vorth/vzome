@@ -55,7 +55,7 @@ import com.vzome.core.kinds.RootTwoFieldApplication;
 import com.vzome.core.kinds.SnubDodecFieldApplication;
 import com.vzome.core.render.Color;
 import com.vzome.core.render.Colors;
-import com.vzome.core.viewing.Lights;
+import com.vzome.core.viewing.SceneModel;
 import com.vzome.fields.sqrtphi.SqrtPhiFieldApplication;
 
 public class Application
@@ -70,7 +70,7 @@ public class Application
 
     private final Map<String, Exporter3d> exporters = new HashMap<>();
 
-    private final Lights mLights = new Lights();
+    private final SceneModel mLights = new SceneModel();
 
     private final Map<String, Supplier<SnapshotExporter>> exporters2d = new HashMap<>();
 
@@ -259,7 +259,7 @@ public class Application
         return this .exporters .get( format );
     }
 
-	public Lights getLights()
+	public SceneModel getLights()
 	{
 		return this .mLights;
 	}

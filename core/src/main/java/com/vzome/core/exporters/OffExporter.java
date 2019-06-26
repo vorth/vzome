@@ -18,7 +18,7 @@ import com.vzome.core.model.Strut;
 import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderedModel;
-import com.vzome.core.viewing.Lights;
+import com.vzome.core.viewing.SceneModel;
 import com.vzome.core.viewing.Camera;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -28,7 +28,7 @@ public class OffExporter extends Exporter3d
 {
 	private static final NumberFormat FORMAT = NumberFormat .getNumberInstance( Locale .US );
 	
-	public OffExporter( Camera scene, Colors colors, Lights lights, RenderedModel model )
+	public OffExporter( Camera scene, Colors colors, SceneModel lights, RenderedModel model )
 	{
 	    super( scene, colors, lights, model );
 		FORMAT .setMaximumFractionDigits( 16 );

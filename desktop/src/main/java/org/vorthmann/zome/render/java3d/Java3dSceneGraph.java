@@ -52,7 +52,6 @@ import com.vzome.core.render.Color;
 import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderingChanges;
-import com.vzome.core.viewing.Lights;
 
 /**
  * @author vorth
@@ -69,13 +68,13 @@ public class Java3dSceneGraph implements RenderingChanges, PropertyChangeListene
 
     private final LinearFog mFog;
 
-    private final Light ambientForGlow, ambientForOutlines, directionalForOutlines;
+    private final Light ambientForGlow, ambientForOutlines;
+
+    private Light directionalForOutlines;
 
     private int mGlowCount = 0;
 
     private final Background mBackground;
-
-    private final Java3dFactory mFactory;
 
     //private final SharedGroup mBallGroup = null;
 
@@ -90,6 +89,10 @@ public class Java3dSceneGraph implements RenderingChanges, PropertyChangeListene
     private FrameLabels frameLabels = null;
 
     private IcosahedralLabels icosahedralLabels = null;
+
+    private final Java3dFactory mFactory;
+
+    private final boolean useEmissiveColor;
 
     public BranchGroup getRoot()
     {
@@ -112,38 +115,12 @@ public class Java3dSceneGraph implements RenderingChanges, PropertyChangeListene
      * @param isSticky true if each RenderedManifestation should record the resulting graphics object
      * @param controller
      */
-    public Java3dSceneGraph( Java3dFactory factory, Lights lights, boolean isSticky, Controller controller )
+    public Java3dSceneGraph( Java3dFactory factory, boolean isSticky, Controller controller )
     {
         mFactory = factory;
         this .isSticky = isSticky;
 
-        lights .addPropertyListener( new PropertyChangeListener(){
-
-            @Override
-            public void propertyChange( PropertyChangeEvent chg )
-            {
-                if ( "backgroundColor" .equals( chg .getPropertyName() ) )
-                {
-                	int rgb =  Integer .parseInt( (String) chg .getNewValue(), 16 );
-                    Color newColor = new Color( rgb );
-                    backgroundColorChanged( newColor );
-                }
-            }} );
-        
-        mFactory.getColors().addListener( new Colors.Changes()
-        {
-            @Override
-            public void colorChanged( String name, Color newColor )
-            {
-                if ( name.equals( Colors.BACKGROUND ) )
-                    backgroundColorChanged( newColor );
-            }
-
-            @Override
-            public void colorAdded( String name, Color color )
-            {
-            }
-        } );
+        useEmissiveColor = ! controller .propertyIsTrue( "no.glowing.selection" );
 
         mRoot = new BranchGroup();
         mRoot.setCapability( Group.ALLOW_CHILDREN_EXTEND );
@@ -164,8 +141,9 @@ public class Java3dSceneGraph implements RenderingChanges, PropertyChangeListene
         mLights.setCapability( Node.ENABLE_PICK_REPORTING );
         mRoot.addChild( mLights );
 
+        Color ambientColor = Colors .parseColor( controller .getProperty( "color.light.ambient" ) );
         float[] rgb = new float[3];
-        Color3f color = new Color3f( lights.getAmbientColor().getRGBColorComponents( rgb ) );
+        Color3f color = new Color3f( ambientColor .getRGBColorComponents( rgb ) );
         ambientForGlow = new AmbientLight( color );
         ambientForGlow .setInfluencingBounds( mEverywhere );
         ambientForGlow .setEnable( true );
@@ -176,23 +154,23 @@ public class Java3dSceneGraph implements RenderingChanges, PropertyChangeListene
         ambientForOutlines .setCapability( Light.ALLOW_STATE_WRITE );
         mLights .addChild( ambientForOutlines );
 
-        if(lights.size() <= 0) {
-            throw new IllegalArgumentException("Expected lights.size() to be greater than 0.");
-        }
-        Light light = null;
-        for ( int i = 0; i < lights.size(); i++ ) {
-            Vector3f direction = new Vector3f();
-            color = new Color3f( lights.getDirectionalLight( i, direction ).getRGBColorComponents( rgb ) );
-            light = new DirectionalLight( color, direction );
+        int numLights = Integer .parseInt( controller .getProperty( "num.lights" ) );
+        int forOutlines = Integer .parseInt( controller .getProperty( "outlines.light" ) );
+        for ( int i = 0; i < numLights; i++ ) {
+            String string = controller .getProperty( "direction.light." + i );
+            Vector3f direction = new Vector3f( Colors.parseVector( string ) );
+            Color vColor = Colors .parseColor( controller .getProperty( "color.light.directional." + i ) );
+            color = new Color3f( vColor .getRGBColorComponents( rgb ) );
+            Light light = new DirectionalLight( color, direction );
             light .setInfluencingBounds( mEverywhere );
             light .setEnable( true );
             mLights .addChild( light );
+            
+            if ( i == forOutlines ) {
+                directionalForOutlines = light;
+                directionalForOutlines.setCapability(Light.ALLOW_STATE_WRITE);
+            }
         }
-        // TODO: model this better in core Lights... no overloading
-        // use the last light in the array for the directional light
-        directionalForOutlines = light;
-        directionalForOutlines.setCapability(Light.ALLOW_STATE_WRITE);
-        // ---------------------------------------------------
 
         mScene = new BranchGroup();
         mScene.setCapability( Group.ALLOW_CHILDREN_EXTEND );
@@ -201,8 +179,8 @@ public class Java3dSceneGraph implements RenderingChanges, PropertyChangeListene
         mScene.setCapability( Node.ENABLE_PICK_REPORTING );
         mRoot.addChild( mScene );
 
-        Color bg = lights .getBackgroundColor();
-        bg.getRGBColorComponents( rgb );
+        Color newColor = Colors .parseColor( (String) controller .getProperty( "color.background" ) );
+        newColor .getRGBColorComponents( rgb );
         mBackground = new Background( new Color3f( rgb ) );
         mBackground.setCapability( Background.ALLOW_COLOR_WRITE );
         mBackground.setApplicationBounds( mEverywhere );
@@ -359,17 +337,17 @@ public class Java3dSceneGraph implements RenderingChanges, PropertyChangeListene
     @Override
     public void manifestationAdded( RenderedManifestation rm )
     {
-//        int[] /* AlgebraicVector */location = rm.getManifestation().getLocation();
-//        if ( location == null )
-//            location = rm.getShape().getField().origin( 3 );
-    	    	
+        //        int[] /* AlgebraicVector */location = rm.getManifestation().getLocation();
+        //        if ( location == null )
+        //            location = rm.getShape().getField().origin( 3 );
+
         RealVector loc = rm .getLocation();
         if ( loc == null )
             loc = new RealVector( 0d, 0d, 0d );
-        
+
         Appearance appearance = mFactory .getAppearance( rm.getColor(), rm.getGlow() > 0f, rm.getTransparency() > 0f );
         Geometry geom = mFactory .makeSolidGeometry( rm );
-        
+
         if ( logger .isLoggable( Level.FINEST )
                 && rm .getManifestation() == null )
         {
@@ -377,12 +355,12 @@ public class Java3dSceneGraph implements RenderingChanges, PropertyChangeListene
             String shape = ( orbit == null )? "BALL" : orbit .getName() + " strut";
             logger .finest( shape + " at " + loc );
         }
-        
+
         // if we rendering wireframe, we're using absolute coordinates
         if ( ( geom instanceof PointArray ) || ( geom instanceof LineArray ) )
-//            location = rm.getShape().getField().origin( 3 );
+            //            location = rm.getShape().getField().origin( 3 );
             loc = new RealVector( 0d, 0d, 0d );
-        
+
         Shape3D solidPolyhedron = new Shape3D( geom );
         solidPolyhedron .setCapability( Shape3D.ALLOW_APPEARANCE_WRITE );
         solidPolyhedron .setAppearance( appearance );
@@ -401,12 +379,12 @@ public class Java3dSceneGraph implements RenderingChanges, PropertyChangeListene
         tg.addChild( solidPolyhedron );
 
         if ( drawOutlines ) {
-        	geom = mFactory .makeOutlineGeometry( rm );
+            geom = mFactory .makeOutlineGeometry( rm );
             Shape3D outlinePolyhedron = new Shape3D( geom );
             outlinePolyhedron .setAppearance( mFactory .getOutlineAppearance() );
-        	tg .addChild( outlinePolyhedron );
+            tg .addChild( outlinePolyhedron );
         }
-        
+
         if(drawNormals && rm.getShape().isPanel()) {
             geom = mFactory .makePanelNormalGeometry( rm );
             Shape3D normalPolyhedron = new Shape3D( geom );
@@ -502,7 +480,7 @@ public class Java3dSceneGraph implements RenderingChanges, PropertyChangeListene
     public void glowChanged( RenderedManifestation rm )
     {
         boolean glowOn = rm.getGlow() > 0f;
-        if ( mFactory.hasEmissiveColor() )
+        if ( useEmissiveColor )
             if ( glowOn ) {
                 ++ mGlowCount;
                 ambientForGlow.setEnable( false );
@@ -633,38 +611,48 @@ public class Java3dSceneGraph implements RenderingChanges, PropertyChangeListene
         propertyChange(propertyName, newValue, null);
     }
 
-    protected void propertyChange(String propertyName, Object newValue, Object oldValue) {
+    protected void propertyChange(String propertyName, Object newValue, Object oldValue)
+    {
         switch (propertyName) {
-            case "drawNormals":
-                drawNormals = (Boolean) newValue;
-                refreshPolygonOutlines();
-                break;
 
-            case "drawOutlines":
-                drawOutlines = (Boolean) newValue;
-                ambientForOutlines.setEnable(drawOutlines);
-                directionalForOutlines.setEnable(drawOutlines);
-                refreshPolygonOutlines();
-                break;
+        case "backgroundColor":
+            {
+                int rgb =  Integer .parseInt( (String) newValue, 16 );
+                Color newColor = new Color( rgb );
+                backgroundColorChanged( newColor );
+            }
+            break;
 
-            case "showFrameLabels":
-                if ((Boolean) newValue) {
-                    showFrameLabels();
-                } else {
-                    hideFrameLabels();
-                }
-                break;
+        case "drawNormals":
+            drawNormals = (Boolean) newValue;
+            refreshPolygonOutlines();
+            break;
 
-            case "showIcosahedralLabels":
-                if ((Boolean) newValue) {
-                    showIcosahedralLabels();
-                } else {
-                    hideIcosahedralLabels();
-                }
-                break;
+        case "drawOutlines":
+            drawOutlines = (Boolean) newValue;
+            ambientForOutlines.setEnable(drawOutlines);
+            directionalForOutlines.setEnable(drawOutlines);
+            refreshPolygonOutlines();
+            break;
 
-            default:
-                break;
+        case "showFrameLabels":
+            if ((Boolean) newValue) {
+                showFrameLabels();
+            } else {
+                hideFrameLabels();
+            }
+            break;
+
+        case "showIcosahedralLabels":
+            if ((Boolean) newValue) {
+                showIcosahedralLabels();
+            } else {
+                hideIcosahedralLabels();
+            }
+            break;
+
+        default:
+            break;
         }
     }
 

@@ -17,35 +17,23 @@ public class Appearances
 {
 	static final  float PREVIEW_TRANSPARENCY = 0.45f;
 
-	Color3f mGlowColor, mPanelColor;
+	Color3f mGlowColor;
 
 	static final Color3f WHITE = new Color3f( 0.85f, 0.85f, 0.85f );
 
 	static final Color3f BLACK = new Color3f( 0f, 0f, 0f );
 
 	static final Color3f GREY = new Color3f( 0.3f, 0.3f, 0.3f );
-
-	protected final Colors mColors;
 	
 	protected final boolean mHasEmissiveColor;
 
 	private Map<Color, Appearance[][]> mAppearances = new HashMap<>();
 
-	public Appearances( Colors colors, boolean hasEmissiveColor )
+	public Appearances( Color highlightColor, boolean hasEmissiveColor )
 	{
-		mColors = colors;
 		mHasEmissiveColor = hasEmissiveColor;
-		Color color = mColors .getColor( Colors .HIGHLIGHT );
-		if ( ! hasEmissiveColor )
-		    color = mColors .getColor( Colors .HIGHLIGHT_MAC );
 		float[] rgb = new float[3];
-		mGlowColor = new Color3f( color .getRGBColorComponents( rgb ) );
-
-        for (String name : mColors) {
-            color = mColors .getColor( name );
-            Appearance[][] set = makeAppearances( color );
-            mAppearances .put( color, set );
-        }
+		mGlowColor = new Color3f( highlightColor .getRGBColorComponents( rgb ) );
 	}
 	 
 	private Material makeMaterial( Color4f color, boolean glowing )
@@ -74,7 +62,6 @@ public class Appearances
 		if ( transparent || color.w < 1.0f ) {
 			TransparencyAttributes ta = new TransparencyAttributes();
 			ta .setTransparencyMode( TransparencyAttributes .BLENDED );
-			float alpha = transparent? ( PREVIEW_TRANSPARENCY * color.w ) : color.w;
 			ta .setTransparency( PREVIEW_TRANSPARENCY );
 			appearance .setTransparencyAttributes( ta );
 		}		
@@ -96,21 +83,16 @@ public class Appearances
 
 	public Appearance getAppearance( Color color, boolean glowing, boolean transparent )
 	{
-        if ( color == null )
-        	color = Color .WHITE;
-		Appearance[][] set = mAppearances.get( color );
-		if ( set == null )
-        {
-		    set = makeAppearances( color );
-		    mAppearances .put( color, set );
-		}
-		return set [ glowing? 1:0 ][ transparent?1:0 ];
+	    if ( color == null )
+	        color = Color .WHITE;
+	    Appearance[][] set = mAppearances.get( color );
+	    if ( set == null )
+	    {
+	        set = makeAppearances( color );
+	        mAppearances .put( color, set );
+	    }
+	    return set [ glowing? 1:0 ][ transparent?1:0 ];
 	}
-
-    Colors getColors()
-    {
-        return mColors;
-    }
 }
 
 

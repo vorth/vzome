@@ -71,7 +71,7 @@ import com.vzome.core.render.Color;
 import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedModel;
 import com.vzome.core.viewing.Camera;
-import com.vzome.core.viewing.Lights;
+import com.vzome.core.viewing.SceneModel;
 
 public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 {
@@ -121,7 +121,7 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 
     private final Map<String,SymmetrySystem> symmetrySystems = new HashMap<>();
 
-    private final Lights sceneLighting;
+    private final SceneModel sceneLighting;
 
     private final FieldApplication kind;
 
@@ -157,7 +157,7 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
         this .originPoint = new FreePoint( origin );
         this .failures = failures;
         this .mXML = xml;
-        this .sceneLighting = new Lights( app .getLights() );
+        this .sceneLighting = new SceneModel( app .getLights() );
         if ( xml != null ) {
             Element lightsXml = ( this .mXML == null )? null : (Element) this .mXML .getElementsByTagName( "sceneModel" ) .item( 0 );
             if ( lightsXml != null ) {
@@ -768,7 +768,7 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
         this .editorModel .notifyListeners();
     }
 
-    public Exporter3d getNaiveExporter( String format, Camera camera, Colors colors, Lights lights, RenderedModel currentSnapshot )
+    public Exporter3d getNaiveExporter( String format, Camera camera, Colors colors, SceneModel lights, RenderedModel currentSnapshot )
     {
         Exporter3d exporter = null;
         switch ( format ) {
@@ -816,7 +816,7 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
 
     // TODO move all the parameters inside this object!
 
-    public Exporter3d getStructuredExporter( String format, Camera camera, Colors colors, Lights lights, RenderedModel mRenderedModel )
+    public Exporter3d getStructuredExporter( String format, Camera camera, Colors colors, SceneModel lights, RenderedModel mRenderedModel )
     {
         if ( format.equals( "partgeom" ) )
             return new PartGeometryExporter( camera, colors, lights, mRenderedModel, editorModel .getSelection() );
@@ -919,7 +919,7 @@ public class DocumentModel implements Snapshot .Recorder, UndoableEdit .Context
         return this .editorModel;
     }
 
-    public Java2dSnapshot capture2d( RenderedModel model, int height, int width, Camera camera, Lights lights,
+    public Java2dSnapshot capture2d( RenderedModel model, int height, int width, Camera camera, SceneModel lights,
             boolean drawLines, boolean doLighting ) throws Exception
     {
         Java2dExporter captureSnapshot = new Java2dExporter();

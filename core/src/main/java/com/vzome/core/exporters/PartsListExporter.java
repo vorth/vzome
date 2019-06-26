@@ -17,7 +17,7 @@ import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderedModel;
 import com.vzome.core.viewing.Camera;
-import com.vzome.core.viewing.Lights;
+import com.vzome.core.viewing.SceneModel;
 
 /**
  * Renders out to POV-Ray using #declare statements to reuse geometry.
@@ -25,7 +25,7 @@ import com.vzome.core.viewing.Lights;
  */
 public class PartsListExporter extends Exporter3d
 {	
-	public PartsListExporter( Camera scene, Colors colors, Lights lights, RenderedModel model )
+	public PartsListExporter( Camera scene, Colors colors, SceneModel lights, RenderedModel model )
 	{
 	    super( scene, colors, lights, model );
 	}

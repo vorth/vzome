@@ -73,7 +73,7 @@ import com.vzome.core.render.RenderedModel;
 import com.vzome.core.render.RenderedModel.OrbitSource;
 import com.vzome.core.render.RenderingChanges;
 import com.vzome.core.viewing.Camera;
-import com.vzome.core.viewing.Lights;
+import com.vzome.core.viewing.SceneModel;
 import com.vzome.core.viewing.ThumbnailRenderer;
 import com.vzome.desktop.controller.CameraController;
 import com.vzome.desktop.controller.Controller3d;
@@ -99,7 +99,7 @@ public class DocumentController extends DefaultController implements Controller3
     private RenderingViewer imageCaptureViewer;
     private final RenderedModel mRenderedModel;
     private RenderingChanges mainScene;
-    private Lights sceneLighting;
+    private SceneModel sceneLighting;
     private MouseTool modelModeMainTrackball;
     private Component modelCanvas;
     private boolean drawNormals = false;
@@ -265,7 +265,7 @@ public class DocumentController extends DefaultController implements Controller3
         else
             this .documentModel .addPropertyChangeListener( this .articleChanges );
 
-        sceneLighting = new Lights( app .getLights() );  // TODO: restore the ability for the document to override
+        sceneLighting = new SceneModel( app .getLights() );  // TODO: restore the ability for the document to override
 
         cameraController = new CameraController( document .getCamera() );
         this .addSubController( "camera", cameraController );
@@ -287,14 +287,15 @@ public class DocumentController extends DefaultController implements Controller3
         mRequireShift = "true".equals( app.getProperty( "multiselect.with.shift" ) );
         showFrameLabels = "true" .equals( app.getProperty( "showFrameLabels" ) );
 
-        thumbnails = new ThumbnailRendererImpl( app .getJ3dFactory() );
-
         mApp = app;
         
         lessonController = new LessonController( this .documentModel .getLesson(), cameraController );
         this .addSubController( "lesson", lessonController );
 
         setSymmetrySystem( this .documentModel .getSymmetrySystem() );
+
+        // can't do this before the setSymmetrySystem() call just above
+        thumbnails = new ThumbnailRendererImpl( app .getJ3dFactory(), this );
 
         // can't do this before the setSymmetrySystem() call just above
         if ( mRenderedModel != null )

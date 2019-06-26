@@ -17,7 +17,7 @@ import com.vzome.core.model.Manifestation;
 import com.vzome.core.model.Panel;
 import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedManifestation;
-import com.vzome.core.viewing.Lights;
+import com.vzome.core.viewing.SceneModel;
 
 
 public class PlyExporter extends Exporter3d
@@ -28,7 +28,7 @@ public class PlyExporter extends Exporter3d
 
     private StringBuffer vertices;
 
-	public PlyExporter( Colors colors, Lights lights )
+	public PlyExporter( Colors colors, SceneModel lights )
 	{
 	    super( null, colors, lights, null );
 
