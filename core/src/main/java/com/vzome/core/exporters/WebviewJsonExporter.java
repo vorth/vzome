@@ -21,7 +21,7 @@ import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderedModel;
 import com.vzome.core.viewing.Camera;
-import com.vzome.core.viewing.SceneModel;
+import com.vzome.core.viewing.SceneLighting;
 
 /**
  * An exporter to support https://github.com/vorth/vzome-webview/.
@@ -38,7 +38,7 @@ public class WebviewJsonExporter extends Exporter3d
 	private transient Color background;
 	
 	
-	public WebviewJsonExporter( Camera scene, Colors colors, SceneModel lights, RenderedModel model )
+	public WebviewJsonExporter( Camera scene, Colors colors, SceneLighting lights, RenderedModel model )
 	{
 	    super( scene, colors, lights, model );
 	}

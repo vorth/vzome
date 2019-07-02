@@ -91,7 +91,7 @@ public class Colors implements Iterable<String>
         if ( pref == null || pref.equals( "" ) )
             return result;
         result = result.clone();
-        StringTokenizer tokens = new StringTokenizer( pref, ", " );
+        StringTokenizer tokens = new StringTokenizer( pref, "(), " );
         int i = 0;
         while ( tokens.hasMoreTokens() )
             result[i++] = Float.parseFloat( tokens.nextToken() );

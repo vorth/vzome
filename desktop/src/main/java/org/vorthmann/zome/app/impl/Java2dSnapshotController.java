@@ -16,7 +16,7 @@ import com.vzome.core.editor.DocumentModel;
 import com.vzome.core.exporters2d.Java2dSnapshot;
 import com.vzome.core.render.RenderedModel;
 import com.vzome.core.viewing.Camera;
-import com.vzome.core.viewing.SceneModel;
+import com.vzome.core.viewing.SceneLighting;
 
 /**
  * Renders out to PDF, Postscript, or SVG.
@@ -37,12 +37,12 @@ public class Java2dSnapshotController extends DefaultController
 
     private Camera camera;
 
-    private SceneModel lights;
+    private SceneLighting lights;
 
     private RenderedModel model;
 
     
-    public Java2dSnapshotController( DocumentModel document, Camera camera, SceneModel lights, RenderedModel model, boolean outlinePanels )
+    public Java2dSnapshotController( DocumentModel document, Camera camera, SceneLighting lights, RenderedModel model, boolean outlinePanels )
     {
         this .document = document;
         this .camera = camera;
@@ -213,7 +213,7 @@ public class Java2dSnapshotController extends DefaultController
     }
 
 
-    public void setScene( Camera camera, SceneModel lights, RenderedModel model, boolean outlinePanels )
+    public void setScene( Camera camera, SceneLighting lights, RenderedModel model, boolean outlinePanels )
     {
         this .camera = camera;
         this .lights = lights;

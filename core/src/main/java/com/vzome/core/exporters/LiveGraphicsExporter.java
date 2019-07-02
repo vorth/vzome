@@ -18,7 +18,7 @@ import com.vzome.core.render.Color;
 import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderedModel;
-import com.vzome.core.viewing.SceneModel;
+import com.vzome.core.viewing.SceneLighting;
 import com.vzome.core.viewing.Camera;
 
 /**
@@ -30,7 +30,7 @@ public class LiveGraphicsExporter extends Exporter3d
 	private static final NumberFormat FORMAT = NumberFormat .getNumberInstance( Locale .US );
 	
 	
-	public LiveGraphicsExporter( Camera scene, Colors colors, SceneModel lights, RenderedModel model )
+	public LiveGraphicsExporter( Camera scene, Colors colors, SceneLighting lights, RenderedModel model )
 	{
 	    super( scene, colors, lights, model );
 	}

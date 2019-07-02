@@ -31,6 +31,7 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 import javax.vecmath.Point3d;
+import javax.vecmath.Vector3f;
 
 import org.vorthmann.j3d.MouseTool;
 import org.vorthmann.j3d.MouseToolDefault;
@@ -73,7 +74,7 @@ import com.vzome.core.render.RenderedModel;
 import com.vzome.core.render.RenderedModel.OrbitSource;
 import com.vzome.core.render.RenderingChanges;
 import com.vzome.core.viewing.Camera;
-import com.vzome.core.viewing.SceneModel;
+import com.vzome.core.viewing.SceneLighting;
 import com.vzome.core.viewing.ThumbnailRenderer;
 import com.vzome.desktop.controller.CameraController;
 import com.vzome.desktop.controller.Controller3d;
@@ -99,7 +100,7 @@ public class DocumentController extends DefaultController implements Controller3
     private RenderingViewer imageCaptureViewer;
     private final RenderedModel mRenderedModel;
     private RenderingChanges mainScene;
-    private SceneModel sceneLighting;
+    private SceneLighting sceneLighting;
     private MouseTool modelModeMainTrackball;
     private Component modelCanvas;
     private boolean drawNormals = false;
@@ -108,6 +109,7 @@ public class DocumentController extends DefaultController implements Controller3
     private Java2dSnapshotController java2dController = null;
     private CameraController cameraController;
     private final ApplicationController mApp;
+    private PropertyChangeListener lightingChanges;
 
     // to SymmetryRenderingController?
     //
@@ -265,7 +267,24 @@ public class DocumentController extends DefaultController implements Controller3
         else
             this .documentModel .addPropertyChangeListener( this .articleChanges );
 
-        sceneLighting = new SceneModel( app .getLights() );  // TODO: restore the ability for the document to override
+        sceneLighting = this.documentModel .getSceneLighting();
+        this .lightingChanges = new PropertyChangeListener()
+        {   
+            @Override
+            public void propertyChange( PropertyChangeEvent change )
+            {
+                switch ( change .getPropertyName() ) {
+
+                case "backgroundColor":
+                    firePropertyChange( change ); // forward to the 3d scene for display
+                    break;
+
+                default:
+                    break;
+                }
+            }
+        };
+        sceneLighting .addPropertyListener( lightingChanges );
 
         cameraController = new CameraController( document .getCamera() );
         this .addSubController( "camera", cameraController );
@@ -1139,6 +1158,9 @@ public class DocumentController extends DefaultController implements Controller3
     {
         switch ( propName ) {
 
+        case "num.lights":
+            return Integer .toString( this .sceneLighting .size() );
+            
         case "isIcosahedralSymmetry":
             return Boolean .toString( symmetryController.getSymmetry().getName() .equals( "icosahedral" ) );
 
@@ -1176,6 +1198,9 @@ public class DocumentController extends DefaultController implements Controller3
         case "symmetry":
             return symmetryController.getSymmetry().getName();
 
+        case "color.background":
+            return this .sceneLighting .getBackgroundColor() .toString();
+
         case "field.name":
             return this .documentModel .getField() .getName();
 
@@ -1191,6 +1216,22 @@ public class DocumentController extends DefaultController implements Controller3
                 String group = propName .substring( "supports.symmetry." .length() );
                 Symmetry symm = this .documentModel .getFieldApplication() .getSymmetryPerspective( group ) .getSymmetry();
                 return Boolean .toString(symm != null);
+            }   
+            else if ( propName .startsWith( "direction.light." ) )
+            {
+                propName = propName .substring( "direction.light." .length() );
+                int i = Integer .parseInt( propName );
+                Vector3f direction = new Vector3f();
+                this .sceneLighting .getDirectionalLight( i, direction  );
+                return direction .toString();
+            }   
+            else if ( propName .startsWith( "color.light.directional." ) )
+            {
+                propName = propName .substring( "color.light.directional." .length() );
+                int i = Integer .parseInt( propName );
+                Vector3f direction = new Vector3f();
+                Color color = this .sceneLighting .getDirectionalLight( i, direction  );
+                return color .toString();
             }   
             else if ( propName .startsWith( "tool.description." ) )
             {

@@ -12,13 +12,13 @@ import com.vzome.core.model.Manifestation;
 import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderedModel;
-import com.vzome.core.viewing.SceneModel;
+import com.vzome.core.viewing.SceneLighting;
 import com.vzome.core.viewing.Camera;
 
 public class RulerExporter extends Exporter3d
 {
     public RulerExporter( Camera scene, Colors colors,
-            SceneModel lights, RenderedModel model )
+            SceneLighting lights, RenderedModel model )
     {
         super( scene, colors, lights, model );
     }

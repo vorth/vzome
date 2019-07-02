@@ -21,7 +21,7 @@ import com.vzome.core.model.Strut;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderedModel;
 import com.vzome.core.viewing.Camera;
-import com.vzome.core.viewing.SceneModel;
+import com.vzome.core.viewing.SceneLighting;
 
 
 /**
@@ -33,7 +33,7 @@ public class Java2dExporter
 {
 	private transient Matrix4d viewTransform, eyeTrans;
         
-    public Java2dSnapshot render2d( RenderedModel model, Camera view, SceneModel lights, int height, int width, boolean drawLines, boolean doLighting ) throws Exception
+    public Java2dSnapshot render2d( RenderedModel model, Camera view, SceneLighting lights, int height, int width, boolean drawLines, boolean doLighting ) throws Exception
     {
         Vector3f[] lightDirs = new Vector3f[ lights .size() ];
         Color[] lightColors = new Color[ lights .size() ];

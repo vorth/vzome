@@ -55,7 +55,7 @@ import com.vzome.core.kinds.RootTwoFieldApplication;
 import com.vzome.core.kinds.SnubDodecFieldApplication;
 import com.vzome.core.render.Color;
 import com.vzome.core.render.Colors;
-import com.vzome.core.viewing.SceneModel;
+import com.vzome.core.viewing.SceneLighting;
 import com.vzome.fields.sqrtphi.SqrtPhiFieldApplication;
 
 public class Application
@@ -70,7 +70,7 @@ public class Application
 
     private final Map<String, Exporter3d> exporters = new HashMap<>();
 
-    private final SceneModel mLights = new SceneModel();
+    private final SceneLighting sceneLighting = new SceneLighting();
 
     private final Map<String, Supplier<SnapshotExporter>> exporters2d = new HashMap<>();
 
@@ -92,33 +92,33 @@ public class Application
         for ( int i = 1; i <= 3; i++ ) {
             Color color = mColors .getColorPref( "light.directional." + i );
             Vector3f dir = new Vector3f( mColors .getVectorPref( "direction.light." + i ) );
-            mLights.addDirectionLight( color, dir );
+            sceneLighting.addDirectionLight( color, dir );
         }
-        mLights .setAmbientColor( mColors .getColorPref( "light.ambient" ) );
-        mLights .setBackgroundColor( mColors .getColor( Colors.BACKGROUND ) );
+        sceneLighting .setAmbientColor( mColors .getColorPref( "light.ambient" ) );
+        sceneLighting .setBackgroundColor( mColors .getColor( Colors.BACKGROUND ) );
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        this .exporters .put( "vson", new VsonExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "shapes", new ShapesJsonExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "pov", new POVRayExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "opengl", new OpenGLExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "dae", new DaeExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "LiveGraphics", new LiveGraphicsExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "json", new WebviewJsonExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "step", new STEPExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "vrml", new VRMLExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "off", new OffExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "2life", new SecondLifeExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "vef", new VefExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "partslist", new PartsListExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "size", new RulerExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "stl", new StlExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "dxf", new DxfExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "pdb", new PdbExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "seg", new SegExporter( null, this .mColors, this .mLights, null ) );
-        this .exporters .put( "ply", new PlyExporter( this .mColors, this .mLights ) );
-        this .exporters .put( "history", new HistoryExporter( null, this .mColors, this .mLights, null ) );
+        this .exporters .put( "vson", new VsonExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "shapes", new ShapesJsonExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "pov", new POVRayExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "opengl", new OpenGLExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "dae", new DaeExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "LiveGraphics", new LiveGraphicsExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "json", new WebviewJsonExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "step", new STEPExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "vrml", new VRMLExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "off", new OffExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "2life", new SecondLifeExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "vef", new VefExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "partslist", new PartsListExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "size", new RulerExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "stl", new StlExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "dxf", new DxfExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "pdb", new PdbExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "seg", new SegExporter( null, this .mColors, this .sceneLighting, null ) );
+        this .exporters .put( "ply", new PlyExporter( this .mColors, this .sceneLighting ) );
+        this .exporters .put( "history", new HistoryExporter( null, this .mColors, this .sceneLighting, null ) );
         
         this .exporters2d .put( "pdf", PDFExporter::new );
         this .exporters2d .put( "svg", SVGExporter::new );
@@ -259,9 +259,9 @@ public class Application
         return this .exporters .get( format );
     }
 
-	public SceneModel getLights()
+	public SceneLighting getSceneLighting()
 	{
-		return this .mLights;
+		return this .sceneLighting;
 	}
 
 	public String getCoreVersion()

@@ -23,7 +23,7 @@ import com.vzome.core.render.Color;
  * @author Scott Vorthmann
  *
  */
-public class SceneModel
+public class SceneLighting
 {
     private final PropertyChangeSupport pcs = new PropertyChangeSupport( this );
     
@@ -40,7 +40,7 @@ public class SceneModel
     public void setProperty( String cmd, Object value )
     {
         if ( "backgroundColor".equals( cmd ) ) {
-            this .backgroundColor = new Color( Integer .parseInt( (String) value, 16 ) );
+            this .setBackgroundColor( new Color( Integer .parseInt( (String) value, 16 ) ) );
             pcs .firePropertyChange( cmd, null, value );
         }
     }
@@ -54,13 +54,13 @@ public class SceneModel
     private Color backgroundColor;
     
 
-    public SceneModel()
+    public SceneLighting()
     {
         super();
     }
 
 
-    public SceneModel( SceneModel prototype )
+    public SceneLighting( SceneLighting prototype )
     {
         this();
         
@@ -75,7 +75,7 @@ public class SceneModel
     }
 
 
-    public SceneModel( Element element )
+    public SceneLighting( Element element )
     {
         this();
         String str = element .getAttribute( "background" );

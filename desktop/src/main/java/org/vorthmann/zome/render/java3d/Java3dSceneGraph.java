@@ -248,6 +248,18 @@ public class Java3dSceneGraph implements RenderingChanges, PropertyChangeListene
         VirtualUniverse vu = new VirtualUniverse();
         mLocale = new Locale( vu );
         mLocale.addBranchGraph( mRoot );
+        
+        controller .addPropertyListener( new PropertyChangeListener()
+        {
+            @Override
+            public void propertyChange( PropertyChangeEvent evt )
+            {
+                if ( evt .getPropertyName() .equals( "backgroundColor" ) ) {
+                    String value = (String) evt .getNewValue();
+                    backgroundColorChanged( new Color( Integer .parseInt( (String) value, 16 ) ) );
+                }
+            }
+        } );
     }
 
     private class FrameLabels extends BranchGroup {

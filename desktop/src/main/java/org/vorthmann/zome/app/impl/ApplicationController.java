@@ -41,7 +41,7 @@ import com.vzome.core.render.Color;
 import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderedModel;
-import com.vzome.core.viewing.SceneModel;
+import com.vzome.core.viewing.SceneLighting;
 
 public class ApplicationController extends DefaultController
 {
@@ -585,9 +585,9 @@ public class ApplicationController extends DefaultController
         return new String[0];
     }
 
-    public SceneModel getLights()
+    public SceneLighting getSceneLighting()
     {
-        return modelApp .getLights();
+        return modelApp .getSceneLighting();
     }
 
 }

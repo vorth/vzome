@@ -14,14 +14,14 @@ import com.vzome.core.render.JsonMapper;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderedModel;
 import com.vzome.core.viewing.Camera;
-import com.vzome.core.viewing.SceneModel;
+import com.vzome.core.viewing.SceneLighting;
 
 
 public class ShapesJsonExporter extends Exporter3d
 {
     private final JsonMapper mapper = new JsonMapper();
     
-    public ShapesJsonExporter( Camera scene, Colors colors, SceneModel lights, RenderedModel model )
+    public ShapesJsonExporter( Camera scene, Colors colors, SceneLighting lights, RenderedModel model )
     {
         super( scene, colors, lights, model );
     }

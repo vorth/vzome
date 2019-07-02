@@ -274,8 +274,8 @@ public class Java3dFactory implements J3dComponentFactory
             int i = 0;      
             for (AlgebraicVector gv : vertices) {
                 Point3d pt = new Point3d();
-//                if ( matrix != null )
-//                    gv = matrix .timesColumn( gv );
+                if ( matrix != null )
+                    gv = matrix .timesColumn( gv );
                 RealVector v = embedding .embedInR3( gv );
                 pt.x = v.x; pt.y = v.y; pt.z = v.z;
                 coords[i++] = pt;
