@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.vzome.core.algebra.AlgebraicVector;
 import com.vzome.core.math.symmetry.Axis;
 import com.vzome.core.model.Connector;
+import com.vzome.core.model.IndexedModel;
 import com.vzome.core.model.Manifestation;
 import com.vzome.core.model.Panel;
 import com.vzome.core.model.Strut;
@@ -81,6 +82,10 @@ public class VsonExporter extends Exporter3d
             }
             else if ( man instanceof Strut )
             {
+                IndexedModel.Strut strut = new IndexedModel.Strut();
+                strut .start = sortedVertexList .indexOf( man .getLocation() );
+                strut .end = sortedVertexList .indexOf( ((Strut) man) .getEnd() );
+                
                 ObjectNode strutJson = mapper .createObjectNode();
                 JsonNode start = mapper .valueToTree( sortedVertexList .indexOf( man .getLocation() ) );
                 JsonNode end = mapper .valueToTree( sortedVertexList .indexOf( ((Strut) man) .getEnd() ) );
