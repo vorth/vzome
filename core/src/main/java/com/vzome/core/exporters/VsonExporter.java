@@ -12,9 +12,7 @@ import java.util.stream.StreamSupport;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.vzome.core.algebra.AlgebraicVector;
 import com.vzome.core.math.symmetry.Axis;
 import com.vzome.core.model.Connector;
@@ -22,6 +20,7 @@ import com.vzome.core.model.IndexedModel;
 import com.vzome.core.model.Manifestation;
 import com.vzome.core.model.Panel;
 import com.vzome.core.model.Strut;
+import com.vzome.core.render.Color;
 import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderedModel;
@@ -41,8 +40,8 @@ public class VsonExporter extends Exporter3d
     {
         SortedSet<AlgebraicVector> vertices = new TreeSet<>();
         ArrayList<Integer> ballIndices = new ArrayList<>();
-        ArrayList<JsonNode> struts = new ArrayList<>();
-        ArrayList<JsonNode> panels = new ArrayList<>();
+        ArrayList<IndexedModel.Strut> struts = new ArrayList<>();
+        ArrayList<IndexedModel.Panel> panels = new ArrayList<>();
 
         // phase one: find and index all vertices
         for (RenderedManifestation rm : mModel) {
@@ -73,6 +72,7 @@ public class VsonExporter extends Exporter3d
         vertices = null;
 
         // phase three: generate the JSON
+        IndexedModel indexedModel = new IndexedModel();
         ObjectMapper mapper = new ObjectMapper();
         for (RenderedManifestation rm : mModel) {
             Manifestation man = rm .getManifestation();
@@ -83,37 +83,39 @@ public class VsonExporter extends Exporter3d
             else if ( man instanceof Strut )
             {
                 IndexedModel.Strut strut = new IndexedModel.Strut();
-                strut .start = sortedVertexList .indexOf( man .getLocation() );
-                strut .end = sortedVertexList .indexOf( ((Strut) man) .getEnd() );
-                
-                ObjectNode strutJson = mapper .createObjectNode();
-                JsonNode start = mapper .valueToTree( sortedVertexList .indexOf( man .getLocation() ) );
-                JsonNode end = mapper .valueToTree( sortedVertexList .indexOf( ((Strut) man) .getEnd() ) );
+                int start = sortedVertexList .indexOf( man .getLocation() );
+                int end = sortedVertexList .indexOf( ((Strut) man) .getEnd() );
                 boolean reverse = rm .getStrutSense() == Axis.MINUS;
-                strutJson .set( "start", reverse? end : start );
-                strutJson .set( "end", reverse? start : end );
-                JsonNode length = mapper .valueToTree( rm .getStrutLength() );
-                strutJson .set( "length", length );
-                JsonNode orbit = mapper .valueToTree( rm .getStrutOrbit() .getName() );
-                strutJson .set( "orbit", orbit );
-                JsonNode orientation = mapper .valueToTree( rm .getStrutZone() );
-                strutJson .set( "orientation", orientation );
-                struts .add( strutJson );
+                strut .start = reverse? end : start;
+                strut .end = reverse? start : end;
+                strut .length = rm .getStrutLength();
+                strut .orbit = rm .getStrutOrbit() .getName();
+                strut .orientation = rm .getStrutZone();
+                Color color = man .getColor();
+                if ( color != null )
+                    strut .color = color .toWebString();
+                struts .add( strut );
             }
             else if ( man instanceof Panel )
             {
-                ObjectNode panelJson = mapper .createObjectNode();
+                IndexedModel.Panel panel = new IndexedModel.Panel();
                 @SuppressWarnings("unchecked")
-                Stream<AlgebraicVector> vertexStream = StreamSupport.stream( ( (Iterable<AlgebraicVector>) man ).spliterator(), false);
-                JsonNode node = mapper .valueToTree( vertexStream.map( v -> sortedVertexList .indexOf( v ) ). collect( Collectors.toList() ) );
-                panelJson .set( "vertices", node );
-                panelJson .set( "color", mapper .valueToTree( rm .getColor() .toWebString() ) );
-                panels .add( panelJson );
+                Stream<AlgebraicVector> vertexStream = StreamSupport.stream( ( (Iterable<AlgebraicVector>) man ) .spliterator(), false );
+                panel .vertices = vertexStream.map( v -> sortedVertexList .indexOf( v ) ). collect( Collectors.toList() )
+                                        .stream() .mapToInt(i->i) .toArray() ;
+                Color color = man .getColor();
+                if ( color != null )
+                    panel .color = color .toWebString();
+                panels .add( panel );
             }
         }
+        indexedModel .struts = struts .toArray( new IndexedModel.Strut[] {} );
+        indexedModel .panels = panels .toArray( new IndexedModel.Panel[] {} );
+        indexedModel .field = mModel .getField() .getName();
+        indexedModel .symmetry = mModel .getOrbitSource() .getSymmetry() .getName();
 
         JsonFactory factory = new JsonFactory();
-        JsonGenerator generator = factory.createGenerator( writer );
+        JsonGenerator generator = factory .createGenerator( writer );
         generator .useDefaultPrettyPrinter();
         generator .setCodec( mapper );
 
