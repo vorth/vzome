@@ -27,6 +27,7 @@ import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderedModel;
 import com.vzome.core.render.RenderingChanges;
 import com.vzome.core.viewing.Camera;
+import com.vzome.core.viewing.Lights;
 
 /**
  * In this camera model, the view frustum shape is generally held constant
@@ -55,6 +56,8 @@ public class CameraController extends DefaultController implements Controller3d
 
     private RenderingChanges scene;
     private RenderedModel symmetryModel;
+
+    private final Lights sceneLighting;
 
     public interface Snapper
     {
@@ -102,9 +105,10 @@ public class CameraController extends DefaultController implements Controller3d
         mViewers .remove( viewer );
     }
 
-    public CameraController( Camera init )
+    public CameraController( Camera init, Lights sceneLighting )
     {
         model = init;
+        this.sceneLighting = sceneLighting;
         initialCamera = new Camera( model );
     }
 
@@ -126,11 +130,11 @@ public class CameraController extends DefaultController implements Controller3d
         updateViewersProjection();
 
         if ( wasPerspective != model .isPerspective() )
-            properties() .firePropertyChange( "perspective", wasPerspective, model .isPerspective() );
+            firePropertyChange( "perspective", wasPerspective, model .isPerspective() );
         if ( wasStereo != model .isStereo() )
-            properties() .firePropertyChange( "stereo", wasStereo, model .isStereo() );
+            firePropertyChange( "stereo", wasStereo, model .isStereo() );
         if ( oldMag != model .getMagnification() )
-            properties() .firePropertyChange( "magnification", Float .toString( oldMag ), Float .toString( model .getMagnification() ) );
+            firePropertyChange( "magnification", Float .toString( oldMag ), Float .toString( model .getMagnification() ) );
 
         return model;
     }
@@ -305,7 +309,7 @@ public class CameraController extends DefaultController implements Controller3d
                 model .setStereoAngle( 0d );
             updateViewersTransformation();
             updateViewersProjection();
-            properties() .firePropertyChange( "stereo", wasStereo, !wasStereo );
+            firePropertyChange( "stereo", wasStereo, !wasStereo );
         }
         else if ( action .equals( "togglePerspective" ) )
         {
@@ -337,12 +341,24 @@ public class CameraController extends DefaultController implements Controller3d
             // bookmarked views are not "special"... they are stored in recent, too
             saveBaselineView();
         }
+        else
+            super .doAction( action, e );
     }
 
-    public MouseTool getTrackball()
+    public MouseTool getTrackball( double speed )
     {
-        return new Trackball()
+        return new Trackball( speed, true )
         {
+//            @Override
+//            protected double getSpeed()
+//            {
+//                double baseSpeed = super.getSpeed();
+//                // make speed depend on model.getMagnification()
+//                float mag = model .getMagnification();
+//                float power = (-1f/3f) * ( mag + 2f );
+//                return baseSpeed * Math .pow( 10d, power );
+//            }
+
             @Override
             public void mousePressed( MouseEvent e )
             {
@@ -399,7 +415,7 @@ public class CameraController extends DefaultController implements Controller3d
                 ticks -= amt;
                 float newMag = ticksToMag( ticks );
                 setMagnification( newMag );
-                properties() .firePropertyChange( "magnification", Float .toString( oldMag ), Float .toString( newMag ) );
+                firePropertyChange( "magnification", Float .toString( oldMag ), Float .toString( newMag ) );
             }
         };
     }
@@ -443,12 +459,15 @@ public class CameraController extends DefaultController implements Controller3d
             model .getViewOrientation(lookDir, upDir);
             return upDir.toString();
         }
-
+        
         case "drawNormals": // for the trackball rendering
             return "false";
 
         case "drawOutlines": // for the trackball rendering
             return "false";
+
+        case "docDrawOutlines": // for the checkbox
+            return super .getProperty( "drawOutlines" );
 
         case "showIcosahedralLabels":
             // TODO refactor to fix this
@@ -468,7 +487,7 @@ public class CameraController extends DefaultController implements Controller3d
 
 
     @Override
-    public void setProperty( String propName, Object value )
+    public void setModelProperty( String propName, Object value )
     {
         if ( "magnification" .equals( propName ) )
         {
@@ -480,6 +499,8 @@ public class CameraController extends DefaultController implements Controller3d
             setMagnification( Float .parseFloat( (String) value ) );
             lastZoom = now;
         }
+        else
+            super .setModelProperty( propName, value );
     }
 
     public void copyView( Camera newView )
@@ -500,7 +521,7 @@ public class CameraController extends DefaultController implements Controller3d
     @Override
     public void attachViewer( RenderingViewer viewer, RenderingChanges scene, Component canvas )
     {
-        MouseTool trackball = this .getTrackball();
+        MouseTool trackball = this .getTrackball( 0.04d );
         
         // cannot use MouseTool .attach(), because it attaches a useless wheel listener,
         //  and CameraControlPanel will attach a better one to the parent component 
@@ -531,5 +552,11 @@ public class CameraController extends DefaultController implements Controller3d
             snapView();
             saveBaselineView();
         }
+    }
+
+    @Override
+    public Lights getSceneLighting()
+    {
+        return this.sceneLighting;
     }
 }

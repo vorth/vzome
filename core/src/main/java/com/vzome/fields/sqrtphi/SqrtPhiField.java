@@ -1,5 +1,6 @@
 package com.vzome.fields.sqrtphi;
 
+import com.vzome.core.algebra.AlgebraicNumber;
 import com.vzome.core.algebra.AlgebraicVector;
 import com.vzome.core.algebra.ParameterizedField;
 import com.vzome.core.algebra.PentagonField;
@@ -7,7 +8,8 @@ import com.vzome.core.algebra.PentagonField;
 /**
  * @author David Hall
  */
-public class SqrtPhiField  extends ParameterizedField<Integer> {
+public class SqrtPhiField  extends ParameterizedField<Integer>
+{
     public static final String FIELD_NAME = "sqrtPhi";
     
     /**
@@ -28,6 +30,19 @@ public class SqrtPhiField  extends ParameterizedField<Integer> {
         };
     }
     
+    @Override
+    public int getNumMultipliers()
+    {
+        return 1; // phi can be achieved by squaring sqrt(phi)
+    }
+
+    @Override
+    public void defineMultiplier( StringBuffer buf, int w )
+    {
+        buf .append( "phi = " );
+        buf .append( PentagonField.PHI_VALUE );
+    }
+
     @Override
     public double[] getCoefficients() {
         return getFieldCoefficients();
@@ -128,5 +143,12 @@ public class SqrtPhiField  extends ParameterizedField<Integer> {
             remapped[dim][7] = 1;
         }
         return super.createVector(remapped);
-    }        
+    }
+    
+    @Override
+    public AlgebraicNumber getGoldenRatio()
+    {
+        return getUnitTerm(2);
+    }
+    
 }

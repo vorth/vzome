@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
-import javax.vecmath.Point3d;
 import javax.vecmath.Quat4d;
 
 import org.vorthmann.j3d.CanvasTool;
@@ -20,6 +19,7 @@ import org.vorthmann.ui.LeftMouseDragAdapter;
 import com.vzome.core.algebra.AlgebraicField;
 import com.vzome.core.algebra.AlgebraicVector;
 import com.vzome.core.construction.Point;
+import com.vzome.core.math.Line;
 import com.vzome.core.model.Connector;
 import com.vzome.core.model.Manifestation;
 import com.vzome.core.render.RenderingChanges;
@@ -85,26 +85,26 @@ public class StrutBuilderController extends DefaultController implements CanvasT
         }
     }
     @Override
-    public void setProperty( String name, Object value )
+    public void setModelProperty( String name, Object value )
     {
         switch ( name ) {
 
         case "useGraphicalViews": {
             boolean old = useGraphicalViews;
             this.useGraphicalViews = "true".equals( value );
-            properties().firePropertyChange( name, old, this.useGraphicalViews );
+            firePropertyChange( name, old, this.useGraphicalViews );
             break;
         }
             
         case "showStrutScales": {
             boolean old = showStrutScales;
             this.showStrutScales = "true" .equals( value );
-            properties().firePropertyChange( name, old, this.showStrutScales );
+            firePropertyChange( name, old, this.showStrutScales );
             break;
         }
 
         default:
-            super .setProperty( name, value );
+            super .setModelProperty( name, value );
         }
     }
     
@@ -120,14 +120,14 @@ public class StrutBuilderController extends DefaultController implements CanvasT
         case "toggleOrbitViews": {
             boolean old = useGraphicalViews;
             useGraphicalViews = ! old;
-            properties().firePropertyChange( "useGraphicalViews", old, this.useGraphicalViews );
+            firePropertyChange( "useGraphicalViews", old, this.useGraphicalViews );
             break;
         }
 
         case "toggleStrutScales": {
             boolean old = showStrutScales;
             showStrutScales = ! old;
-            properties().firePropertyChange( "showStrutScales", old, this.showStrutScales );
+            firePropertyChange( "showStrutScales", old, this.showStrutScales );
             break;
         }
 
@@ -141,7 +141,6 @@ public class StrutBuilderController extends DefaultController implements CanvasT
         // The preview strut rendering is the main reason we distinguish the mainScene as a listener
         AlgebraicField field = this .docController .getModel() .getField();
         this .previewStrut = new PreviewStrut( field, scene, cameraController );
-        this .previewStrut .setPropertyChangeSupport( this .properties() );
 
         this .previewStrutLength = new MouseToolFilter( cameraController .getZoomScroller() )
         {
@@ -167,14 +166,17 @@ public class StrutBuilderController extends DefaultController implements CanvasT
         // drag events to render or realize the preview strut;
         //   only works when drag starts over a ball
         this .previewStrutStart = new LeftMouseDragAdapter( new ManifestationPicker( viewer )
-        {                
+        {
+            @Override
+            public void mouseClicked( MouseEvent e ) {} // avoid the duplicate pick!
+
             @Override
             protected void dragStarted( Manifestation target, boolean b )
             {
                 if ( target instanceof Connector )
                 {
                     mErrors .clearError();
-                    Point point = (Point) target .getConstructions() .next();
+                    Point point = (Point) target .getFirstConstruction();
                     AlgebraicVector workingPlaneNormal = null;
                     if ( useWorkingPlane && (workingPlaneAxis != null ) )
                         workingPlaneNormal = workingPlaneAxis;
@@ -205,10 +207,8 @@ public class StrutBuilderController extends DefaultController implements CanvasT
             @Override
             public void mouseDragged( MouseEvent e )
             {
-                Point3d imagePt = new Point3d();
-                Point3d eyePt = new Point3d();
-                viewer .pickPoint( e, imagePt, eyePt );
-                previewStrut .workingPlaneDrag( imagePt, eyePt );
+                Line ray = viewer .pickRay( e );
+                previewStrut .workingPlaneDrag( ray );
             }
         } );
     }
@@ -240,6 +240,6 @@ public class StrutBuilderController extends DefaultController implements CanvasT
     public void setWorkingPlaneAxis( AlgebraicVector axis )
     {
         this .workingPlaneAxis = axis;
-        this .properties() .firePropertyChange( "workingPlaneDefined", false, true );
+        this .firePropertyChange( "workingPlaneDefined", false, true );
     }
 }
