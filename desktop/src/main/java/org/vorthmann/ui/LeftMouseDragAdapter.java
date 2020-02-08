@@ -108,7 +108,7 @@ public class LeftMouseDragAdapter extends MouseInputAdapter implements MouseTool
     {}
 
     @Override
-    public void attach( Component canvas )
+    public void startHandlingMouseEvents( Component canvas )
     {
         canvas .addMouseListener( this );
         canvas .addMouseMotionListener( this );
@@ -116,7 +116,7 @@ public class LeftMouseDragAdapter extends MouseInputAdapter implements MouseTool
     }
     
     @Override
-    public void detach( Component canvas )
+    public void stopHandlingMouseEvents( Component canvas )
     {
         canvas .removeMouseListener( this );
         canvas .removeMouseMotionListener( this );

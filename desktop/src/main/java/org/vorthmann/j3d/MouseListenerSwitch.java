@@ -45,7 +45,7 @@ public class MouseListenerSwitch extends MouseAdapter implements MouseTool {
 	
 
     @Override
-    public void attach( Component component )
+    public void startHandlingMouseEvents( Component component )
     {
         component .addMouseListener( this );
 		component .addMouseMotionListener( this );
@@ -53,7 +53,7 @@ public class MouseListenerSwitch extends MouseAdapter implements MouseTool {
     }
     
     @Override
-    public void detach( Component component )
+    public void stopHandlingMouseEvents( Component component )
     {
         component .removeMouseListener( this );
 		component .removeMouseMotionListener( this );

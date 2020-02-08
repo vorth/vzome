@@ -128,7 +128,7 @@ public class OrbitPanel extends JPanel implements PropertyChangeListener
         if ( orbitPopup != null )
         	orbitTriangle .removeMouseListener( orbitPopup );
 
-        this .enabledOrbits .getMouseTool() .detach( orbitTriangle );
+        this .enabledOrbits .getMouseTool() .stopHandlingMouseEvents( orbitTriangle );
         this .drawnOrbits .removePropertyListener( this );
         this .enabledOrbits .removePropertyListener( this );
 
@@ -139,7 +139,7 @@ public class OrbitPanel extends JPanel implements PropertyChangeListener
 
         enabledOrbits .addPropertyListener( this );
         drawnOrbits .addPropertyListener( this );
-        enabledOrbits .getMouseTool() .attach( orbitTriangle );
+        enabledOrbits .getMouseTool() .startHandlingMouseEvents( orbitTriangle );
 
         if ( directionPopupMenu != null )
         {

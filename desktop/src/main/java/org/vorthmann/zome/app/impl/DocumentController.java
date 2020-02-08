@@ -357,7 +357,7 @@ public class DocumentController extends DefaultController implements Controller3
 //        }
 
         // this wrapper for mainCanvasTrackball is disabled when the press is initiated over a ball
-        modelModeMainTrackball = new LeftMouseDragAdapter( new MouseToolFilter( articleModeMainTrackball )
+        modelModeMainTrackball = new MouseToolFilter( articleModeMainTrackball )
         {
             boolean live = false;
 
@@ -385,7 +385,7 @@ public class DocumentController extends DefaultController implements Controller3
                 this .live = false;
                 super .mouseReleased( e );
             }
-        } );
+        };
     }
     
     @Override
@@ -435,13 +435,13 @@ public class DocumentController extends DefaultController implements Controller3
         
         if ( this .modelCanvas != null )
             if ( editingModel ) {
-                this .selectionClick .attach( modelCanvas );
-                this .modelModeMainTrackball .attach( modelCanvas );
-                this .strutBuilder .attach( modelCanvas );
+                this .selectionClick .startHandlingMouseEvents( modelCanvas );
+                this .modelModeMainTrackball .startHandlingMouseEvents( modelCanvas );
+                this .strutBuilder .startHandlingMouseEvents( modelCanvas );
             } else {
-                this .articleModeMainTrackball .attach( modelCanvas );
-                this .articleModeZoom .attach( modelCanvas );
-                this .lessonPageClick .attach( modelCanvas );
+                this .articleModeMainTrackball .startHandlingMouseEvents( modelCanvas );
+                this .articleModeZoom .startHandlingMouseEvents( modelCanvas );
+                this .lessonPageClick .startHandlingMouseEvents( modelCanvas );
             }
     }
 
@@ -526,13 +526,13 @@ public class DocumentController extends DefaultController implements Controller3
                 {
                     this .currentView = this .cameraController .getView();
                     
-                    this .selectionClick .detach( this .modelCanvas );
-                    this .strutBuilder .detach( this .modelCanvas );
-                    this .modelModeMainTrackball .detach( this .modelCanvas );
+                    this .selectionClick .stopHandlingMouseEvents( this .modelCanvas );
+                    this .strutBuilder .stopHandlingMouseEvents( this .modelCanvas );
+                    this .modelModeMainTrackball .stopHandlingMouseEvents( this .modelCanvas );
                     
-                    this .lessonPageClick .attach( this .modelCanvas );
-                    this .articleModeMainTrackball .attach( this .modelCanvas );
-                    this .articleModeZoom .attach( this .modelCanvas );
+                    this .lessonPageClick .startHandlingMouseEvents( this .modelCanvas );
+                    this .articleModeMainTrackball .startHandlingMouseEvents( this .modelCanvas );
+                    this .articleModeZoom .startHandlingMouseEvents( this .modelCanvas );
     
                     this .documentModel .addPropertyChangeListener( this .articleChanges );
                     this .documentModel .removePropertyChangeListener( this .modelChanges );
@@ -580,13 +580,13 @@ public class DocumentController extends DefaultController implements Controller3
                     RenderedModel .renderChange( this .currentSnapshot, this .mRenderedModel, this .mainScene );
                     this .currentSnapshot = this .mRenderedModel;
     
-                    this .lessonPageClick .detach( this .modelCanvas );
-                    this .articleModeMainTrackball .detach( this .modelCanvas );
-                    this .articleModeZoom .detach( this .modelCanvas );
+                    this .lessonPageClick .stopHandlingMouseEvents( this .modelCanvas );
+                    this .articleModeMainTrackball .stopHandlingMouseEvents( this .modelCanvas );
+                    this .articleModeZoom .stopHandlingMouseEvents( this .modelCanvas );
                     
-                    this .selectionClick .attach( this .modelCanvas );
-                    this .modelModeMainTrackball .attach( this .modelCanvas );
-                    this .strutBuilder .attach( this .modelCanvas );
+                    this .selectionClick .startHandlingMouseEvents( this .modelCanvas );
+                    this .modelModeMainTrackball .startHandlingMouseEvents( this .modelCanvas );
+                    this .strutBuilder .startHandlingMouseEvents( this .modelCanvas );
     
                     this .editingModel = true;
                     firePropertyChange( "editor.mode", "article", "model" );

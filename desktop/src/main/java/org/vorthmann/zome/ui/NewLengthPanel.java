@@ -80,14 +80,14 @@ public class NewLengthPanel extends JPanel implements PropertyChangeListener, Ac
     {
         if ( this .controller != null )
         {
-            this .controller .getMouseTool() .detach( this );
+            this .controller .getMouseTool() .stopHandlingMouseEvents( this );
             this .controller .removePropertyListener( this );
         }
         this .controller = controller;
         if ( this .controller != null )
         {
             this .controller .addPropertyListener( this );
-            this .controller .getMouseTool() .attach( this );
+            this .controller .getMouseTool() .startHandlingMouseEvents( this );
         }
         lengthDialog = new LengthDialog( frame, controller .getSubController( "unit" ), "Custom Unit Strut Length", controller );
         boolean value = "true" .equals( controller .getProperty( "showStrutScales" ) );

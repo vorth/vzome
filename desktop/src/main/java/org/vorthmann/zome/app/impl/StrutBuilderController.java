@@ -220,21 +220,21 @@ public class StrutBuilderController extends DefaultController implements CanvasT
     }
 
     @Override
-    public void attach( Component canvas )
+    public void startHandlingMouseEvents( Component canvas )
     {
-        previewStrutStart .attach( canvas );
-        previewStrutRoll .attach( canvas );
-        previewStrutPlanarDrag .attach( canvas );
-        previewStrutLength .attach( canvas );
+        previewStrutStart .startHandlingMouseEvents( canvas );
+        previewStrutRoll .startHandlingMouseEvents( canvas );
+        previewStrutPlanarDrag .startHandlingMouseEvents( canvas );
+        previewStrutLength .startHandlingMouseEvents( canvas );
     }
 
     @Override
-    public void detach( Component canvas )
+    public void stopHandlingMouseEvents( Component canvas )
     {
-        previewStrutStart .detach( canvas );
-        previewStrutRoll .detach( canvas );
-        previewStrutPlanarDrag .detach( canvas );
-        previewStrutLength .detach( canvas );
+        previewStrutStart .stopHandlingMouseEvents( canvas );
+        previewStrutRoll .stopHandlingMouseEvents( canvas );
+        previewStrutPlanarDrag .stopHandlingMouseEvents( canvas );
+        previewStrutLength .stopHandlingMouseEvents( canvas );
     }
 
     public void setWorkingPlaneAxis( AlgebraicVector axis )

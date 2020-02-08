@@ -5,7 +5,7 @@ import java.awt.Component;
 
 public interface CanvasTool
 {
-    void attach( Component canvas );
+    void startHandlingMouseEvents( Component canvas );
     
-    void detach( Component canvas );
+    void stopHandlingMouseEvents( Component canvas );
 }
