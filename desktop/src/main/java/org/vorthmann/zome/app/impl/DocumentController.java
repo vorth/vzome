@@ -34,11 +34,10 @@ import javax.vecmath.Point3d;
 
 import org.vorthmann.j3d.MouseTool;
 import org.vorthmann.j3d.MouseToolDefault;
-import org.vorthmann.j3d.MouseToolFilter;
 import org.vorthmann.j3d.Trackball;
 import org.vorthmann.ui.Controller;
 import org.vorthmann.ui.DefaultController;
-import org.vorthmann.ui.LeftMouseDragAdapter;
+import org.vorthmann.ui.LeftMouseFilter;
 import org.vorthmann.zome.app.impl.PartsController.PartInfo;
 import org.vorthmann.zome.ui.PartsPanel.PartsPanelActionEvent;
 
@@ -97,11 +96,11 @@ public class DocumentController extends DefaultController implements Controller3
     
     // to RenderedModelController
     //
-    private RenderingViewer imageCaptureViewer;
+    private RenderingViewer renderingViewer;
     private final RenderedModel mRenderedModel;
     private RenderingChanges mainScene;
     private Lights sceneLighting;
-    private MouseTool modelModeMainTrackball;
+    private MouseTool strutOrCamera;
     private Component modelCanvas;
     private boolean drawNormals = false;
     private boolean drawOutlines = false;
@@ -127,7 +126,7 @@ public class DocumentController extends DefaultController implements Controller3
     // to LessonController
     //
     private ThumbnailRenderer thumbnails;
-    private MouseTool lessonPageClick, articleModeMainTrackball, articleModeZoom;
+    private MouseTool lessonPageClick, cameraTrackball, articleModeZoom;
     private final LessonController lessonController;
     private PropertyChangeListener articleChanges;
     private RenderedModel currentSnapshot;
@@ -286,7 +285,6 @@ public class DocumentController extends DefaultController implements Controller3
         {
             String name = symper .getName();
             SymmetryController symmController = new SymmetryController( strutBuilder, this .documentModel .getSymmetrySystem( name ), mRenderedModel );
-            strutBuilder .addSubController( "symmetry." + name, symmController );
             this .symmetries .put( name, symmController );
         }
 
@@ -344,48 +342,10 @@ public class DocumentController extends DefaultController implements Controller3
             }
         };
 
-        articleModeMainTrackball = cameraController .getTrackball( 0.7d );
+        cameraTrackball = cameraController .getTrackball( 0.7d );
         // will not be attached, initially; gets attached on switchToArticle
         if ( propertyIsTrue( "presenter.mode" ) )
-            ((Trackball) articleModeMainTrackball) .setModal( false );
-//        if ( ! editingModel )
-//        {
-//            // cannot use MouseTool .attach(), because it attaches a useless wheel listener,
-//            //  and ViewPlatformControlPanel will attach a better one to the parent component 
-//            canvas .addMouseListener( mouseTool );
-//            canvas .addMouseMotionListener( mouseTool );
-//        }
-
-        // this wrapper for mainCanvasTrackball is disabled when the press is initiated over a ball
-        modelModeMainTrackball = new MouseToolFilter( articleModeMainTrackball )
-        {
-            boolean live = false;
-
-            @Override
-            public void mousePressed( MouseEvent e )
-            {
-                RenderedManifestation rm = imageCaptureViewer .pickManifestation( e );
-                if ( rm == null || !( rm .getManifestation() instanceof Connector ) )
-                {
-                    this .live = true;
-                    super .mousePressed( e );
-                }
-            }
-
-            @Override
-            public void mouseDragged( MouseEvent e )
-            {
-                if ( live )
-                    super .mouseDragged( e );
-            }
-
-            @Override
-            public void mouseReleased( MouseEvent e )
-            {
-                this .live = false;
-                super .mouseReleased( e );
-            }
-        };
+            ((Trackball) cameraTrackball) .setModal( false );
     }
     
     @Override
@@ -394,52 +354,41 @@ public class DocumentController extends DefaultController implements Controller3
     		// This is called on a UI thread!
         this .modelCanvas = canvas;
         this .mainScene = scene;
-        this .imageCaptureViewer = viewer;
-
-//      leftEyeCanvas = rvFactory .createJ3dComponent( "" );
-//      RenderingViewer viewer = rvFactory .createRenderingViewer( mainScene, leftEyeCanvas );
-//      mViewPlatform .addViewer( viewer );
-//      viewer .setEye( RenderingViewer .LEFT_EYE );
-//      leftController = new PickingController( viewer, this );
-//
-//      rightEyeCanvas = rvFactory .createJ3dComponent( "" );
-//      viewer = rvFactory .createRenderingViewer( mainScene, rightEyeCanvas );
-//      mViewPlatform .addViewer( viewer );
-//      viewer .setEye( RenderingViewer .RIGHT_EYE );
-//      rightController = new PickingController( viewer, this );
+        this .renderingViewer = viewer;
 
         if ( this .mainScene instanceof PropertyChangeListener )
             this .addPropertyListener( (PropertyChangeListener) this .mainScene );
 
-        
         // clicks become select or deselect all
-        selectionClick = new LeftMouseDragAdapter( new ManifestationPicker( imageCaptureViewer )
+        selectionClick = new MouseToolDefault()
         {
             @Override
-            protected void manifestationPicked( Manifestation target, boolean shiftKey )
+            public void mouseClicked( MouseEvent e )
             {
+                Manifestation target = renderingViewer .pickManifestation( e );
                 mErrors .clearError();
-                boolean shift = true;
-                if ( mRequireShift )
-                    shift = shiftKey;
                 if ( target == null )
                     documentModel .doEdit( "DeselectAll" );
-                else
-                    documentModel .doPickEdit( target, "SelectManifestation" + ( shift? "" : "/replace" ) );
+                else {
+                    boolean add = true;
+                    if ( mRequireShift )
+                        add = ( e .getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK ) != 0;
+                    documentModel .doPickEdit( target, "SelectManifestation" + ( add? "" : "/replace" ) );
+                }
             }
-        } );
-        this .cameraController .addViewer( this .imageCaptureViewer );
-        this .addSubController( "monocularPicking", new PickingController( this .imageCaptureViewer, this ) );
+        };
+        this .cameraController .addViewer( this .renderingViewer );
+        this .addSubController( "monocularPicking", new PickingController( this .renderingViewer, this ) );
 
-        this .strutBuilder .attach( viewer, scene );
+        this .strutBuilder .attachViewer( viewer, scene, this .modelCanvas );
+        strutOrCamera = new LeftMouseFilter( this .strutBuilder .getMouseTool() );
         
         if ( this .modelCanvas != null )
             if ( editingModel ) {
                 this .selectionClick .startHandlingMouseEvents( modelCanvas );
-                this .modelModeMainTrackball .startHandlingMouseEvents( modelCanvas );
-                this .strutBuilder .startHandlingMouseEvents( modelCanvas );
+                this .strutOrCamera .startHandlingMouseEvents( modelCanvas );
             } else {
-                this .articleModeMainTrackball .startHandlingMouseEvents( modelCanvas );
+                this .cameraTrackball .startHandlingMouseEvents( modelCanvas );
                 this .articleModeZoom .startHandlingMouseEvents( modelCanvas );
                 this .lessonPageClick .startHandlingMouseEvents( modelCanvas );
             }
@@ -527,11 +476,10 @@ public class DocumentController extends DefaultController implements Controller3
                     this .currentView = this .cameraController .getView();
                     
                     this .selectionClick .stopHandlingMouseEvents( this .modelCanvas );
-                    this .strutBuilder .stopHandlingMouseEvents( this .modelCanvas );
-                    this .modelModeMainTrackball .stopHandlingMouseEvents( this .modelCanvas );
+                    this .strutOrCamera .stopHandlingMouseEvents( this .modelCanvas );
                     
                     this .lessonPageClick .startHandlingMouseEvents( this .modelCanvas );
-                    this .articleModeMainTrackball .startHandlingMouseEvents( this .modelCanvas );
+                    this .cameraTrackball .startHandlingMouseEvents( this .modelCanvas );
                     this .articleModeZoom .startHandlingMouseEvents( this .modelCanvas );
     
                     this .documentModel .addPropertyChangeListener( this .articleChanges );
@@ -581,13 +529,12 @@ public class DocumentController extends DefaultController implements Controller3
                     this .currentSnapshot = this .mRenderedModel;
     
                     this .lessonPageClick .stopHandlingMouseEvents( this .modelCanvas );
-                    this .articleModeMainTrackball .stopHandlingMouseEvents( this .modelCanvas );
+                    this .cameraTrackball .stopHandlingMouseEvents( this .modelCanvas );
                     this .articleModeZoom .stopHandlingMouseEvents( this .modelCanvas );
                     
                     this .selectionClick .startHandlingMouseEvents( this .modelCanvas );
-                    this .modelModeMainTrackball .startHandlingMouseEvents( this .modelCanvas );
-                    this .strutBuilder .startHandlingMouseEvents( this .modelCanvas );
-    
+                    this .strutOrCamera .startHandlingMouseEvents( this .modelCanvas );
+                    
                     this .editingModel = true;
                     firePropertyChange( "editor.mode", "article", "model" );
                 }
@@ -936,7 +883,7 @@ public class DocumentController extends DefaultController implements Controller3
         // the solution is to exclude the alpha data when exporting JPEG.
         boolean withAlpha = ! (format.equals( "BMP" ) || format.equals( "JPG" ));
 
-        imageCaptureViewer .captureImage( maxSize, withAlpha, new RenderingViewer.ImageCapture()
+        renderingViewer .captureImage( maxSize, withAlpha, new RenderingViewer.ImageCapture()
         {
             private void setImageCompression(String format, ImageWriteParam iwParam)
             {

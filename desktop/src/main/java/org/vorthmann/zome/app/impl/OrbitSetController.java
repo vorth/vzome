@@ -20,7 +20,7 @@ import org.vorthmann.j3d.MouseTool;
 import org.vorthmann.j3d.MouseToolDefault;
 import org.vorthmann.ui.Controller;
 import org.vorthmann.ui.DefaultController;
-import org.vorthmann.ui.LeftMouseDragAdapter;
+import org.vorthmann.ui.LeftMouseFilter;
 
 import com.vzome.core.algebra.AlgebraicVector;
 import com.vzome.core.math.RealVector;
@@ -45,7 +45,7 @@ public class OrbitSetController extends DefaultController implements PropertyCha
 
     private final Map<Direction, OrbitState> orbitDots = new HashMap<>();
 
-    private final MouseTool mouseTool = new LeftMouseDragAdapter( new MouseToolDefault()
+    private final MouseTool mouseTool = new LeftMouseFilter( new MouseToolDefault()
     {
         @Override
         public void mouseClicked( MouseEvent click )
@@ -56,7 +56,7 @@ public class OrbitSetController extends DefaultController implements PropertyCha
                 firePropertyChange( "orbits", true, false );
             }
         }
-    }, /* half-second forgiveness */ 500 );
+    } );
 
     private static class OrbitState
     {

@@ -8,13 +8,13 @@ import java.awt.event.MouseWheelEvent;
 
 import javax.vecmath.Quat4d;
 
-import org.vorthmann.j3d.CanvasTool;
 import org.vorthmann.j3d.MouseTool;
 import org.vorthmann.j3d.MouseToolDefault;
 import org.vorthmann.j3d.MouseToolFilter;
 import org.vorthmann.j3d.Trackball;
 import org.vorthmann.ui.DefaultController;
-import org.vorthmann.ui.LeftMouseDragAdapter;
+import org.vorthmann.ui.LeftMouseFilter;
+import org.vorthmann.ui.MouseDragAdapter;
 
 import com.vzome.core.algebra.AlgebraicField;
 import com.vzome.core.algebra.AlgebraicVector;
@@ -22,11 +22,14 @@ import com.vzome.core.construction.Point;
 import com.vzome.core.math.Line;
 import com.vzome.core.model.Connector;
 import com.vzome.core.model.Manifestation;
+import com.vzome.core.render.ManifestationPicker;
 import com.vzome.core.render.RenderingChanges;
+import com.vzome.core.viewing.Lights;
 import com.vzome.desktop.controller.CameraController;
+import com.vzome.desktop.controller.Controller3d;
 import com.vzome.desktop.controller.RenderingViewer;
 
-public class StrutBuilderController extends DefaultController implements CanvasTool
+public class StrutBuilderController extends DefaultController implements Controller3d
 {    
     private boolean useGraphicalViews = false;
 
@@ -38,11 +41,15 @@ public class StrutBuilderController extends DefaultController implements CanvasT
 
     private PreviewStrut previewStrut;
 
-    private MouseTool previewStrutStart, previewStrutRoll, previewStrutPlanarDrag, previewStrutLength;
+    private MouseTool previewStrutRoll, previewStrutPlanarDrag, previewStrutLength;
 
     private DocumentController docController;
 
     private CameraController cameraController;
+
+    private Component canvas;
+
+    private ManifestationPicker picker;
 
     public StrutBuilderController( DocumentController docController, CameraController cameraController )
     {
@@ -136,8 +143,12 @@ public class StrutBuilderController extends DefaultController implements CanvasT
         }
     }
     
-    public void attach( RenderingViewer viewer, RenderingChanges scene )
+    @Override
+    public void attachViewer( RenderingViewer viewer, RenderingChanges scene, Component canvas )
     {
+        this .canvas = canvas;
+        this .picker = viewer;
+
         // The preview strut rendering is the main reason we distinguish the mainScene as a listener
         AlgebraicField field = this .docController .getModel() .getField();
         this .previewStrut = new PreviewStrut( field, scene, cameraController );
@@ -163,46 +174,18 @@ public class StrutBuilderController extends DefaultController implements CanvasT
             }
         };
 
-        // drag events to render or realize the preview strut;
-        //   only works when drag starts over a ball
-        this .previewStrutStart = new LeftMouseDragAdapter( new ManifestationPicker( viewer )
-        {
-            @Override
-            public void mouseClicked( MouseEvent e ) {} // avoid the duplicate pick!
-
-            @Override
-            protected void dragStarted( Manifestation target, boolean b )
-            {
-                if ( target instanceof Connector )
-                {
-                    mErrors .clearError();
-                    Point point = (Point) target .getFirstConstruction();
-                    AlgebraicVector workingPlaneNormal = null;
-                    if ( useWorkingPlane && (workingPlaneAxis != null ) )
-                        workingPlaneNormal = workingPlaneAxis;
-                    previewStrut .startRendering( docController .getSymmetryController(), point, workingPlaneNormal );
-                }
-            }
-
-            @Override
-            protected void dragFinished( Manifestation target, boolean b )
-            {
-                previewStrut .finishPreview( docController .getModel() );
-            }
-        } );
-
         // trackball to adjust the preview strut (when it is rendered)
-        this .previewStrutRoll = new LeftMouseDragAdapter( new Trackball()
+        this .previewStrutRoll = new LeftMouseFilter( new MouseDragAdapter( new Trackball()
         {
             @Override
             protected void trackballRolled( Quat4d roll )
             {
                 previewStrut .trackballRolled( roll );
             }
-        } );
+        } ) );
         
         // working plane drag events to adjust the preview strut (when it is rendered)
-        this .previewStrutPlanarDrag = new LeftMouseDragAdapter( new MouseToolDefault()
+        this .previewStrutPlanarDrag = new LeftMouseFilter( new MouseDragAdapter( new MouseToolDefault()
         {
             @Override
             public void mouseDragged( MouseEvent e )
@@ -210,31 +193,75 @@ public class StrutBuilderController extends DefaultController implements CanvasT
                 Line ray = viewer .pickRay( e );
                 previewStrut .workingPlaneDrag( ray );
             }
+        } ) );
+    }
+
+    @Override
+    public Lights getSceneLighting()
+    {
+        return null;
+    }
+
+    @Override
+    public MouseTool getMouseTool()
+    {
+        return new MouseDragAdapter( new MouseToolFilter( this .cameraController .getTrackball( 0.7 ) ) // could use getMouseTool(), if it were implemented
+        {
+            private boolean draggingStrut;
+
+            @Override
+            public void mousePressed( MouseEvent e )
+            {
+                this .draggingStrut = false;
+                Manifestation target = picker .pickManifestation( e );
+                if ( target != null && ( target instanceof Connector ) ) {
+                    this .draggingStrut  = true;
+
+                    mErrors .clearError();
+                    Point point = (Point) target .getFirstConstruction();
+                    AlgebraicVector workingPlaneNormal = null;
+                    if ( useWorkingPlane && (workingPlaneAxis != null ) )
+                        workingPlaneNormal = workingPlaneAxis;
+                    previewStrut .startRendering( docController .getSymmetryController(), point, workingPlaneNormal );
+
+                    previewStrutRoll .startHandlingMouseEvents( canvas );
+                    previewStrutPlanarDrag .startHandlingMouseEvents( canvas );
+                    previewStrutLength .startHandlingMouseEvents( canvas );
+                }
+                else {
+                    super .mousePressed( e ); // let the camera trackball handle
+                }
+            }
+
+            @Override
+            public void mouseDragged( MouseEvent e )
+            {
+                if ( ! this .draggingStrut )
+                    super .mouseDragged( e ); // let the camera trackball handle
+            }
+
+            @Override
+            public void mouseReleased( MouseEvent e )
+            {
+                if ( this .draggingStrut  ) {
+                    previewStrutRoll .stopHandlingMouseEvents( canvas );
+                    previewStrutPlanarDrag .stopHandlingMouseEvents( canvas );
+                    previewStrutLength .stopHandlingMouseEvents( canvas );
+
+                    previewStrut .finishPreview( docController .getModel() );
+
+                    this .draggingStrut = false;
+                }
+                else
+                    super .mouseReleased( e ); // let the camera trackball handle
+            }
         } );
     }
-    
+
     public void setSymmetryController( SymmetryController symmetryController )
     {
         if ( previewStrut != null )
             previewStrut .setSymmetryController( symmetryController );
-    }
-
-    @Override
-    public void startHandlingMouseEvents( Component canvas )
-    {
-        previewStrutStart .startHandlingMouseEvents( canvas );
-        previewStrutRoll .startHandlingMouseEvents( canvas );
-        previewStrutPlanarDrag .startHandlingMouseEvents( canvas );
-        previewStrutLength .startHandlingMouseEvents( canvas );
-    }
-
-    @Override
-    public void stopHandlingMouseEvents( Component canvas )
-    {
-        previewStrutStart .stopHandlingMouseEvents( canvas );
-        previewStrutRoll .stopHandlingMouseEvents( canvas );
-        previewStrutPlanarDrag .stopHandlingMouseEvents( canvas );
-        previewStrutLength .stopHandlingMouseEvents( canvas );
     }
 
     public void setWorkingPlaneAxis( AlgebraicVector axis )

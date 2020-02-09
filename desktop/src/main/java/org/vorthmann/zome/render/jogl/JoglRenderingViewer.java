@@ -25,6 +25,7 @@ import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
 import com.vzome.core.math.Line;
 import com.vzome.core.math.RealVector;
+import com.vzome.core.model.Manifestation;
 import com.vzome.core.render.Color;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderingChanges;
@@ -211,7 +212,7 @@ public class JoglRenderingViewer implements RenderingViewer, GLEventListener
     }
 
     @Override
-    public RenderedManifestation pickManifestation( MouseEvent e )
+    public Manifestation pickManifestation( MouseEvent e )
     {
         Line ray = this .pickRay( e );
 
@@ -219,7 +220,11 @@ public class JoglRenderingViewer implements RenderingViewer, GLEventListener
         //   method.  We sort the hits as we go.
         NearestPicker picker = new NearestPicker( ray, this .modelView, this .projection );
         this .scene .pick( picker );
-        return picker .getNearest();
+        RenderedManifestation rm = picker .getNearest();
+        if ( rm != null && rm .isPickable() )
+            return rm .getManifestation();
+        else
+            return null;
     }
 
     /* (non-Javadoc)
@@ -254,7 +259,7 @@ public class JoglRenderingViewer implements RenderingViewer, GLEventListener
     }
     
     @Override
-    public Collection<RenderedManifestation> pickCube()
+    public Collection<Manifestation> pickCube()
     {
         // TODO Auto-generated method stub
         return null;

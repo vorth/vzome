@@ -86,6 +86,8 @@ public class SymmetryController extends DefaultController
 
     public SymmetryController( Controller parent, SymmetrySystem model, RenderedModel mRenderedModel )
     {
+        parent .addSubController( "symmetry." + model .getName(), this );
+
         this .symmetrySystem = model;
         renderedModel = mRenderedModel;
         Symmetry symmetry = model .getSymmetry();

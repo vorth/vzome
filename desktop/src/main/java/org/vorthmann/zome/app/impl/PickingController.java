@@ -10,7 +10,6 @@ import com.vzome.core.model.Connector;
 import com.vzome.core.model.Manifestation;
 import com.vzome.core.model.Panel;
 import com.vzome.core.model.Strut;
-import com.vzome.core.render.RenderedManifestation;
 import com.vzome.desktop.controller.RenderingViewer;
 
 /**
@@ -65,10 +64,7 @@ public class PickingController extends DefaultController implements Controller
 	@Override
 	public boolean[] enableContextualCommands( String[] menu, MouseEvent e )
 	{
-        RenderedManifestation rm = this .viewer .pickManifestation( e );
-        pickedManifestation = null;
-        if ( rm != null && rm.isPickable() )
-        	pickedManifestation = rm.getManifestation();
+        	pickedManifestation = this .viewer .pickManifestation( e );
 
         boolean[] result = this .delegate .enableContextualCommands( menu, e );
         for ( int i = 0; i < menu.length; i++ ) {
