@@ -48,6 +48,11 @@ public abstract class ChangeSelection extends SideEffects
     {
         this.orderedSelection = orderedSelection;
     }
+    
+    boolean hasOrderedSelection()
+    {
+        return this .orderedSelection;
+    }
 
     @Override
     public void undo()
