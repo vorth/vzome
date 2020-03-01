@@ -3,9 +3,6 @@
 package org.vorthmann.ui;
 
 import java.awt.Desktop;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -16,7 +13,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.vorthmann.j3d.MouseTool;
+import org.vorthmann.j3d.CanvasTool;
 
 public class DefaultController implements Controller
 {
@@ -32,7 +29,7 @@ public class DefaultController implements Controller
 
     static final Logger logger = Logger.getLogger( "org.vorthmann.zome.controller" );
     
-    protected PropertyChangeSupport properggties()
+    protected PropertyChangeSupport properties()
     {
         return this.pcs;
     }
@@ -98,10 +95,10 @@ public class DefaultController implements Controller
     }
 
     @Override
-    public boolean[] enableContextualCommands( String[] menu, MouseEvent e )
+    public boolean[] enableContextualCommands( String[] menu, Object mouseEvent )
     {
         if ( mNextController != null )
-            return mNextController .enableContextualCommands( menu, e );
+            return mNextController .enableContextualCommands( menu, mouseEvent );
         else
             return new boolean[0];
     }
@@ -155,10 +152,10 @@ public class DefaultController implements Controller
     }
 
     @Override
-    public void repaintGraphics( String panelName, Graphics graphics, Dimension size )
+    public void repaintGraphics( String panelName, Object graphics, int width, int height )
     {
         if ( mNextController != null )
-            mNextController .repaintGraphics( panelName, graphics, size );
+            mNextController .repaintGraphics( panelName, graphics, width, height );
     }
 
     @Override
@@ -213,7 +210,7 @@ public class DefaultController implements Controller
     }
 
     @Override
-    public MouseTool getMouseTool()
+    public CanvasTool getMouseTool()
     {
         return null;
     }

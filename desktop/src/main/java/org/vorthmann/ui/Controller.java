@@ -3,13 +3,10 @@
 
 package org.vorthmann.ui;
 
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 
-import org.vorthmann.j3d.MouseTool;
+import org.vorthmann.j3d.CanvasTool;
 
 /**
  * Controller portion of model-view-controller architecture.
@@ -30,7 +27,6 @@ import org.vorthmann.j3d.MouseTool;
  */
 public interface Controller
 {
-    // TODO replace ErrorChannel with JDK logging
     public interface ErrorChannel
     {
         // TODO: DJH: Use varargs or better yet, typesafe overloads.
@@ -51,7 +47,7 @@ public interface Controller
         
     String[] getCommandList( String listName );
 
-    boolean[] enableContextualCommands( String[] menu, MouseEvent e );
+    boolean[] enableContextualCommands( String[] menu, Object mouseEvent ); // actually MouseEvent, but we can't depend on AWT
 
     void actionPerformed( Object source, String action );
 
@@ -61,7 +57,7 @@ public interface Controller
     
     void doScriptAction( String command, String script );
 
-    void repaintGraphics( String panelName, Graphics graphics, Dimension size );
+    void repaintGraphics( String panelName, Object graphics, int width, int height ); // actually Graphics, but we can't depend on AWT
 
 	String getProperty(String string);
 
@@ -77,7 +73,7 @@ public interface Controller
 
     Controller getSubController( String string );
     
-    MouseTool getMouseTool();
+    CanvasTool getMouseTool();
 
     void addSubController( String name, Controller sub );
 }

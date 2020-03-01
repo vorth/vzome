@@ -1,11 +1,9 @@
 
 package org.vorthmann.j3d;
 
-import java.awt.Component;
-
 public interface CanvasTool
-{
-    void attach( Component canvas );
+{    
+    void attach( Object canvas ); // really Component, but we cannot use AWT in the interface
     
-    void detach( Component canvas );
+    void detach( Object canvas );
 }

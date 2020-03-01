@@ -1,5 +1,6 @@
 package org.vorthmann.zome.app.impl;
 
+import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -35,6 +36,7 @@ import com.vzome.core.math.symmetry.Symmetry;
 import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedModel;
 import com.vzome.core.viewing.Lights;
+import com.vzome.desktop.controller.Controller3d;
 
 public class ApplicationController extends DefaultController
 {
@@ -554,4 +556,42 @@ public class ApplicationController extends DefaultController
         return modelApp .getLights();
     }
 
+    public static ApplicationController createHeadless()
+    {
+        Properties props = new Properties();
+        props .setProperty( "entitlement.model.edit", "true" );
+        props .setProperty( "keep.alive", "true" );
+        props .setProperty( "no.line.numbers", "true" );
+        props .setProperty( "enable.system.clipboard", "false" );
+
+        ApplicationController result = new ApplicationController( new ApplicationController.UI()
+        {   
+            @Override
+            public void doAction( String action )
+            {
+                System .out .println( "UI event: " + action );
+            }
+        }, props, new J3dComponentFactory()
+        {
+            @Override
+            public Component createRenderingComponent( boolean isSticky,
+                    boolean isOffScreen, Controller3d controller )
+            {
+                // Should never be called
+                return null;
+            }
+        });
+        result .setErrorChannel( new Controller.ErrorChannel() {
+
+            @Override
+            public void reportError(String errorCode, Object[] arguments)
+            {
+                System .err .println( errorCode );
+            }
+
+            @Override
+            public void clearError() {}
+        });
+        return result;
+    }
 }

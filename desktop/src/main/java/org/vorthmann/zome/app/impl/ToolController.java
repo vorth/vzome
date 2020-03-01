@@ -1,6 +1,5 @@
 package org.vorthmann.zome.app.impl;
 
-import java.awt.event.MouseEvent;
 import java.util.EnumSet;
 
 import org.vorthmann.ui.DefaultController;
@@ -140,7 +139,7 @@ public class ToolController extends DefaultController
 	}
 
 	@Override
-	public boolean[] enableContextualCommands( String[] menu, MouseEvent e )
+	public boolean[] enableContextualCommands( String[] menu, Object e )
 	{
 		boolean[] result = new boolean[ menu .length ];
 		for (int i = 0; i < menu.length; i++) {

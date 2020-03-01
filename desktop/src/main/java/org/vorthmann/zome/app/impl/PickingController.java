@@ -62,9 +62,9 @@ public class PickingController extends DefaultController implements Controller
 	}
 
 	@Override
-	public boolean[] enableContextualCommands( String[] menu, MouseEvent e )
+	public boolean[] enableContextualCommands( String[] menu, Object e )
 	{
-        RenderedManifestation rm = this .viewer .pickManifestation( e );
+        RenderedManifestation rm = this .viewer .pickManifestation( (MouseEvent) e );
         pickedManifestation = null;
         if ( rm != null && rm.isPickable() )
         	pickedManifestation = rm.getManifestation();

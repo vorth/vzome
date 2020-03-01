@@ -2,7 +2,6 @@ package org.vorthmann.zome.app.impl;
 
 import java.awt.BasicStroke;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
@@ -158,11 +157,11 @@ public class Java2dSnapshotController extends DefaultController
     }
 
     @Override
-    public void repaintGraphics( String panelName, Graphics graphics, Dimension size )
+    public void repaintGraphics( String panelName, Object graphics, int width, int height )
     {
         if ( ! current )
             try {
-                snapshot = this .document .capture2d( this .model, size.height, size.width, this .camera,
+                snapshot = this .document .capture2d( this .model, height, width, this .camera,
                         this .lights, this .lineDrawing, this .doLighting );
                 current = true;
             } catch ( Exception e1 ) {
@@ -172,12 +171,12 @@ public class Java2dSnapshotController extends DefaultController
         Graphics2D g2d = (Graphics2D) graphics;
 
         g2d .setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
-        g2d .clearRect( 0, 0, (int) size .getWidth(), (int) size .getHeight() );
+        g2d .clearRect( 0, 0, width, height );
 
         if ( this .showBackground ) {
             g2d .setPaint( this .snapshot .getBackgroundColor() );
             Rectangle2D rect = new Rectangle2D.Float();
-            rect .setFrame( new Point2D.Float(), size );
+            rect .setFrame( new Point2D.Float(), new Dimension( width, height ) );
             g2d .fill( rect );
         }
 

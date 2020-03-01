@@ -157,9 +157,10 @@ public class LessonController extends DefaultController
     }
     
     @Override
-    public boolean[] enableContextualCommands( String[] menu, MouseEvent e )
+    public boolean[] enableContextualCommands( String[] menu, Object e )
     {
-        Integer item = (Integer) e .getSource();
+        MouseEvent mEvent = (MouseEvent) e;
+        Integer item = (Integer) mEvent .getSource();
         boolean[] result = new boolean[ menu.length ];
         boolean samePage = model .onPage( item .intValue() );
         for ( int i = 0; i < result.length; i++ ) {

@@ -518,14 +518,15 @@ public class CameraController extends DefaultController implements Controller3d
     }
 
     @Override
-    public void attachViewer( RenderingViewer viewer, RenderingChanges scene, Component canvas )
+    public void attachViewer( RenderingViewer viewer, RenderingChanges scene, Object canvas )
     {
         MouseTool trackball = this .getTrackball( 0.04d );
         
         // cannot use MouseTool .attach(), because it attaches a useless wheel listener,
         //  and CameraControlPanel will attach a better one to the parent component 
-        canvas .addMouseListener( trackball );
-        canvas .addMouseMotionListener( trackball );
+        Component component = (Component) canvas;
+        component .addMouseListener( trackball );
+        component .addMouseMotionListener( trackball );
 
         this .addViewer( new TrackballRenderingViewer( viewer ) );
 

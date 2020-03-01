@@ -3,8 +3,6 @@
 package org.vorthmann.zome.app.impl;
 
 import java.awt.BasicStroke;
-import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
@@ -311,13 +309,13 @@ public class OrbitSetController extends DefaultController implements PropertyCha
     private static int LEFT = TOP;
 
     @Override
-    public void repaintGraphics( String panelName, Graphics graphics, Dimension size )
+    public void repaintGraphics( String panelName, Object graphics, int fullwidth, int fullheight )
     {
         if ( panelName .startsWith( "oneOrbit." ) )
         {
             Direction dir = allOrbits .getDirection( panelName .substring( "oneOrbit." .length() ) );
             Graphics2D g2d = (Graphics2D) graphics;
-            g2d .clearRect( 0, 0, (int) size .getWidth(), (int) size .getHeight() );
+            g2d .clearRect( 0, 0, fullwidth, fullheight );
             Color color = colorSource .getColor( dir );
             g2d .setPaint( color == null? java.awt.Color.WHITE : new java.awt.Color( color .getRGB() ) );
             g2d .fill( g2d .getClipBounds() );
@@ -325,16 +323,13 @@ public class OrbitSetController extends DefaultController implements PropertyCha
         else if ( "selectedOrbit" .equals( panelName ) )
         {
             Graphics2D g2d = (Graphics2D) graphics;
-            g2d .clearRect( 0, 0, (int) size .getWidth(), (int) size .getHeight() );
+            g2d .clearRect( 0, 0, fullwidth, fullheight );
             Color color = colorSource .getColor( lastOrbit );
             g2d .setPaint( color == null? java.awt.Color.WHITE : new java.awt.Color( color .getRGB() ) );
             g2d .fill( g2d .getClipBounds() );
         }
         else if ( "orbits" .equals( panelName ) )
         {
-            int fullwidth = (int) size .getWidth();
-            int fullheight = (int) size .getHeight();
-
             Graphics2D g2d = (Graphics2D) graphics;
             g2d .clearRect( 0, 0, fullwidth, fullheight );
             g2d .setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
@@ -418,7 +413,7 @@ public class OrbitSetController extends DefaultController implements PropertyCha
     }
 
     @Override
-    public boolean[] enableContextualCommands( String[] menu, MouseEvent e )
+    public boolean[] enableContextualCommands( String[] menu, Object mouseEvent )
     {
         boolean[] result = new boolean[menu.length];
         for ( int i = 0; i < menu.length; i++ ) {

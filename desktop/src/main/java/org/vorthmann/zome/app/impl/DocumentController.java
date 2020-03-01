@@ -99,7 +99,7 @@ public class DocumentController extends DefaultController implements Controller3
     private RenderingChanges mainScene;
     private Lights sceneLighting;
     private MouseTool modelModeMainTrackball;
-    private Component modelCanvas;
+    private Object modelCanvas;
     private boolean drawNormals = false;
     private boolean drawOutlines = false;
     private boolean showFrameLabels = false;
@@ -131,7 +131,7 @@ public class DocumentController extends DefaultController implements Controller3
     
     private PropertyChangeListener modelChanges;
         
-    private final ClipboardController systemClipboard;
+    private ClipboardController systemClipboard;
     private String designClipboard;
     
     private final NumberController importScaleController;
@@ -311,6 +311,33 @@ public class DocumentController extends DefaultController implements Controller3
         mRenderedModel .addListener( partsController );
 
         copyThisView(); // initialize the "copied" view at startup.
+        
+        // NOTE: to avoid AWT dependencies as long as possible (for Android), we defer
+        //  the creation of any MouseTools until attachViewer().
+    }
+    
+    @Override
+    public void attachViewer( RenderingViewer viewer, RenderingChanges scene, Object canvas )
+    {
+    		// This is called on a UI thread!
+        this .modelCanvas = canvas;
+        this .mainScene = scene;
+        this .imageCaptureViewer = viewer;
+
+//      leftEyeCanvas = rvFactory .createJ3dComponent( "" );
+//      RenderingViewer viewer = rvFactory .createRenderingViewer( mainScene, leftEyeCanvas );
+//      mViewPlatform .addViewer( viewer );
+//      viewer .setEye( RenderingViewer .LEFT_EYE );
+//      leftController = new PickingController( viewer, this );
+//
+//      rightEyeCanvas = rvFactory .createJ3dComponent( "" );
+//      viewer = rvFactory .createRenderingViewer( mainScene, rightEyeCanvas );
+//      mViewPlatform .addViewer( viewer );
+//      viewer .setEye( RenderingViewer .RIGHT_EYE );
+//      rightController = new PickingController( viewer, this );
+
+        if ( this .mainScene instanceof PropertyChangeListener )
+            this .addPropertyListener( (PropertyChangeListener) this .mainScene );
 
         /*
          * Mouse tools here follow some general principles:
@@ -383,31 +410,6 @@ public class DocumentController extends DefaultController implements Controller3
                 super .mouseReleased( e );
             }
         } );
-    }
-    
-    @Override
-    public void attachViewer( RenderingViewer viewer, RenderingChanges scene, Component canvas )
-    {
-    		// This is called on a UI thread!
-        this .modelCanvas = canvas;
-        this .mainScene = scene;
-        this .imageCaptureViewer = viewer;
-
-//      leftEyeCanvas = rvFactory .createJ3dComponent( "" );
-//      RenderingViewer viewer = rvFactory .createRenderingViewer( mainScene, leftEyeCanvas );
-//      mViewPlatform .addViewer( viewer );
-//      viewer .setEye( RenderingViewer .LEFT_EYE );
-//      leftController = new PickingController( viewer, this );
-//
-//      rightEyeCanvas = rvFactory .createJ3dComponent( "" );
-//      viewer = rvFactory .createRenderingViewer( mainScene, rightEyeCanvas );
-//      mViewPlatform .addViewer( viewer );
-//      viewer .setEye( RenderingViewer .RIGHT_EYE );
-//      rightController = new PickingController( viewer, this );
-
-        if ( this .mainScene instanceof PropertyChangeListener )
-            this .addPropertyListener( (PropertyChangeListener) this .mainScene );
-
         
         // clicks become select or deselect all
         selectionClick = new LeftMouseDragAdapter( new ManifestationPicker( imageCaptureViewer )
@@ -823,10 +825,12 @@ public class DocumentController extends DefaultController implements Controller3
                 }
                 return;
             }
+
+            Dimension size = ((Component) this .modelCanvas) .getSize();              
+            
             if ( "capture-animation" .equals( command ) )
             {
                 File dir = file .isDirectory()? file : file .getParentFile();
-                Dimension size = this .modelCanvas .getSize();              
                 String html = readResource( "org/vorthmann/zome/app/animation.html" );
                 html = html .replaceFirst( "%%WIDTH%%", Integer .toString( size .width ) );
                 html = html .replaceFirst( "%%HEIGHT%%", Integer .toString( size .height ) );
@@ -852,7 +856,6 @@ public class DocumentController extends DefaultController implements Controller3
             //            } else
             if ( command.startsWith( "export2d." ) )
             {
-                Dimension size = this .modelCanvas .getSize();              
                 String format = command .substring( "export2d." .length() ) .toLowerCase();
                 Java2dSnapshot snapshot = documentModel .capture2d( currentSnapshot, size.height, size.width, cameraController .getView(), sceneLighting, false, true );
                 documentModel .export2d( snapshot, format, file, this .drawOutlines, false );
@@ -862,7 +865,6 @@ public class DocumentController extends DefaultController implements Controller3
             if ( command.startsWith( "export." ) )
             {
                 Writer out = new FileWriter( file );
-                Dimension size = this .modelCanvas .getSize();              
                 try {
                     String format = command .substring( "export." .length() ) .toLowerCase();
                     Exporter3d exporter = documentModel .getNaiveExporter( format, cameraController .getView(), colors, sceneLighting, currentSnapshot );
@@ -1073,7 +1075,7 @@ public class DocumentController extends DefaultController implements Controller3
 
 
     @Override
-    public boolean[] enableContextualCommands( String[] menu, MouseEvent e )
+    public boolean[] enableContextualCommands( String[] menu, Object e )
     {
         boolean[] result = new boolean[menu.length];
         for ( int i = 0; i < menu.length; i++ ) {
@@ -1136,7 +1138,7 @@ public class DocumentController extends DefaultController implements Controller3
                 return "false";
             
         case "clipboard":
-            return systemClipboard != null ? systemClipboard.getClipboardContents() : designClipboard;
+            return systemClipboard != null ? systemClipboard .getClipboardContents() : designClipboard;
 
         case "backgroundColor":
             return this .sceneLighting .getBackgroundColor() .toWebString();
@@ -1270,7 +1272,7 @@ public class DocumentController extends DefaultController implements Controller3
         }
         else if ( "clipboard" .equals( cmd ) ) {
             if( systemClipboard != null ) {
-                systemClipboard.setClipboardContents((String) value);
+                systemClipboard .setClipboardContents((String) value);
             }
             else {
                 designClipboard = (String) value;

@@ -1,7 +1,6 @@
 
 package org.vorthmann.zome.app.impl;
 
-import java.awt.Component;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
@@ -219,7 +218,7 @@ public class StrutBuilderController extends DefaultController implements CanvasT
     }
 
     @Override
-    public void attach( Component canvas )
+    public void attach( Object canvas )
     {
         previewStrutStart .attach( canvas );
         previewStrutRoll .attach( canvas );
@@ -228,7 +227,7 @@ public class StrutBuilderController extends DefaultController implements CanvasT
     }
 
     @Override
-    public void detach( Component canvas )
+    public void detach( Object canvas )
     {
         previewStrutStart .detach( canvas );
         previewStrutRoll .detach( canvas );

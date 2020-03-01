@@ -45,16 +45,18 @@ public class MouseListenerSwitch extends MouseAdapter implements MouseTool {
 	
 
     @Override
-    public void attach( Component component )
+    public void attach( Object canvas )
     {
+        Component component = (Component) canvas;
         component .addMouseListener( this );
 		component .addMouseMotionListener( this );
 		component .addMouseWheelListener( this );
     }
     
     @Override
-    public void detach( Component component )
+    public void detach( Object canvas )
     {
+        Component component = (Component) canvas;
         component .removeMouseListener( this );
 		component .removeMouseMotionListener( this );
 		component .removeMouseWheelListener( this );

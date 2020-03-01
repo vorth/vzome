@@ -3,7 +3,6 @@
 
 package com.vzome.desktop.controller;
 
-import java.awt.Component;
 import java.awt.image.RenderedImage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -70,7 +69,7 @@ public class ThumbnailRendererImpl extends CameraController implements Thumbnail
     }
 
     @Override
-    public void attachViewer( RenderingViewer viewer, RenderingChanges scene, Component canvas )
+    public void attachViewer( RenderingViewer viewer, RenderingChanges scene, Object canvas )
     {
         // no picking, etc., so we don't care about the offscreen canvas
         this .scene = scene;

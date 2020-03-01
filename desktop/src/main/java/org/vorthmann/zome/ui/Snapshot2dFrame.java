@@ -154,7 +154,7 @@ public class Snapshot2dFrame extends JFrame
         @Override
         protected void paintComponent( Graphics g )
         {
-            controller .repaintGraphics( "snapshot.2d", g, getSize() );
+            controller .repaintGraphics( "snapshot.2d", g, getSize() .width, getSize() .height );
         }
     }
 }

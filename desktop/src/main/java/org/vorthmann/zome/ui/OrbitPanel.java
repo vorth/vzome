@@ -46,7 +46,7 @@ public class OrbitPanel extends JPanel implements PropertyChangeListener
             @Override
             public void paintComponent( Graphics graphics )
             {
-            	enabledOrbits .repaintGraphics( "orbits", graphics, getSize() );
+                enabledOrbits .repaintGraphics( "orbits", graphics, getSize() .width, getSize() .height );
             }
         };
         orbitCheckboxes = new JPanel();
@@ -168,7 +168,7 @@ public class OrbitPanel extends JPanel implements PropertyChangeListener
                 @Override
                 public void paintComponent( Graphics graphics )
                 {
-                	enabledOrbits .repaintGraphics( "oneOrbit." + orbitName, graphics, getSize() );
+                    enabledOrbits .repaintGraphics( "oneOrbit." + orbitName, graphics, getSize() .width, getSize() .height );
                 }
             };
             colorSwatch .setMaximumSize( new Dimension( 60, 20 ) );
