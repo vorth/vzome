@@ -3,6 +3,7 @@ package org.vorthmann.zome.app.impl;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 
 import javax.vecmath.Quat4d;
 
@@ -36,7 +37,7 @@ public class StrutBuilderController extends DefaultController implements CanvasT
 
     private PreviewStrut previewStrut;
 
-    private MouseTool previewStrutStart, previewStrutRoll, previewStrutPlanarDrag, previewStrutLength;
+    private CanvasTool previewStrutStart, previewStrutRoll, previewStrutPlanarDrag, previewStrutLength;
 
     private DocumentController docController;
 
@@ -140,7 +141,7 @@ public class StrutBuilderController extends DefaultController implements CanvasT
         AlgebraicField field = this .docController .getModel() .getField();
         this .previewStrut = new PreviewStrut( field, scene, cameraController );
 
-        this .previewStrutLength = new MouseToolFilter( cameraController .getZoomScroller() )
+        this .previewStrutLength = new MouseToolFilter( (MouseTool) cameraController .getZoomScroller() )
         {
             @Override
             public void mouseWheelMoved( MouseWheelEvent e )
@@ -149,7 +150,7 @@ public class StrutBuilderController extends DefaultController implements CanvasT
                 if ( length != null )
                 {
                     // scroll to scale the preview strut (when it is rendered)
-                    length .getMouseTool() .mouseWheelMoved( e );
+                    ((MouseWheelListener) length .getMouseTool()) .mouseWheelMoved( e );
                     // don't adjustPreviewStrut() here, let the prop change trigger it,
                     // so we don't flicker for every tick of the mousewheel
                 }

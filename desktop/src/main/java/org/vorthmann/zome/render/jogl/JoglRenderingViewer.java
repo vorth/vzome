@@ -211,9 +211,9 @@ public class JoglRenderingViewer implements RenderingViewer, GLEventListener
     }
 
     @Override
-    public RenderedManifestation pickManifestation( MouseEvent e )
+    public RenderedManifestation pickManifestation( Object mouseEvent )
     {
-        Line ray = this .pickRay( e );
+        Line ray = this .pickRay( (MouseEvent) mouseEvent );
 
         // The scene will loop over all RMs.  Rendered balls will support the RM.isHit(intersector)
         //   method.  We sort the hits as we go.

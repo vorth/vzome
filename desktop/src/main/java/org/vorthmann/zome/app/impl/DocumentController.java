@@ -31,6 +31,7 @@ import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 import javax.vecmath.Point3d;
 
+import org.vorthmann.j3d.CanvasTool;
 import org.vorthmann.j3d.MouseTool;
 import org.vorthmann.j3d.MouseToolDefault;
 import org.vorthmann.j3d.MouseToolFilter;
@@ -98,7 +99,7 @@ public class DocumentController extends DefaultController implements Controller3
     private final RenderedModel mRenderedModel;
     private RenderingChanges mainScene;
     private Lights sceneLighting;
-    private MouseTool modelModeMainTrackball;
+    private CanvasTool modelModeMainTrackball;
     private Object modelCanvas;
     private boolean drawNormals = false;
     private boolean drawOutlines = false;
@@ -115,7 +116,7 @@ public class DocumentController extends DefaultController implements Controller3
 
     // to SelectionController (subclass of RenderedModelController?)
     //
-    private MouseTool selectionClick;
+    private CanvasTool selectionClick;
     private boolean mRequireShift = false;
     private final ManifestationChanges selectionRendering;
     
@@ -124,14 +125,14 @@ public class DocumentController extends DefaultController implements Controller3
     // to LessonController
     //
     private ThumbnailRenderer thumbnails;
-    private MouseTool lessonPageClick, articleModeMainTrackball, articleModeZoom;
+    private CanvasTool lessonPageClick, articleModeMainTrackball, articleModeZoom;
     private final LessonController lessonController;
     private PropertyChangeListener articleChanges;
     private RenderedModel currentSnapshot;
     
     private PropertyChangeListener modelChanges;
         
-    private ClipboardController systemClipboard;
+    private final Object systemClipboard;
     private String designClipboard;
     
     private final NumberController importScaleController;
@@ -381,7 +382,7 @@ public class DocumentController extends DefaultController implements Controller3
 //        }
 
         // this wrapper for mainCanvasTrackball is disabled when the press is initiated over a ball
-        modelModeMainTrackball = new LeftMouseDragAdapter( new MouseToolFilter( articleModeMainTrackball )
+        modelModeMainTrackball = new LeftMouseDragAdapter( new MouseToolFilter( (MouseTool) articleModeMainTrackball )
         {
             boolean live = false;
 
@@ -1138,7 +1139,7 @@ public class DocumentController extends DefaultController implements Controller3
                 return "false";
             
         case "clipboard":
-            return systemClipboard != null ? systemClipboard .getClipboardContents() : designClipboard;
+            return systemClipboard != null ? ((ClipboardController) systemClipboard).getClipboardContents() : designClipboard;
 
         case "backgroundColor":
             return this .sceneLighting .getBackgroundColor() .toWebString();
@@ -1272,7 +1273,7 @@ public class DocumentController extends DefaultController implements Controller3
         }
         else if ( "clipboard" .equals( cmd ) ) {
             if( systemClipboard != null ) {
-                systemClipboard .setClipboardContents((String) value);
+                ((ClipboardController) systemClipboard).setClipboardContents((String) value);
             }
             else {
                 designClipboard = (String) value;

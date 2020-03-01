@@ -5,7 +5,7 @@ package org.vorthmann.zome.app.impl;
 
 import java.awt.event.MouseWheelEvent;
 
-import org.vorthmann.j3d.MouseTool;
+import org.vorthmann.j3d.CanvasTool;
 import org.vorthmann.j3d.MouseToolDefault;
 import org.vorthmann.ui.Controller;
 import org.vorthmann.ui.DefaultController;
@@ -151,7 +151,7 @@ public class LengthController extends DefaultController
         }
     }
     
-    private final MouseTool tool;
+    private final CanvasTool tool;
 
     private ScaleController[] currentScales;
     
@@ -491,7 +491,7 @@ public class LengthController extends DefaultController
     }
 
     @Override
-    public MouseTool getMouseTool()
+    public CanvasTool getMouseTool()
     {
         return this .tool;
     }

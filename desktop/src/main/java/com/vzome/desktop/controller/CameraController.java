@@ -16,6 +16,7 @@ import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
+import org.vorthmann.j3d.CanvasTool;
 import org.vorthmann.j3d.MouseTool;
 import org.vorthmann.j3d.MouseToolDefault;
 import org.vorthmann.j3d.Trackball;
@@ -344,7 +345,7 @@ public class CameraController extends DefaultController implements Controller3d
             super .doAction( action );
     }
 
-    public MouseTool getTrackball( double speed )
+    public CanvasTool getTrackball( double speed )
     {
         return new Trackball( speed, true )
         {
@@ -401,7 +402,7 @@ public class CameraController extends DefaultController implements Controller3d
         return ( ticks / MAG_PER_TICKS ) + 1f;
     }
 
-    public MouseTool getZoomScroller()
+    public CanvasTool getZoomScroller()
     {
         return new MouseToolDefault()
         {
@@ -520,7 +521,7 @@ public class CameraController extends DefaultController implements Controller3d
     @Override
     public void attachViewer( RenderingViewer viewer, RenderingChanges scene, Object canvas )
     {
-        MouseTool trackball = this .getTrackball( 0.04d );
+        MouseTool trackball = (MouseTool) this .getTrackball( 0.04d );
         
         // cannot use MouseTool .attach(), because it attaches a useless wheel listener,
         //  and CameraControlPanel will attach a better one to the parent component 
