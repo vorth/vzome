@@ -50,7 +50,7 @@ class RemoteClientRendering implements RenderingChanges, RenderingViewer, Proper
 	public void setOrthographic( double halfEdge, double near, double far ) {}
 
 	@Override
-	public RenderedManifestation pickManifestation( MouseEvent e )
+	public RenderedManifestation pickManifestation( Object e )
 	{
 		return null;
 	}
@@ -65,12 +65,6 @@ class RemoteClientRendering implements RenderingChanges, RenderingViewer, Proper
 	public Line pickRay( MouseEvent e )
 	{
 	    return null;
-	}
-
-	@Override
-	public RenderingChanges getRenderingChanges()
-	{
-		return this;
 	}
 
 	@Override

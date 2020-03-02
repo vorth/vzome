@@ -1,8 +1,6 @@
 package com.vzome.server;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -101,7 +99,7 @@ public class ControllerWebSocket implements WebSocketListener
             publish( "error", "Document already in use: " + urlStr );
             this .docController = null; // prevent action on the document
         } else {
-            APP .doAction( "openURL-" + urlStr, null );
+            APP .doAction( "openURL-" + urlStr );
             this .docController = (Controller3d) APP .getSubController( urlStr );
             if ( this .docController == null ) {
                 publish( "error", "Document load FAILURE: " + urlStr );
@@ -193,23 +191,25 @@ public class ControllerWebSocket implements WebSocketListener
         props .setProperty( "entitlement.model.edit", "true" );
         props .setProperty( "keep.alive", "true" );
 
-        APP = new ApplicationController( new ActionListener()
-        {	
-            @Override
-            public void actionPerformed( ActionEvent e )
+        APP = new ApplicationController( new ApplicationController.UI()
+            {	
+                @Override
+                public void doAction( String action )
+                {
+                    System .out .println( "UI event: " + action );
+                }
+            },
+        props, new J3dComponentFactory()
             {
-                System .out .println( "UI event: " + e .toString() );
+                @Override
+                public Component createRenderingComponent( boolean isSticky,
+                        boolean isOffScreen, Controller3d controller )
+                {
+                    // Should never be called
+                    return null;
+                }
             }
-        }, props, new J3dComponentFactory()
-        {
-            @Override
-            public Component createRenderingComponent( boolean isSticky,
-                    boolean isOffScreen, Controller3d controller )
-            {
-                // Should never be called
-                return null;
-            }
-        });
+        );
         APP .setErrorChannel( new Controller.ErrorChannel() {
 
             @Override
