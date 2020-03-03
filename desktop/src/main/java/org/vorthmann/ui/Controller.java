@@ -3,8 +3,6 @@
 
 package org.vorthmann.ui;
 
-import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -60,8 +58,6 @@ public interface Controller
     void doFileAction( String command, File file );
     
     void doScriptAction( String command, String script );
-
-    void repaintGraphics( String panelName, Graphics graphics, Dimension size );
 
 	String getProperty(String string);
 

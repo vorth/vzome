@@ -1,6 +1,6 @@
 //(c) Copyright 2005, Scott Vorthmann.  All rights reserved.
 
-package org.vorthmann.zome.app.impl;
+package com.vzome.desktop.awt;
 
 import java.awt.BasicStroke;
 import java.awt.Dimension;
@@ -32,7 +32,7 @@ import com.vzome.core.math.symmetry.Symmetry;
 import com.vzome.core.render.Color;
 import com.vzome.core.render.RenderedModel.OrbitSource;
 
-public class OrbitSetController extends DefaultController implements PropertyChangeListener
+public class OrbitSetController extends DefaultController implements GraphicsController, PropertyChangeListener
 {
     private final OrbitSource colorSource;
 

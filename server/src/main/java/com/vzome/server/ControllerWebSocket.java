@@ -1,6 +1,5 @@
 package com.vzome.server;
 
-import java.awt.Component;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -18,7 +17,6 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
-import org.vorthmann.j3d.J3dComponentFactory;
 import org.vorthmann.ui.Controller;
 import org.vorthmann.zome.app.impl.ApplicationController;
 
@@ -191,23 +189,7 @@ public class ControllerWebSocket implements WebSocketListener
         props .setProperty( "entitlement.model.edit", "true" );
         props .setProperty( "keep.alive", "true" );
 
-        APP = new ApplicationController( new ApplicationController.UI()
-        {	
-            @Override
-            public void doAction( String action )
-            {
-                System .out .println( "UI event: " + action );
-            }
-        }, props, new J3dComponentFactory()
-        {
-            @Override
-            public Component createRenderingComponent( boolean isSticky,
-                    boolean isOffScreen, Controller3d controller )
-            {
-                // Should never be called
-                return null;
-            }
-        });
+        APP = new ApplicationController( props );
         APP .setErrorChannel( new Controller.ErrorChannel() {
 
             @Override

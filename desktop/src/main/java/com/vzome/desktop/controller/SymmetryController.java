@@ -1,10 +1,5 @@
+package com.vzome.desktop.controller;
 
-//(c) Copyright 2007, Scott Vorthmann.  All rights reserved.
-
-package org.vorthmann.zome.app.impl;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -13,6 +8,9 @@ import java.util.Map;
 
 import org.vorthmann.ui.Controller;
 import org.vorthmann.ui.DefaultController;
+import org.vorthmann.zome.app.impl.LengthController;
+import org.vorthmann.zome.app.impl.SymmetrySnapper;
+import org.vorthmann.zome.app.impl.ToolFactoryController;
 
 import com.vzome.api.Tool;
 import com.vzome.core.algebra.AlgebraicVector;
@@ -24,64 +22,20 @@ import com.vzome.core.math.symmetry.Symmetry;
 import com.vzome.core.render.Color;
 import com.vzome.core.render.RenderedModel;
 import com.vzome.core.render.Shapes;
-import com.vzome.desktop.controller.CameraController;
 
 public class SymmetryController extends DefaultController
 {
-    @Override
-    public String getProperty( String string )
-    {
-        switch ( string ) {
-        
-        case "name":
-            return this .symmetrySystem .getName();
-
-        case "renderingStyle":
-            return this .symmetrySystem .getStyle() .getName();
-
-        case "modelResourcePath":
-            return this .symmetrySystem .getModelResourcePath();
-
-        default:
-            if ( string .startsWith( "orbitColor." ) )
-            {
-                String name = string .substring( "orbitColor." .length() );
-                Direction dir = buildOrbits .getDirection( name );
-                Color color = getColor( dir );
-                return color .toString();
-            }
-            return super.getProperty( string );
-        }
-    }
-
-    private SymmetrySystem symmetrySystem;
+    protected SymmetrySystem symmetrySystem;
     public OrbitSet availableOrbits;
     public OrbitSet snapOrbits;
     public OrbitSet buildOrbits;
     public OrbitSet renderOrbits;
-    private final CameraController.Snapper snapper;
-
-    public OrbitSetController availableController;
-    public OrbitSetController snapController;
-    public OrbitSetController buildController;
-    public OrbitSetController renderController;
-
+    protected final CameraController.Snapper snapper;
     public Map<Direction, LengthController> orbitLengths = new HashMap<>();
-
-    private final Map<String, Controller> symmetryToolFactories = new LinkedHashMap<>();
-    private final Map<String, Controller> transformToolFactories = new LinkedHashMap<>();
-    private final Map<String, Controller> linearMapToolFactories = new LinkedHashMap<>();
-    private final RenderedModel renderedModel;
-
-    public Symmetry getSymmetry()
-    {
-        return this .symmetrySystem .getSymmetry();
-    }
-
-    public CameraController.Snapper getSnapper()
-    {
-        return snapper;
-    }
+    protected final Map<String, Controller> symmetryToolFactories = new LinkedHashMap<>();
+    protected final Map<String, Controller> transformToolFactories = new LinkedHashMap<>();
+    protected final Map<String, Controller> linearMapToolFactories = new LinkedHashMap<>();
+    protected final RenderedModel renderedModel;
 
     public SymmetryController( Controller parent, SymmetrySystem model, RenderedModel mRenderedModel )
     {
@@ -106,34 +60,59 @@ public class SymmetryController extends DefaultController
             }
             renderOrbits .add( dir );
         }
-        availableController = new OrbitSetController( availableOrbits, this .symmetrySystem .getOrbits(), this .symmetrySystem, false );
-        this .addSubController( "availableOrbits", availableController );
-        snapController = new OrbitSetController( snapOrbits, availableOrbits, this .symmetrySystem, false );
-        this .addSubController( "snapOrbits", snapController );
-        buildController = new OrbitSetController( buildOrbits, availableOrbits, this .symmetrySystem, true );
-        this .addSubController( "buildOrbits", buildController );
-        renderController = new OrbitSetController( renderOrbits, this .symmetrySystem .getOrbits(), this .symmetrySystem, false );
-        this .addSubController( "renderOrbits", renderController );
-
         for ( Direction dir : this .symmetrySystem .getOrbits() ) {
             LengthController lengthModel = new LengthController( dir );
-            buildController .addSubController( "length." + dir .getName(), lengthModel );
             orbitLengths .put( dir, lengthModel );
         }
         if ( parent .propertyIsTrue( "disable.known.directions" ) )
             this .symmetrySystem .disableKnownDirection();
+    }
 
-        availableController .addPropertyListener( new PropertyChangeListener()
+    @Override
+    public Controller getSubController( String name )
+    {
+        if ( name .startsWith( "length." ) )
         {
-            @Override
-            public void propertyChange( PropertyChangeEvent event )
+            String dirName = name .substring( "length." .length() );
+            Direction dir = this .symmetrySystem .getOrbits() .getDirection( dirName );
+            return getLengthController( dir );
+        }
+        Controller result = this .symmetryToolFactories .get( name );
+        if ( result != null )
+            return result;
+        result = this .transformToolFactories .get( name );
+        if ( result != null )
+            return result;
+        result = this .linearMapToolFactories .get( name );
+        if ( result != null )
+            return result;
+        return super .getSubController( name );
+    }
+
+    @Override
+    public String getProperty( String string )
+    {
+        switch ( string ) {
+        
+        case "name":
+            return this .symmetrySystem .getName();
+
+        case "renderingStyle":
+            return this .symmetrySystem .getStyle() .getName();
+
+        case "modelResourcePath":
+            return this .symmetrySystem .getModelResourcePath();
+
+        default:
+            if ( string .startsWith( "orbitColor." ) )
             {
-                if ( "orbits" .equals( event .getPropertyName() ) )
-                {
-                    //                    properties() .firePropertyChange( event ); // just forwarding
-                }
+                String name = string .substring( "orbitColor." .length() );
+                Direction dir = buildOrbits .getDirection( name );
+                Color color = getColor( dir );
+                return color .toString();
             }
-        } );
+            return super.getProperty( string );
+        }
     }
 
     @Override
@@ -199,52 +178,9 @@ public class SymmetryController extends DefaultController
     }
 
     @Override
-    public Controller getSubController( String name )
-    {
-        switch ( name ) {
-
-        case "availableOrbits":
-            return availableController;
-
-        case "snapOrbits":
-            return snapController;
-
-        case "buildOrbits":
-            return buildController;
-
-        case "renderOrbits":
-            return renderController;
-
-        default:
-            if ( name .startsWith( "length." ) )
-            {
-                String dirName = name .substring( "length." .length() );
-                Direction dir = this .symmetrySystem .getOrbits() .getDirection( dirName );
-                return getLengthController( dir );
-            }
-            Controller result = this .symmetryToolFactories .get( name );
-            if ( result != null )
-                return result;
-            result = this .transformToolFactories .get( name );
-            if ( result != null )
-                return result;
-            result = this .linearMapToolFactories .get( name );
-            if ( result != null )
-                return result;
-            return super .getSubController( name );
-        }
-    }
-
-    @Override
     public void doAction( String action ) throws Exception
     {
         switch (action) {
-
-        case "rZomeOrbits":
-        case "predefinedOrbits":
-        case "setAllDirections":
-            availableController .doAction( action );
-            break;
 
         case "ReplaceWithShape":
             action += "/" + this .symmetrySystem .getName() + ":" + this .symmetrySystem .getStyle() .getName();
@@ -267,13 +203,24 @@ public class SymmetryController extends DefaultController
         }
     }
 
-    private LengthController getLengthController( Direction dir )
+    // TODO this should take over all functions of symmetry.getAxis()
+
+    public Symmetry getSymmetry()
+    {
+        return this .symmetrySystem .getSymmetry();
+    }
+
+    public CameraController.Snapper getSnapper()
+    {
+        return snapper;
+    }
+
+    public LengthController getLengthController( Direction dir )
     {
         LengthController result = orbitLengths .get( dir );
         if ( result == null && dir != null )
         {
             result = new LengthController( dir );
-            buildController .addSubController( "length." + dir .getName(), result );
             orbitLengths .put( dir, result );
             renderOrbits .add( dir );
             availableOrbits .add( dir );
@@ -286,14 +233,10 @@ public class SymmetryController extends DefaultController
         return this .symmetrySystem .getOrbits();
     }
 
-    // TODO: Can we get rid of this?  It is only needed by PreviewStrut.
-    //   We should be able to accomplish the sync with PropertyChangeListeners
     public RenderedModel.OrbitSource getOrbitSource()
     {
         return this .symmetrySystem;
     }
-
-    // TODO this should take over all functions of symmetry.getAxis()
 
     public Axis getZone( AlgebraicVector offset )
     {

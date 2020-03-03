@@ -19,9 +19,11 @@ import javax.swing.JPanel;
 
 import org.vorthmann.ui.Controller;
 
+import com.vzome.desktop.awt.GraphicsController;
+
 public class Snapshot2dFrame extends JFrame
 {
-    private final Controller controller;
+    private final GraphicsController controller;
     
     private final Snapshot2dPanel snapshotPanel;
     
@@ -35,7 +37,7 @@ public class Snapshot2dFrame extends JFrame
     {
         super( "vZome 2D snapshot" );
         
-        this.controller = controller;
+        this.controller = (GraphicsController) controller;
         
         final ActionListener actions = new ActionListener()
         {

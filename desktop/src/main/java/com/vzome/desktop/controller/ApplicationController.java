@@ -1,4 +1,4 @@
-package org.vorthmann.zome.app.impl;
+package com.vzome.desktop.controller;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -7,7 +7,6 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Path;
@@ -21,10 +20,10 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.vorthmann.j3d.J3dComponentFactory;
 import org.vorthmann.j3d.Platform;
 import org.vorthmann.ui.Controller;
 import org.vorthmann.ui.DefaultController;
+import org.vorthmann.zome.app.impl.DocumentController;
 import org.vorthmann.zome.ui.ApplicationUI;
 
 import com.vzome.core.commands.Command.Failure;
@@ -42,28 +41,19 @@ public class ApplicationController extends DefaultController
 
     private final Map<String, DocumentController> docControllers = new HashMap<>();
 
-    private final UI ui;
-
     private final Properties userPreferences = new Properties();
 
     private final Properties properties = new Properties();
 
-    private J3dComponentFactory rvFactory;
-
-    private final com.vzome.core.editor.Application modelApp;
+    protected final com.vzome.core.editor.Application modelApp;
 
     private final File preferencesFile;
 
     private int lastUntitled = 0;
 
     private Map<String, RenderedModel> symmetryModels = new HashMap<String, RenderedModel>();
-    
-    public interface UI
-    {
-        public void doAction( String action );
-    }
 
-    public ApplicationController( UI ui, Properties commandLineArgs, J3dComponentFactory rvFactory )
+    public ApplicationController( Properties commandLineArgs )
     {
         super();
 
@@ -71,8 +61,6 @@ public class ApplicationController extends DefaultController
 
         if ( logger .isLoggable( Level .INFO ) )
             logger .info( "ApplicationController .initialize() starting" );
-
-        this.ui = ui;
 
         File prefsFolder = Platform .getPreferencesFolder();        
         File prefsFile = new File( prefsFolder, "vZome.preferences" );
@@ -133,28 +121,6 @@ public class ApplicationController extends DefaultController
         };
         modelApp = new com.vzome.core.editor.Application( true, failures, properties );
 
-        Colors colors = modelApp .getColors();
-
-        if ( rvFactory != null ) {
-            this .rvFactory = rvFactory;
-        }
-        else
-        {
-            boolean useEmissiveColor = ! propertyIsTrue( "no.glowing.selection" );
-            // need this set up before we do any loadModel
-            String factoryName = getProperty( "RenderingViewer.Factory.class" );
-            if ( factoryName == null )
-                factoryName = "org.vorthmann.zome.render.jogl.JoglFactory";
-            try {
-                Class<?> factoryClass = Class.forName( factoryName );
-                Constructor<?> constructor = factoryClass .getConstructor( new Class<?>[] { Colors.class, Boolean.class } );
-                this .rvFactory = (J3dComponentFactory) constructor.newInstance( new Object[] { colors, useEmissiveColor } );
-            } catch ( Exception e ) {
-                mErrors.reportError( "Unable to instantiate RenderingViewer.Factory class: " + factoryName, new Object[] {} );
-                System.exit( 0 );
-            }
-        }
-
         long endtime = System.currentTimeMillis();
         if ( logger .isLoggable( Level .INFO ) )
             logger .log(Level.INFO, "ApplicationController initialization in milliseconds: {0}", ( endtime - starttime ));
@@ -187,16 +153,6 @@ public class ApplicationController extends DefaultController
     public void doAction( String action )
     {
         try {
-            if ( action .equals( "showAbout" ) 
-                    || action .equals( "openURL" ) 
-                    || action .equals( "quit" )
-                    || action .startsWith( "browse-" )
-                    )
-            {
-                this .ui .doAction( action );
-                return;
-            }
-
             if( "launch".equals(action) ) {
                 String sawWelcome = userPreferences .getProperty( "saw.welcome" );
                 if ( sawWelcome == null )
@@ -358,11 +314,6 @@ public class ApplicationController extends DefaultController
         }
     }
 
-    public J3dComponentFactory getJ3dFactory()
-    {
-        return rvFactory;
-    }
-
     @Override
     public boolean userHasEntitlement( String propName )
     {
@@ -476,7 +427,7 @@ public class ApplicationController extends DefaultController
         return docControllers .get( name );
     }
 
-    private void newDocumentController( final String name, final DocumentModel document, final Properties props )
+    protected void newDocumentController( final String name, final DocumentModel document, final Properties props )
     {
         DocumentController newest = new DocumentController( document, this, props );
         this .registerDocumentController( name, newest );
@@ -484,7 +435,7 @@ public class ApplicationController extends DefaultController
         this .firePropertyChange( "newDocument", null, newest );
     }
 
-    private void registerDocumentController( final String name, final DocumentController newest )
+    protected void registerDocumentController( final String name, final DocumentController newest )
     {
         this .docControllers .put( name, newest );
         newest .addPropertyListener( new PropertyChangeListener()

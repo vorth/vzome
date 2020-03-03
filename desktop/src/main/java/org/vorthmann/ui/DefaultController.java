@@ -3,8 +3,6 @@
 package org.vorthmann.ui;
 
 import java.awt.Desktop;
-import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -152,13 +150,6 @@ public class DefaultController implements Controller
         if ( mNextController != null )
             return mNextController .getSubController( name );
         return null;
-    }
-
-    @Override
-    public void repaintGraphics( String panelName, Graphics graphics, Dimension size )
-    {
-        if ( mNextController != null )
-            mNextController .repaintGraphics( panelName, graphics, size );
     }
 
     @Override

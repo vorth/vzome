@@ -20,6 +20,8 @@ import javax.swing.JScrollPane;
 import org.vorthmann.ui.CardPanel;
 import org.vorthmann.ui.Controller;
 
+import com.vzome.desktop.awt.GraphicsController;
+
 public class OrbitPanel extends JPanel implements PropertyChangeListener
 {
 	@Override
@@ -29,7 +31,8 @@ public class OrbitPanel extends JPanel implements PropertyChangeListener
 		orbitCheckboxes .setToolTipText( text );
 	}
 
-	private Controller enabledOrbits, drawnOrbits;
+    private GraphicsController enabledOrbits;
+    private Controller drawnOrbits;
 	private final ContextualMenu directionPopupMenu;
 	private final JPanel orbitTriangle, orbitCheckboxes;
 	private final CardPanel cardPanel;
@@ -38,7 +41,7 @@ public class OrbitPanel extends JPanel implements PropertyChangeListener
 	
 	public OrbitPanel( final Controller selectedOrbits, final Controller drawnOrbits, ControlActions enabler )
 	{
-		this .enabledOrbits = selectedOrbits;
+		this .enabledOrbits = (GraphicsController) selectedOrbits;
 		this .drawnOrbits = drawnOrbits;
 		
 		orbitTriangle = new JPanel()
@@ -46,7 +49,7 @@ public class OrbitPanel extends JPanel implements PropertyChangeListener
             @Override
             public void paintComponent( Graphics graphics )
             {
-            	enabledOrbits .repaintGraphics( "orbits", graphics, getSize() );
+                enabledOrbits .repaintGraphics( "orbits", graphics, getSize() );
             }
         };
         orbitCheckboxes = new JPanel();
@@ -133,7 +136,7 @@ public class OrbitPanel extends JPanel implements PropertyChangeListener
         this .enabledOrbits .removePropertyListener( this );
 
         this .drawnOrbits = shownOrbits;
-		this .enabledOrbits = buildOrbits;
+		this .enabledOrbits = (GraphicsController) buildOrbits;
 		
         this .singleCheckbox .setSelected( enabledOrbits .propertyIsTrue( "oneAtATime" ) );
 

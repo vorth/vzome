@@ -24,6 +24,7 @@ import com.vzome.core.model.Manifestation;
 import com.vzome.core.render.RenderingChanges;
 import com.vzome.desktop.controller.CameraController;
 import com.vzome.desktop.controller.RenderingViewer;
+import com.vzome.desktop.controller.SymmetryController;
 
 public class StrutBuilderController extends DefaultController implements CanvasTool
 {    

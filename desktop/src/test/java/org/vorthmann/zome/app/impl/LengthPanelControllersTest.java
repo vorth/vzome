@@ -14,6 +14,7 @@ import com.vzome.core.editor.FieldApplication.SymmetryPerspective;
 import com.vzome.core.editor.SymmetrySystem;
 import com.vzome.core.kinds.HeptagonFieldApplication;
 import com.vzome.core.render.Colors;
+import com.vzome.desktop.awt.SymmetryAwtController;
 
 public class LengthPanelControllersTest
 {
@@ -25,7 +26,7 @@ public class LengthPanelControllersTest
         SymmetrySystem system = new SymmetrySystem( null, perspective, null, new Colors( new Properties() ), true );
 
         Controller strutBuilder = new StrutBuilderController( null, null ) .withShowStrutScales( true );
-        Controller symmController = new SymmetryController( strutBuilder, system, null );
+        Controller symmController = new SymmetryAwtController( strutBuilder, system, null );
         Controller buildOrbits = getSubController( symmController, "buildOrbits" );
         assertNotNull( buildOrbits );
         

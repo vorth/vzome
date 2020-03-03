@@ -35,9 +35,9 @@ import javax.swing.UIManager;
 import org.vorthmann.j3d.Platform;
 import org.vorthmann.ui.Controller;
 import org.vorthmann.ui.SplashScreen;
-import org.vorthmann.zome.app.impl.ApplicationController;
 
 import com.vzome.dap.DapAdapter;
+import com.vzome.desktop.awt.ApplicationAwtController;
 import com.vzome.desktop.controller.Controller3d;
 
 /**
@@ -63,9 +63,9 @@ import com.vzome.desktop.controller.Controller3d;
  * @author vorth
  *
  */
-public final class ApplicationUI implements ApplicationController.UI, PropertyChangeListener
+public final class ApplicationUI implements ApplicationAwtController.UI, PropertyChangeListener
 {
-    private ApplicationController mController;
+    private ApplicationAwtController mController;
 
     private DapAdapter debugger;
 
@@ -255,7 +255,7 @@ public final class ApplicationUI implements ApplicationController.UI, PropertyCh
 
             configuration .putAll( loadBuildProperties() );
 
-            ui .mController = new ApplicationController( ui, configuration, null );
+            ui .mController = new ApplicationAwtController( ui, configuration, null );
 
             if ( ! ui .mController .propertyIsTrue( "vzome.disable.system.laf" ) ) {
                 String className = UIManager.getSystemLookAndFeelClassName();

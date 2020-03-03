@@ -21,7 +21,7 @@ import com.vzome.desktop.controller.RenderingViewer;
  * @author vorth
  *
  */
-public class PickingController extends DefaultController implements Controller
+public class PickingController extends DefaultController
 {
 	private final RenderingViewer viewer;
 	private final DocumentController delegate;

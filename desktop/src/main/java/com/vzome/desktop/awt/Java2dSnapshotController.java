@@ -1,4 +1,4 @@
-package org.vorthmann.zome.app.impl;
+package com.vzome.desktop.awt;
 
 import java.awt.BasicStroke;
 import java.awt.Dimension;
@@ -24,7 +24,7 @@ import com.vzome.core.viewing.Lights;
  * 
  * @author vorth
  */
-public class Java2dSnapshotController extends DefaultController
+public class Java2dSnapshotController extends DefaultController implements GraphicsController
 {    
     private boolean current = false;
  

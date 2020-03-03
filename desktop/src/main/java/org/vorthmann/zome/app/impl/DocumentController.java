@@ -18,11 +18,9 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -44,7 +42,6 @@ import com.vzome.core.algebra.AlgebraicNumber;
 import com.vzome.core.algebra.AlgebraicVector;
 import com.vzome.core.algebra.PentagonField;
 import com.vzome.core.commands.Command;
-import com.vzome.core.commands.Command.Failure;
 import com.vzome.core.construction.Construction;
 import com.vzome.core.construction.Polygon;
 import com.vzome.core.construction.Segment;
@@ -53,7 +50,6 @@ import com.vzome.core.editor.FieldApplication.SymmetryPerspective;
 import com.vzome.core.editor.SymmetrySystem;
 import com.vzome.core.exporters.Exporter3d;
 import com.vzome.core.exporters2d.Java2dSnapshot;
-import com.vzome.core.math.Polyhedron;
 import com.vzome.core.math.QuaternionProjection;
 import com.vzome.core.math.RealVector;
 import com.vzome.core.math.symmetry.Axis;
@@ -73,10 +69,11 @@ import com.vzome.core.render.RenderingChanges;
 import com.vzome.core.viewing.Camera;
 import com.vzome.core.viewing.Lights;
 import com.vzome.core.viewing.ThumbnailRenderer;
+import com.vzome.desktop.controller.ApplicationController;
 import com.vzome.desktop.controller.CameraController;
 import com.vzome.desktop.controller.Controller3d;
 import com.vzome.desktop.controller.RenderingViewer;
-import com.vzome.desktop.controller.ThumbnailRendererImpl;
+import com.vzome.desktop.controller.SymmetryController;
 
 /**
  * @author Scott Vorthmann 2003
@@ -87,29 +84,27 @@ public class DocumentController extends DefaultController implements Controller3
     //
     private int changeCount = 0;
     private final boolean startReader;
-    private DocumentModel documentModel;
+    protected DocumentModel documentModel;
     private boolean editingModel;
-    private Camera currentView; // ?? TBD if this is in the right group
     private final Properties properties;
     
     // to RenderedModelController
     //
     private RenderingViewer imageCaptureViewer;
-    private final RenderedModel mRenderedModel;
+    protected final RenderedModel mRenderedModel;
     private RenderingChanges mainScene;
-    private Lights sceneLighting;
+    protected Lights sceneLighting;
     private MouseTool modelModeMainTrackball;
     private Component modelCanvas;
     private boolean drawNormals = false;
-    private boolean drawOutlines = false;
+    protected boolean drawOutlines = false;
     private boolean showFrameLabels = false;
-    private Java2dSnapshotController java2dController = null;
-    private CameraController cameraController;
+    protected CameraController cameraController;
     private final ApplicationController mApp;
 
     // to SymmetryRenderingController?
     //
-    private SymmetryController symmetryController;
+    protected SymmetryController symmetryController;
     private Map<String,SymmetryController> symmetries = new HashMap<>();
     private final PartsController partsController;
 
@@ -119,15 +114,16 @@ public class DocumentController extends DefaultController implements Controller3
     private boolean mRequireShift = false;
     private final ManifestationChanges selectionRendering;
     
-    private final StrutBuilderController strutBuilder;
+    protected final StrutBuilderController strutBuilder;
 
     // to LessonController
     //
-    private ThumbnailRenderer thumbnails;
+    private Camera currentView;
+    protected ThumbnailRenderer thumbnails;
     private MouseTool lessonPageClick, articleModeMainTrackball, articleModeZoom;
     private final LessonController lessonController;
     private PropertyChangeListener articleChanges;
-    private RenderedModel currentSnapshot;
+    protected RenderedModel currentSnapshot;
     
     private PropertyChangeListener modelChanges;
         
@@ -282,15 +278,13 @@ public class DocumentController extends DefaultController implements Controller3
         for ( SymmetryPerspective symper : document .getFieldApplication() .getSymmetryPerspectives() )
         {
             String name = symper .getName();
-            SymmetryController symmController = new SymmetryController( strutBuilder, this .documentModel .getSymmetrySystem( name ), mRenderedModel );
+            SymmetryController symmController = createSymmetryController( this .documentModel .getSymmetrySystem( name ) );
             strutBuilder .addSubController( "symmetry." + name, symmController );
             this .symmetries .put( name, symmController );
         }
 
         mRequireShift = "true".equals( app.getProperty( "multiselect.with.shift" ) );
         showFrameLabels = "true" .equals( app.getProperty( "showFrameLabels" ) );
-
-        thumbnails = new ThumbnailRendererImpl( app .getJ3dFactory(), sceneLighting );
 
         mApp = app;
         
@@ -385,6 +379,11 @@ public class DocumentController extends DefaultController implements Controller3
         } );
     }
     
+    protected SymmetryController createSymmetryController( SymmetrySystem system )
+    {
+        return new SymmetryController( strutBuilder, system, mRenderedModel );
+    }
+    
     @Override
     public void attachViewer( RenderingViewer viewer, RenderingChanges scene, Component canvas )
     {
@@ -474,9 +473,8 @@ public class DocumentController extends DefaultController implements Controller3
         strutBuilder .setSymmetryController( symmetryController );
     }
 
-
     @Override
-    public void doAction( String action ) throws Failure
+    public void doAction( String action ) throws Exception
     {
         if ( "finish.load".equals( action ) ) {
 
@@ -560,10 +558,6 @@ public class DocumentController extends DefaultController implements Controller3
 //          }
                 break;
 
-            case "refresh.2d":
-                this .java2dController .setScene( cameraController.getView(), this.sceneLighting, this.currentSnapshot, this.drawOutlines );
-                break;
-
             case "nextPage":
                 lessonController .doAction( action );
                 break;
@@ -632,22 +626,6 @@ public class DocumentController extends DefaultController implements Controller3
                 {
                     RealVector loc = documentModel .getParamLocation( "ball" );
                     cameraController .setLookAtPoint( new Point3d( loc.x, loc.y, loc.z ) );
-                }
-                break;
-    
-            case "usedOrbits":
-                {
-                    Set<Direction> usedOrbits = new HashSet<>();
-                    for ( RenderedManifestation rm : mRenderedModel ) {
-                        Polyhedron shape = rm .getShape();
-                        Direction orbit = shape .getOrbit();
-                        if ( orbit != null )
-                            usedOrbits .add( orbit );
-                    }
-                    symmetryController .availableController .doAction( "setNoDirections" );
-                    for ( Direction orbit : usedOrbits ) {
-                        symmetryController .availableController .doAction( "enableDirection." + orbit .getName() );
-                    }
                 }
                 break;
                 
@@ -1223,7 +1201,6 @@ public class DocumentController extends DefaultController implements Controller3
         }
     }
     
-
     @Override
     public Controller getSubController( String name )
     {
@@ -1232,15 +1209,6 @@ public class DocumentController extends DefaultController implements Controller3
         case "symmetry":
             // This value is transient, so we don't want to use getSubController()
             return symmetryController;
-        
-        case "snapshot.2d": {
-            if ( java2dController == null ) {
-                java2dController = new Java2dSnapshotController( this .documentModel, cameraController.getView(), this.sceneLighting,
-                						this.currentSnapshot, this.drawOutlines );
-                this .addSubController( name, java2dController );
-            }
-            return java2dController;
-        }
 
         default:
             if ( name.startsWith( "symmetry." ) )
@@ -1355,9 +1323,9 @@ public class DocumentController extends DefaultController implements Controller3
                 Axis zone = symmetryController .getZone( offset );
                 Direction orbit = zone .getOrbit();
                 AlgebraicNumber length = zone .getLength( offset );
-                symmetryController .availableController .doAction( "enableDirection." + orbit .getName() );
-                symmetryController .buildController .doAction( "setSingleDirection." + orbit .getName() );
-                LengthController lmodel = (LengthController) symmetryController .buildController .getSubController( "currentLength" );
+                symmetryController .doAction( "enableDirection." + orbit .getName() );
+                symmetryController .doAction( "setSingleDirection." + orbit .getName() );
+                LengthController lmodel = (LengthController) symmetryController .getLengthController( orbit );
                 lmodel .setActualLength( length );
                 break;
             }
