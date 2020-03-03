@@ -18,13 +18,13 @@ import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.vorthmann.ui.Controller;
-import org.vorthmann.zome.app.impl.ApplicationController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.vzome.desktop.controller.ApplicationController;
 import com.vzome.desktop.controller.Controller3d;
 
 public class ControllerWebSocket implements WebSocketListener
