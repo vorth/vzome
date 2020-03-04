@@ -31,8 +31,10 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.vorthmann.j3d.CanvasTool;
 import org.vorthmann.ui.CardPanel;
-import org.vorthmann.ui.Controller;
+
+import com.vzome.desktop.awt.GraphicsController;
 
 public class NewLengthPanel extends JPanel implements PropertyChangeListener, ActionListener
 {
@@ -63,7 +65,7 @@ public class NewLengthPanel extends JPanel implements PropertyChangeListener, Ac
      *
      * graphics: selectedOrbit
      */
-    protected Controller controller;
+    protected GraphicsController controller;
 
     private LengthDialog lengthDialog;
 
@@ -76,18 +78,18 @@ public class NewLengthPanel extends JPanel implements PropertyChangeListener, Ac
         renderLength();
     }
 
-    public void setController( Controller controller )
+    public void setController( GraphicsController controller )
     {
         if ( this .controller != null )
         {
-            this .controller .getMouseTool() .detach( this );
+            ((CanvasTool) this .controller) .detach( this );
             this .controller .removePropertyListener( this );
         }
         this .controller = controller;
         if ( this .controller != null )
         {
             this .controller .addPropertyListener( this );
-            this .controller .getMouseTool() .attach( this );
+            ((CanvasTool) this .controller) .attach( this );
         }
         lengthDialog = new LengthDialog( frame, controller .getSubController( "unit" ), "Custom Unit Strut Length", new ControllerActionListener(controller) );
         boolean value = "true" .equals( controller .getProperty( "showStrutScales" ) );
@@ -95,7 +97,7 @@ public class NewLengthPanel extends JPanel implements PropertyChangeListener, Ac
         switchOrbit();
     }
 
-    public NewLengthPanel( JFrame frame, Controller initialController )
+    public NewLengthPanel( JFrame frame, GraphicsController initialController )
     {
         this .frame = frame;
         this .controller = initialController;
@@ -365,8 +367,7 @@ public class NewLengthPanel extends JPanel implements PropertyChangeListener, Ac
 
         case "selectedOrbit":
             // this first one should fall "up" to the symmetry controller
-            Controller newController = controller .getSubController( "buildOrbits" );
-            newController = controller .getSubController( "currentLength" );
+            GraphicsController newController = (GraphicsController) controller .getSubController( "currentLength" );
             // newController will be null if all directions are disabled.
             // in that case, just retain the controller from the previously selected orbit.
             if( newController != null ) {

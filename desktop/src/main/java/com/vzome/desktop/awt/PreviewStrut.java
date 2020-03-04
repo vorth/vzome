@@ -1,7 +1,7 @@
 
 //(c) Copyright 2008, Scott Vorthmann.  All rights reserved.
 
-package org.vorthmann.zome.app.impl;
+package com.vzome.desktop.awt;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

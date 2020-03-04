@@ -17,6 +17,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import org.vorthmann.j3d.CanvasTool;
 import org.vorthmann.ui.CardPanel;
 import org.vorthmann.ui.Controller;
 
@@ -131,7 +132,7 @@ public class OrbitPanel extends JPanel implements PropertyChangeListener
         if ( orbitPopup != null )
         	orbitTriangle .removeMouseListener( orbitPopup );
 
-        this .enabledOrbits .getMouseTool() .detach( orbitTriangle );
+        ((CanvasTool) this .enabledOrbits) .detach( orbitTriangle );
         this .drawnOrbits .removePropertyListener( this );
         this .enabledOrbits .removePropertyListener( this );
 
@@ -142,7 +143,7 @@ public class OrbitPanel extends JPanel implements PropertyChangeListener
 
         enabledOrbits .addPropertyListener( this );
         drawnOrbits .addPropertyListener( this );
-        enabledOrbits .getMouseTool() .attach( orbitTriangle );
+        ((CanvasTool) this .enabledOrbits) .attach( orbitTriangle );
 
         if ( directionPopupMenu != null )
         {

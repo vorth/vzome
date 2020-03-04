@@ -69,6 +69,8 @@ import com.vzome.core.render.RenderingChanges;
 import com.vzome.core.viewing.Camera;
 import com.vzome.core.viewing.Lights;
 import com.vzome.core.viewing.ThumbnailRenderer;
+import com.vzome.desktop.awt.LengthController;
+import com.vzome.desktop.awt.StrutBuilderController;
 import com.vzome.desktop.controller.ApplicationController;
 import com.vzome.desktop.controller.CameraController;
 import com.vzome.desktop.controller.Controller3d;
@@ -279,7 +281,7 @@ public class DocumentController extends DefaultController implements Controller3
         {
             String name = symper .getName();
             SymmetryController symmController = createSymmetryController( this .documentModel .getSymmetrySystem( name ) );
-            strutBuilder .addSubController( "symmetry." + name, symmController );
+            this .addSubController( "symmetry." + name, symmController );
             this .symmetries .put( name, symmController );
         }
 
@@ -381,7 +383,7 @@ public class DocumentController extends DefaultController implements Controller3
     
     protected SymmetryController createSymmetryController( SymmetrySystem system )
     {
-        return new SymmetryController( strutBuilder, system, mRenderedModel );
+        return new SymmetryController( this, system, mRenderedModel );
     }
     
     @Override

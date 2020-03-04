@@ -1,14 +1,20 @@
 
 //(c) Copyright 2007, Scott Vorthmann.  All rights reserved.
 
-package org.vorthmann.zome.app.impl;
+package com.vzome.desktop.awt;
 
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 
+import org.vorthmann.j3d.CanvasTool;
 import org.vorthmann.j3d.MouseTool;
 import org.vorthmann.j3d.MouseToolDefault;
 import org.vorthmann.ui.Controller;
 import org.vorthmann.ui.DefaultController;
+import org.vorthmann.zome.app.impl.NumberController;
 import org.w3c.dom.Element;
 
 import com.vzome.core.algebra.AlgebraicField;
@@ -20,7 +26,7 @@ import com.vzome.core.math.symmetry.Direction;
  * Because of MOUSE_WHEEL_GAIN issues, this is more a model of the length panel than an actual length scalar value.
  *
  */
-public class LengthController extends DefaultController
+public class LengthController extends DefaultController implements GraphicsController, CanvasTool
 {
 	/**
      * This is a permanent adjustment of the scale slider.  When the scale reads 0 for the user,
@@ -490,12 +496,6 @@ public class LengthController extends DefaultController
         this .currentScales[ this .multiplier ] .setScale( amt );
     }
 
-    @Override
-    public MouseTool getMouseTool()
-    {
-        return this .tool;
-    }
-
     /**
      * This is basically an inverse of getValue(), but with scale fixed at zero,
      * thus forcing unitFactor to float.
@@ -510,5 +510,25 @@ public class LengthController extends DefaultController
         length = length .times( this .field .createPower( -SCALE_OFFSET ) );
         unitFactor = length .dividedBy( this .fixedFactor );
         fireLengthChange();
+    }
+
+    @Override
+    public void repaintGraphics( String panelName, Graphics graphics, Dimension size ) {}
+
+    @Override
+    public void attach( Component canvas )
+    {
+        this .tool .attach( canvas );
+    }
+
+    @Override
+    public void detach( Component canvas )
+    {
+        this .tool .detach( canvas );
+    }
+
+    public MouseWheelListener getMouseTool()
+    {
+        return this .tool;
     }
 }

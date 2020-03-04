@@ -32,7 +32,7 @@ public class DocumentAwtController extends DocumentController
     @Override
     protected SymmetryController createSymmetryController( SymmetrySystem system )
     {
-        return new SymmetryAwtController( strutBuilder, system, mRenderedModel );
+        return new SymmetryAwtController( this, system, mRenderedModel );
     }
 
     @Override

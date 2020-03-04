@@ -4,7 +4,6 @@
 package com.vzome.desktop.awt;
 
 import org.vorthmann.ui.Controller;
-import org.vorthmann.zome.app.impl.LengthController;
 
 import com.vzome.core.editor.SymmetrySystem;
 import com.vzome.core.math.symmetry.Direction;

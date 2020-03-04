@@ -7,8 +7,6 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 
-import org.vorthmann.j3d.MouseTool;
-
 /**
  * Controller portion of model-view-controller architecture.
  * 
@@ -73,7 +71,5 @@ public interface Controller
 
     Controller getSubController( String string );
     
-    MouseTool getMouseTool();
-
     void addSubController( String name, Controller sub );
 }

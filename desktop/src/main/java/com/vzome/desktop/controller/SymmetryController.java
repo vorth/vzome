@@ -8,7 +8,6 @@ import java.util.Map;
 
 import org.vorthmann.ui.Controller;
 import org.vorthmann.ui.DefaultController;
-import org.vorthmann.zome.app.impl.LengthController;
 import org.vorthmann.zome.app.impl.SymmetrySnapper;
 import org.vorthmann.zome.app.impl.ToolFactoryController;
 
@@ -22,6 +21,7 @@ import com.vzome.core.math.symmetry.Symmetry;
 import com.vzome.core.render.Color;
 import com.vzome.core.render.RenderedModel;
 import com.vzome.core.render.Shapes;
+import com.vzome.desktop.awt.LengthController;
 
 public class SymmetryController extends DefaultController
 {

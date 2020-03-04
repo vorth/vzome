@@ -1,4 +1,4 @@
-
+//
 
 package org.vorthmann.ui;
 
@@ -13,8 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.vorthmann.j3d.MouseTool;
 
 public class DefaultController implements Controller
 {
@@ -201,12 +199,6 @@ public class DefaultController implements Controller
         if ( logger .isLoggable( Level .FINE ) )
             logger.fine( "CHGEVENT: " + getPath() + "||" + propName + "=" + newValue );
         this .pcs .firePropertyChange( propName, oldValue, newValue );
-    }
-
-    @Override
-    public MouseTool getMouseTool()
-    {
-        return null;
     }
 
     @Override

@@ -11,6 +11,8 @@ import javax.swing.JPanel;
 
 import org.vorthmann.ui.Controller;
 
+import com.vzome.desktop.awt.GraphicsController;
+
 
 @SuppressWarnings("serial")
 public class StrutBuilderPanel extends JPanel
@@ -52,7 +54,7 @@ public class StrutBuilderPanel extends JPanel
         this .add( constraintsPanel, BorderLayout.CENTER );
 
         {
-            lengthPanel = new NewLengthPanel( frame, orbitController .getSubController( "currentLength" ) );
+            lengthPanel = new NewLengthPanel( frame, (GraphicsController) orbitController .getSubController( "currentLength" ) );
             controller .addPropertyListener( lengthPanel );
             lengthPanel .setBorder( BorderFactory .createTitledBorder( "strut size" ) );
             this .add( lengthPanel, BorderLayout.SOUTH );
@@ -100,7 +102,7 @@ public class StrutBuilderPanel extends JPanel
         if ( dirName == null )
             lengthPanel .setVisible( false );
         else {
-            lengthPanel .setController( orbitController .getSubController( "currentLength" ) );
+            lengthPanel .setController( (GraphicsController) orbitController .getSubController( "currentLength" ) );
             lengthPanel .setVisible( true );
         }
     }

@@ -3,6 +3,7 @@
 package com.vzome.desktop.awt;
 
 import java.awt.BasicStroke;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -15,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.vorthmann.j3d.CanvasTool;
 import org.vorthmann.j3d.MouseTool;
 import org.vorthmann.j3d.MouseToolDefault;
 import org.vorthmann.ui.Controller;
@@ -32,7 +34,7 @@ import com.vzome.core.math.symmetry.Symmetry;
 import com.vzome.core.render.Color;
 import com.vzome.core.render.RenderedModel.OrbitSource;
 
-public class OrbitSetController extends DefaultController implements GraphicsController, PropertyChangeListener
+public class OrbitSetController extends DefaultController implements GraphicsController, PropertyChangeListener, CanvasTool
 {
     private final OrbitSource colorSource;
 
@@ -410,13 +412,6 @@ public class OrbitSetController extends DefaultController implements GraphicsCon
         return pickedDir;
     }
 
-
-    @Override
-    public MouseTool getMouseTool()
-    {
-        return this .mouseTool;
-    }
-
     @Override
     public boolean[] enableContextualCommands( String[] menu, MouseEvent e )
     {
@@ -464,5 +459,17 @@ public class OrbitSetController extends DefaultController implements GraphicsCon
             return result;
         }
         return super .getCommandList( listName );
+    }
+
+    @Override
+    public void attach( Component canvas )
+    {
+        this .mouseTool .attach( canvas );
+    }
+
+    @Override
+    public void detach( Component canvas )
+    {
+        this .mouseTool .detach( canvas );
     }
 }

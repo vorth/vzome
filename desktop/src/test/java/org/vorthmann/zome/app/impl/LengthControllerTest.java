@@ -9,6 +9,7 @@ import com.vzome.controller.ControllerTesting;
 import com.vzome.core.algebra.AlgebraicField;
 import com.vzome.core.algebra.AlgebraicNumber;
 import com.vzome.core.algebra.PentagonField;
+import com.vzome.desktop.awt.LengthController;
 
 public class LengthControllerTest
 {    

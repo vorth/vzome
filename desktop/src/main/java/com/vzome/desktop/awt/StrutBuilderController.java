@@ -1,5 +1,5 @@
 
-package org.vorthmann.zome.app.impl;
+package com.vzome.desktop.awt;
 
 import java.awt.Component;
 import java.awt.event.MouseEvent;
@@ -14,6 +14,8 @@ import org.vorthmann.j3d.MouseToolFilter;
 import org.vorthmann.j3d.Trackball;
 import org.vorthmann.ui.DefaultController;
 import org.vorthmann.ui.LeftMouseDragAdapter;
+import org.vorthmann.zome.app.impl.DocumentController;
+import org.vorthmann.zome.app.impl.ManifestationPicker;
 
 import com.vzome.core.algebra.AlgebraicField;
 import com.vzome.core.algebra.AlgebraicVector;
