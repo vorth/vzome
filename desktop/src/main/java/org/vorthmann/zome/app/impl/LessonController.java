@@ -47,18 +47,7 @@ public class LessonController extends DefaultController
             // guard against events that originate here
             return;
         
-        if ( "duplicatePage" .equals( action ) )
-        {
-            // this is the duplicate button in article mode
-        	model .duplicatePage( this.vpm .getView() );
-            setProperty( "edited", "true" );
-        }
-        else if ( "deletePage" .equals( action ) )
-        {
-            model .deletePage();
-            setProperty( "edited", "true" );
-        }
-        else if ( action .startsWith( "elementSelected-" ) )
+        if ( action .startsWith( "elementSelected-" ) )
         {
             // action defined by ListPanel
             String pageNumStr = action .substring( "elementSelected-" .length() );
@@ -67,17 +56,6 @@ public class LessonController extends DefaultController
         else if ( action .startsWith( "elementChanged-" ) )
         {
             // no-op, the thumbnail image was added
-        }
-        else if ( action .startsWith( "elementMoved-" ) )
-        {
-            // action defined by ListPanel
-            String moveStr = action .substring( "elementMoved-" .length() );
-            StringTokenizer tokens = new StringTokenizer( moveStr, ">" );
-            String from = tokens .nextToken();
-            int fromNum = Integer .parseInt( from );
-            String to = tokens .nextToken();
-            int toNum = Integer .parseInt( to );
-            model .movePage( fromNum, toNum );
         }
         else if ( "firstPage" .equals( action ) )
         {
@@ -100,14 +78,6 @@ public class LessonController extends DefaultController
         	model .setView( vpm .getView() );
             setProperty( "edited", "true" );
         }
-        else if ( action .startsWith( "usePageView-" ) )
-        {
-            String pageStr = action .substring( "usePageView-".length() );
-            int num = Integer .parseInt( pageStr );
-            Camera newView = model .getPageView( num );
-            if ( ! newView .equals( this.vpm .getView() ) )
-                vpm .restoreView( newView );
-        }
         else if ( action .startsWith( "copyPageView-" ) )
         {
             String pageStr = action .substring( "copyPageView-".length() );
@@ -117,7 +87,7 @@ public class LessonController extends DefaultController
         }
         else if ( "restoreSnapshot" .equals( action ) )
         {
-        	model .refresh();
+            model .refresh();
         }
         else if ( action .startsWith( "insertUpdateEvent" ) )
         {
@@ -218,7 +188,7 @@ public class LessonController extends DefaultController
                 {
                     for (int i = 0; i < model .size(); i++)
                     {
-                    	model .updateThumbnail( i, recorder, renderer );
+                        model .updateThumbnail( i, recorder, renderer );
                     }
                 }
                 return null;

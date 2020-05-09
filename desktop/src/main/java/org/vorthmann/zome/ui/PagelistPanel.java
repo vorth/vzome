@@ -14,10 +14,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
@@ -26,13 +24,10 @@ import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.vorthmann.ui.Controller;
-import org.vorthmann.ui.ReorderableJList;
 
 
 public class PagelistPanel extends JPanel implements PropertyChangeListener
@@ -45,59 +40,7 @@ public class PagelistPanel extends JPanel implements PropertyChangeListener
     
     private final Controller controller;
 
-    private static final String dupeString = "Add";
-
-    private static final String remString = "Remove";
-
-    private JButton removeButton;
-
-    private JButton addButton;
-
-    private final boolean isEditor;
-    
     private transient int popupItem;
-
-    private class ListMoves implements ListDataListener, ReorderableJList.ListMoveListener
-    {
-        // this object is where we can correlate the events from ReorderableJList
-        
-        private boolean moving = false;
-        
-        private int startIndex = -1;
-        
-        @Override
-        public void contentsChanged( ListDataEvent lde )
-        {
-            String action = "elementChanged-" + lde .getIndex0();
-            PagelistPanel .this .controller .actionPerformed( PagelistPanel.this, action );
-        }
-        @Override
-        public void intervalAdded( ListDataEvent lde )
-        {
-            if ( moving )
-            {
-                String action = "elementMoved-" + startIndex + ">" + lde .getIndex0();
-                PagelistPanel .this .controller .actionPerformed( PagelistPanel.this, action );
-            }
-        }
-        @Override
-        public void intervalRemoved( ListDataEvent lde )
-        {
-            if ( moving )
-                startIndex = lde .getIndex0();
-        }
-        @Override
-        public void startMove()
-        {
-            moving = true;
-        }
-        @Override
-        public void endMove()
-        {
-            moving = false;
-            startIndex = -1;
-        }
-    }
 
 
     private class ThumbnailSelectionRenderer extends JLabel implements ListCellRenderer<ImageIcon>
@@ -185,18 +128,8 @@ public class PagelistPanel extends JPanel implements PropertyChangeListener
         controller .addPropertyListener( this );
                 
         this .controller = controller;
-        ControllerActionListener actionListener = new ControllerActionListener( controller );
-
-        this.isEditor = controller .userHasEntitlement( "lesson.edit" ) && ! controller .propertyIsTrue( "reader.preview" );
-
         ContextualMenu pageviewPopupMenu = new ContextualMenu();
         pageviewPopupMenu .setLightWeightPopupEnabled( false );
-        if ( this .isEditor )
-        {
-            JMenuItem menuItem = createMenuItem( "Save Current View to Page", "setView" );
-            menuItem .addActionListener( actionListener );
-            pageviewPopupMenu .add( menuItem );
-        }
 
         JMenuItem menuItem = createMenuItem( "Show This Page's View", "usePageView" );
         menuItem .addActionListener( new ActionListener()
@@ -230,21 +163,15 @@ public class PagelistPanel extends JPanel implements PropertyChangeListener
             listModel .addElement( icon );
         }
         
-        ListMoves moves = new ListMoves();
-        listModel .addListDataListener( moves );
-
         // Create the list and put it in a scroll pane.
-        list = isEditor 
-                ? new ReorderableJList<>( listModel, moves, ImageIcon.class ) 
-                : new JList<>( listModel );
+        list = new JList<>( listModel );
         list .setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         list .setSelectedIndex( 0 );
         list .setVisibleRowCount( 12 );
         list .addMouseListener( pageviewPopup );
         JScrollPane listScrollPane = new JScrollPane( list );
         
-        if ( ! isEditor )
-            list .setCellRenderer( new ThumbnailSelectionRenderer() );
+        list .setCellRenderer( new ThumbnailSelectionRenderer() );
 
         list .addListSelectionListener( new ListSelectionListener()
         {
@@ -276,27 +203,6 @@ public class PagelistPanel extends JPanel implements PropertyChangeListener
             }
         });
         add( listScrollPane, BorderLayout.CENTER );
-
-        if ( this.isEditor )
-        {
-            addButton = new JButton( dupeString );
-            addButton.setActionCommand( "duplicatePage" );
-            addButton.addActionListener( actionListener );
-            addButton.setEnabled( true );
-
-            removeButton = new JButton( remString );
-            removeButton.setActionCommand( "deletePage" );
-            removeButton.addActionListener( actionListener );
-            removeButton.setEnabled( controller .propertyIsTrue( "has.pages" ) );
-
-            // Create a panel that uses BoxLayout.
-            JPanel buttonPane = new JPanel();
-            buttonPane .setLayout( new BoxLayout( buttonPane, BoxLayout.PAGE_AXIS ) );
-            buttonPane .add( addButton );
-            buttonPane .add( removeButton );
-            buttonPane .setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
-            add( buttonPane, BorderLayout.PAGE_END );
-        }
     }
     
     @Override
@@ -309,14 +215,6 @@ public class PagelistPanel extends JPanel implements PropertyChangeListener
             list .setSelectedIndex( num );
             list .ensureIndexIsVisible( num );
         }
-        else if ( "has.pages" .equals( evt .getPropertyName() ) )
-        {
-            if ( removeButton != null )
-            {
-                boolean enable = evt .getNewValue() .toString() .equals( "true" );
-                removeButton .setEnabled( enable );
-            }
-        }
         else if ( evt .getPropertyName() .startsWith( "newElementAddedAt-" ) )
         {
             String pageNum = evt .getPropertyName() .substring( "newElementAddedAt-".length() );
@@ -324,12 +222,6 @@ public class PagelistPanel extends JPanel implements PropertyChangeListener
             ImageIcon icon = new ImageIcon( new BufferedImage( 80, 70, BufferedImage .TYPE_INT_RGB ) );
             listModel .insertElementAt( icon, num );
             list .setSelectedIndex( num );
-        }
-        else if ( evt .getPropertyName() .startsWith( "pageRemovedAt-" ) )
-        {
-            String pageNum = evt .getPropertyName() .substring( "pageRemovedAt-".length() );
-            int num = Integer .parseInt( pageNum );
-            listModel .remove( num );
         }
         else if ( evt .getPropertyName() .startsWith( "thumbnailChanged-" ) )
         {
@@ -342,9 +234,9 @@ public class PagelistPanel extends JPanel implements PropertyChangeListener
 
             ImageIcon icon = new ImageIcon( iconImage );
             if ( num >= listModel .size() )
-            	listModel .insertElementAt( icon, num );
+                listModel .insertElementAt( icon, num );
             else
-            	listModel .setElementAt( icon, num );
+                listModel .setElementAt( icon, num );
         }
    }
 }

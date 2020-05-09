@@ -331,7 +331,10 @@ public final class ApplicationUI implements ApplicationController.UI, PropertyCh
 
         case "newDocument":
             Controller controller = (Controller) evt. getNewValue();
-            DocumentFrame window = new DocumentFrame( controller, this .mController .getJ3dFactory() );
+            boolean asArticle = controller .propertyIsTrue( "reader.preview" );
+            DocumentFrame window = asArticle?
+                    new ArticleFrame( controller, this .mController .getJ3dFactory() ):
+                    new DocumentFrame( controller, this .mController .getJ3dFactory() );
             window .setVisible( true );
             window .setAppUI( new PropertyChangeListener() {
 

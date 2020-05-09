@@ -51,7 +51,7 @@ public class ModelPanel extends JPanel implements PropertyChangeListener, Symmet
     private final ToolConfigDialog bookmarkConfigDialog;
     private final Map<String,JButton> bookmarkButtons = new HashMap<>(); // to support hiding bookmarks
 
-    public ModelPanel( Controller controller, RenderingViewer viewer, ControlActions enabler, boolean isEditor, boolean fullPower )
+    public ModelPanel( Controller controller, RenderingViewer viewer, ControlActions enabler, boolean isEditor )
     {
         super( new BorderLayout() );
         this .controller = controller;
@@ -211,12 +211,9 @@ public class ModelPanel extends JPanel implements PropertyChangeListener, Symmet
                     oldToolBar.add( button );
                     button.setRolloverEnabled( true );
 
-                    if ( fullPower )
-                    {
-                        button = makeLegacyEditButton( enabler, "centroid", "Construct centroid of points" );
-                        oldToolBar.add( button );
-                        button.setRolloverEnabled( true );
-                    }
+                    button = makeLegacyEditButton( enabler, "centroid", "Construct centroid of points" );
+                    oldToolBar.add( button );
+                    button.setRolloverEnabled( true );
 
                     button = makeLegacyEditButton( enabler, "hideball", "Hide selected objects" );
                     oldToolBar.add( button );

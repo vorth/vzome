@@ -4,22 +4,17 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.PlainDocument;
@@ -37,15 +32,11 @@ public class LessonPanel extends JPanel implements PropertyChangeListener
     private final TextEvents titleEvents = new TextEvents( "title" );
     private final TextEvents contentEvents = new TextEvents( "content" );
     
-    private final boolean isEditor;
-    
 	public LessonPanel( final Controller controller )
 	{
         mController = controller;
         mController .addPropertyListener( this );
         
-        this.isEditor = controller .userHasEntitlement( "lesson.edit" ) && ! controller .propertyIsTrue( "reader.preview" );
-
         this .setLayout( new BorderLayout() );
         {
             JPanel pagelistPanel = new PagelistPanel( controller );
@@ -53,11 +44,8 @@ public class LessonPanel extends JPanel implements PropertyChangeListener
 
             // here's the containment hierarchy
             JPanel pagePanel = new JPanel( new BorderLayout() );
-            if ( ! this .isEditor )
-            {
-                pagePanel .setBorder( BorderFactory .createEmptyBorder( 10, 12, 10, 12 ) );
-                pagePanel .setBackground( Color .WHITE );
-            }
+            pagePanel .setBorder( BorderFactory .createEmptyBorder( 10, 12, 10, 12 ) );
+            pagePanel .setBackground( Color .WHITE );
             {
                 {
                     JPanel titlePanel = new JPanel( new BorderLayout() );
@@ -65,13 +53,7 @@ public class LessonPanel extends JPanel implements PropertyChangeListener
                     titleArea .setBorder( BorderFactory .createLineBorder( Color.GRAY ) );
                     titleArea .setLineWrap( true );
                     titleArea .setWrapStyleWord( true );
-                    //            titleArea .setMaximumSize( new Dimension( 500, 20 ) );
-                    //            titleArea .setMinimumSize( new Dimension( 500, 20 ) );
-                    if ( this.isEditor )
-                        titlePanel .setBorder( BorderFactory .createTitledBorder( "page title" ) );
-                    else
                     {
-//                        titlePanel .setBorder( BorderFactory .createEmptyBorder( 4, 4, 4, 4 ) );
                         Font biggestFont = titleArea .getFont() .deriveFont( Font.BOLD, 16f );
                         titleArea .setBorder( BorderFactory .createEmptyBorder() );
                         titleArea .setFont( biggestFont );
@@ -82,37 +64,18 @@ public class LessonPanel extends JPanel implements PropertyChangeListener
                 }
                 {
                     JPanel panel = new JPanel( new BorderLayout() );
-                    //            panel .setMinimumSize( new Dimension( 500, 800 ) );
-                    //            panel .setPreferredSize( new Dimension( 500, 800 ) );
-                    {
-                        contentArea = new JTextArea( 20, 15 );
-                        // no border necessary with scroller
-                        //                contentArea .setBorder( BorderFactory .createLineBorder( Color.GRAY ) );
-                        contentArea .setLineWrap( true );
-                        contentArea .setWrapStyleWord( true );
-                        contentArea .setMaximumSize( new Dimension( 170, 800 ) );
-                        if ( this.isEditor )
-                        {
-                            panel .setBorder( BorderFactory .createTitledBorder( "page content" ) );
-                            contentArea .getDocument() .addUndoableEditListener( new UndoableEditListener() {
-
-                                @Override
-                                public void undoableEditHappened( UndoableEditEvent e )
-                                {
-                                    e .getEdit();
-                                }
-                            } );
-                        }
-                        else
-                        {
-                            panel .setBorder( BorderFactory .createEmptyBorder() );
-                            contentArea .setBorder( BorderFactory .createEmptyBorder() );
-                            contentArea .setEditable( false );
-                        }
-                        JScrollPane contentScroller = new JScrollPane( contentArea );
-                        contentScroller .setBorder( BorderFactory .createEmptyBorder() );
-                        panel .add( contentScroller, BorderLayout.CENTER );
-                    }
+                    contentArea = new JTextArea( 20, 15 );
+                    // no border necessary with scroller
+                    //                contentArea .setBorder( BorderFactory .createLineBorder( Color.GRAY ) );
+                    contentArea .setLineWrap( true );
+                    contentArea .setWrapStyleWord( true );
+                    contentArea .setMaximumSize( new Dimension( 170, 800 ) );
+                    panel .setBorder( BorderFactory .createEmptyBorder() );
+                    contentArea .setBorder( BorderFactory .createEmptyBorder() );
+                    contentArea .setEditable( false );
+                    JScrollPane contentScroller = new JScrollPane( contentArea );
+                    contentScroller .setBorder( BorderFactory .createEmptyBorder() );
+                    panel .add( contentScroller, BorderLayout.CENTER );
                     pagePanel .add( panel, BorderLayout.CENTER );
                 }
                 if ( mController .propertyIsTrue( "has.pages" ) )
@@ -137,20 +100,6 @@ public class LessonPanel extends JPanel implements PropertyChangeListener
         content .addDocumentListener( contentEvents );
         titleArea .setDocument( title );
         contentArea .setDocument( content );
-    }
-
-    protected static JButton createButton( String actionCommand, ActionListener listener )
-    {
-        String iconPath = "/org/vorthmann/zome/ui/" + actionCommand + ".gif";
-        JButton button = new JButton();
-        java.net.URL imgURL = LessonPanel.class .getResource( iconPath );
-        if ( imgURL != null )
-            button .setIcon( new ImageIcon( imgURL ) );
-        else
-            logger  .warning( "Couldn't find resource: " + iconPath );
-        button .addActionListener( listener );
-        button .setActionCommand( actionCommand );
-        return button;
     }
 
     // DocumentListener methods

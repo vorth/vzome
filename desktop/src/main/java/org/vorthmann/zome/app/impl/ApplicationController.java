@@ -320,6 +320,11 @@ public class ApplicationController extends DefaultController
                 docProps .setProperty( "window.file", path );
                 break;
 
+            case "openArticle":
+                docProps .setProperty( "window.file", path );
+                docProps .setProperty( "reader.preview", "true" );
+                break;
+
             case "newFromTemplate":
                 String title = "Untitled " + ++lastUntitled;
                 docProps .setProperty( "window.title", title ); // override the default above
