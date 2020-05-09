@@ -216,13 +216,6 @@ public class ArticleFrame extends DocumentFrame
             }
             outerPanel.add( leftCenterPanel, BorderLayout.CENTER );
 
-            // String mag = props .getProperty( "default.magnification" );
-            // if ( mag != null ) {
-            // float magnification = Float .parseFloat( mag );
-            // // TODO this seems to work, but ought not to!
-            // viewControl .zoomAdjusted( (int) magnification );
-            // }
-
             JPanel rightPanel = new JPanel( new BorderLayout() );
             {
                 Scene scene = ((Scene.Provider) cameraController) .getScene();

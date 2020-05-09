@@ -2,6 +2,7 @@ package org.vorthmann.zome.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -168,6 +169,7 @@ public class PagelistPanel extends JPanel implements PropertyChangeListener
         list .setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         list .setSelectedIndex( 0 );
         list .setVisibleRowCount( 12 );
+        list .setPreferredSize( new Dimension( 80, 70 ) );
         list .addMouseListener( pageviewPopup );
         JScrollPane listScrollPane = new JScrollPane( list );
         
