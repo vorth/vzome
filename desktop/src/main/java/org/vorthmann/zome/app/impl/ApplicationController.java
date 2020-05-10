@@ -371,10 +371,8 @@ public class ApplicationController extends DefaultController
         switch ( propName ) {
 
         case "save.files":
-            return getProperty( "licensed.user" ) != null;
-
         case "all.tools":
-            return propertyIsTrue( "entitlement.all.tools" );
+            return true;
 
         case "developer.extras":
             return getProperty( "vZomeDeveloper" ) != null;

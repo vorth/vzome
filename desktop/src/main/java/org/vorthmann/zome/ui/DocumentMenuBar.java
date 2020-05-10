@@ -42,9 +42,9 @@ public class DocumentMenuBar extends JMenuBar implements PropertyChangeListener
 
     private static final long serialVersionUID = 1L;
 
-    private final JMenuItem setColorMenuItem, showToolsMenuItem, zomicMenuItem, pythonMenuItem, importVEFItem;
+    private JMenuItem setColorMenuItem, showToolsMenuItem, zomicMenuItem, pythonMenuItem, importVEFItem;
 
-    private final ControlActions actions;
+    private ControlActions actions;
 
     private final boolean fullPower;
 
@@ -65,13 +65,11 @@ public class DocumentMenuBar extends JMenuBar implements PropertyChangeListener
 
         boolean readerPreview = controller .propertyIsTrue( "reader.preview" );
 
-        boolean isEditor = controller .userHasEntitlement( "model.edit" ) && ! readerPreview;
+        boolean isEditor = ! readerPreview;
 
-        this .fullPower = isEditor; // && controller .userHasEntitlement( "all.tools" );
+        this .fullPower = true;  // TODO: reintroduce simplified editor
 
         boolean developerExtras = controller .userHasEntitlement( "developer.extras" );
-
-        boolean canSave = controller .userHasEntitlement( "save.files" );
 
         boolean isGolden = "golden" .equals( fieldName );
 
@@ -120,9 +118,9 @@ public class DocumentMenuBar extends JMenuBar implements PropertyChangeListener
         menu .addSeparator(); // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         menu .add( createMenuItem( "Close", "close", KeyEvent.VK_W, COMMAND ) );
-        menu .add( enableIf( canSave, createMenuItem( "Save...", "save", KeyEvent.VK_S, COMMAND ) ) );
-        menu .add( enableIf( canSave, createMenuItem( "Save As...", "saveAs" ) ) );
-        menu .add( enableIf( canSave, createMenuItem( "Save Template...", "saveDefault" ) ) );
+        menu .add( enableIf( isEditor, createMenuItem( "Save...", "save", KeyEvent.VK_S, COMMAND ) ) );
+        menu .add( enableIf( isEditor, createMenuItem( "Save As...", "saveAs" ) ) );
+        menu .add( enableIf( isEditor, createMenuItem( "Save Template...", "saveDefault" ) ) );
 
         menu .addSeparator(); // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -131,6 +129,7 @@ public class DocumentMenuBar extends JMenuBar implements PropertyChangeListener
         submenu .add( createMenuItem( "Color Mesh JSON", "ImportColoredMeshJson/Quaternion" ) );
         importVEFItem = createMenuItem( "vZome VEF", "LoadVEF/Quaternion" );
         submenu .add( importVEFItem );
+        submenu .setEnabled( isEditor );
         menu .add( submenu );
 
         menu .addSeparator(); // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -141,7 +140,7 @@ public class DocumentMenuBar extends JMenuBar implements PropertyChangeListener
         submenu .add( createMenuItem( "vZome Shapes JSON", "export.shapes" ) );
         submenu .add( createMenuItem( "VRML", "export.vrml" ) );
         menu .add( submenu );
-        submenu .setEnabled( fullPower && canSave );
+        submenu .setEnabled( fullPower );
 
         submenu = new JMenu( "Export 3D Panels..." );
         submenu .add( createMenuItem( "StL (mm)", "export.StL" ) );
@@ -161,7 +160,7 @@ public class DocumentMenuBar extends JMenuBar implements PropertyChangeListener
             submenu .add( createMenuItem( "Mark Stock .seg", "export.seg" ) );
         }
         menu .add( submenu );
-        submenu .setEnabled( fullPower && canSave );
+        submenu .setEnabled( fullPower );
 
         if ( developerExtras )
         {
@@ -171,7 +170,7 @@ public class DocumentMenuBar extends JMenuBar implements PropertyChangeListener
             submenu .add( createMenuItem( "bill of materials", "export.partslist" ) );
             submenu .add( createMenuItem( "STEP", "export.step" ) );
             menu .add( submenu );
-            submenu .setEnabled( fullPower && canSave );
+            submenu .setEnabled( fullPower );
         }
 
         menu .addSeparator(); // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -201,6 +200,8 @@ public class DocumentMenuBar extends JMenuBar implements PropertyChangeListener
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Edit menu
 
+        if ( isEditor )
+        {
         menu = new JMenu( "Edit" );
         menu .add( withAccelerator( KeyEvent.VK_Z, COMMAND, withAction( "undoRedo", "undo",  new JMenuItem( "Undo" ) ) ) );
         menu .add( withAccelerator( KeyEvent.VK_Y, COMMAND, withAction( "undoRedo", "redo",  new JMenuItem( "Redo" ) ) ) );
@@ -543,6 +544,8 @@ public class DocumentMenuBar extends JMenuBar implements PropertyChangeListener
             super .add( menu );
         }
 
+        }
+
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Help menu
         menu = new JMenu( "Help" );
@@ -598,16 +601,7 @@ public class DocumentMenuBar extends JMenuBar implements PropertyChangeListener
         if ( "editor.mode" .equals( e .getPropertyName() ) )
         {
             String mode = (String) e .getNewValue();
-            if ( "article" .equals( mode ) )
-            {
-                setColorMenuItem .setEnabled( false );
-                if ( showToolsMenuItem != null )
-                    showToolsMenuItem .setEnabled( false );
-                pythonMenuItem .setEnabled( false );
-                zomicMenuItem .setEnabled( false );
-                importVEFItem .setEnabled( false );
-            }
-            else
+            if ( ! "article" .equals( mode ) )
             {                   
                 setColorMenuItem .setEnabled( true );
                 if ( showToolsMenuItem != null )
