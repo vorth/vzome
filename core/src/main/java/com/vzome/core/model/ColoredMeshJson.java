@@ -24,6 +24,7 @@ import com.vzome.core.construction.FreePoint;
 import com.vzome.core.construction.Point;
 import com.vzome.core.construction.Polygon;
 import com.vzome.core.construction.PolygonFromVertices;
+import com.vzome.core.construction.Segment;
 import com.vzome.core.construction.SegmentJoiningPoints;
 import com.vzome.core.math.Projection;
 
@@ -123,7 +124,7 @@ public class ColoredMeshJson
         void constructionAdded( Construction c, Color color );
     }
 
-    public static void parse( String json, AlgebraicVector offset, Events events, AlgebraicField.Registry registry ) throws IOException
+    public static void parse( String json, AlgebraicVector offset, Projection projection, Events events, AlgebraicField.Registry registry ) throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper .readTree( json );
@@ -131,7 +132,6 @@ public class ColoredMeshJson
         String fieldName = ( node .has( "field") )? node .get( "field" ) .asText() : "golden";
         AlgebraicField field = registry .getField( fieldName );
         // TODO: fail if field is null
-        Projection projection = new Projection.Default( field );
         
         if ( ! node .has( "vertices" ) ) {
             throw new IOException( "There is no 'vertices' list in the JSON" );
@@ -151,7 +151,7 @@ public class ColoredMeshJson
                     nums[ i++ ] = mapper .treeToValue( numberNode, int[].class );
                 }
                 AlgebraicVector vertex = field .createIntegerVector( nums );
-                vertex = projection .projectImage( vertex, false );
+                vertex = projection .projectImage( vertex .inflateTo4d(), false );
                 if ( offset != null )
                     vertex = offset .plus( vertex );
                 vertices .add( vertex );
@@ -186,7 +186,9 @@ public class ColoredMeshJson
                     int end = mapper .treeToValue( strutNode .get( "end" ), int.class );
                     Point p1 = new FreePoint( vertices .get( start ) );
                     Point p2 = new FreePoint( vertices .get( end ) );
-                    events .constructionAdded( new SegmentJoiningPoints( p1, p2 ), null );
+                    Segment edge = new SegmentJoiningPoints( p1, p2 );
+                    if ( ! edge .getOffset() .isOrigin() )
+                        events .constructionAdded( edge, null );
                 }
                 else {
                     JsonNode verticesNode = strutNode .get( "vertices" );
@@ -195,7 +197,9 @@ public class ColoredMeshJson
                     Point p2 = new FreePoint( vertices .get( ends[ 1 ] ) );
                     JsonNode colorNode = strutNode .get( "color" );
                     Color color = ( colorNode == null )? null : Color .parseWebColor( colorNode .asText() );
-                    events .constructionAdded( new SegmentJoiningPoints( p1, p2 ), color );
+                    Segment edge = new SegmentJoiningPoints( p1, p2 );
+                    if ( ! edge .getOffset() .isOrigin() )
+                        events .constructionAdded( edge, color );
                 }
             }
         }
@@ -209,6 +213,8 @@ public class ColoredMeshJson
                         .mapToObj( i -> new FreePoint( vertices .get( i ) ) )
                         .collect( Collectors .toList() );
                 Polygon panel = new PolygonFromVertices( points );
+                if ( panel .isImpossible() )
+                    continue;
                 JsonNode colorNode = panelNode .get( "color" );
                 Color color = ( colorNode == null )? null : Color .parseWebColor( colorNode .asText() );
                 events .constructionAdded( panel, color );
