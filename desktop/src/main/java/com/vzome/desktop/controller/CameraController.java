@@ -217,7 +217,27 @@ public class CameraController extends DefaultController implements Scene.Provide
         model .addViewpointRotation( rotation );
         updateViewersTransformation();
     }
-    
+
+    /**
+     * Straight out of https://en.wikipedia.org/wiki/Smoothstep
+     */
+    private static float smootherstep( float edge0, float edge1, float x )
+    {
+        // Scale, and clamp x to 0..1 range
+        x = clamp( (x - edge0) / (edge1 - edge0), 0.0f, 1.0f );
+        // Evaluate polynomial
+        return x * x * x * (x * (x * 6 - 15) + 10);
+    }
+
+    private static float clamp( float x, float lowerlimit, float upperlimit )
+    {
+        if (x < lowerlimit)
+            x = lowerlimit;
+        if (x > upperlimit)
+            x = upperlimit;
+        return x;
+    }
+
     /**
      * @param iterations
      * @param radius should be 0 < radius < 0.3, probably
@@ -237,20 +257,20 @@ public class CameraController extends DefaultController implements Scene.Provide
         crossDir .scale( radius );
         upDir .scale( radius );
         
-        double deltaRadians = ( 2 * Math.PI ) / iterations;
-        
         final Timer timer = new Timer( 200 / iterations, null );
         ActionListener listener = new ActionListener()
         {
-            int iteration = iterations * 2;
-            double radians = 0d;
+            int iteration = 0;
             
             @Override
             public void actionPerformed( ActionEvent e )
             {
-                if ( this .iteration == 0 )
+                if ( this .iteration == iterations )
                     timer .stop();
                 else {
+                    float parameter = iteration / (float) iterations;
+                    double radians = smootherstep( 0f, 1f, parameter ) * 2 * Math.PI;
+                    
                     double x = Math .cos( radians ) - 1d; // We want this to range [-2,0], so the transition is smooth
                     double y = Math .sin( radians );
                     
@@ -267,8 +287,7 @@ public class CameraController extends DefaultController implements Scene.Provide
                     model .setViewDirection( newLook, newUp );
                     updateViewersTransformation();
 
-                    radians += deltaRadians;
-                    -- this .iteration;
+                    ++ this .iteration;
                 }
             }
         };
