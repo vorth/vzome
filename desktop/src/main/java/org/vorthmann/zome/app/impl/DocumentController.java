@@ -593,6 +593,10 @@ public class DocumentController extends DefaultController implements Scene.Provi
                 }
                 break;
     
+            case "wiggle-camera":
+                this .cameraController .wiggle( 20, 0.035f );
+                break;
+
             case "copyThisView":
                 copyThisView();
                 break;

@@ -4,12 +4,15 @@
 package com.vzome.desktop.controller;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.Timer;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Quat4d;
@@ -213,6 +216,64 @@ public class CameraController extends DefaultController implements Scene.Provide
     {
         model .addViewpointRotation( rotation );
         updateViewersTransformation();
+    }
+    
+    /**
+     * @param iterations
+     * @param radius should be 0 < radius < 0.3, probably
+     */
+    public void wiggle( int iterations, float radius )
+    {
+        Vector3d lookDir = new Vector3d();
+        Vector3d upDir = new Vector3d();
+        this .model .getViewOrientation( lookDir, upDir );
+        
+        Vector3f newUp = new Vector3f( upDir );
+
+        Vector3d crossDir = new Vector3d();
+        crossDir .cross( lookDir, upDir );
+        
+        // We will build a circle in the plane spanned by crossDir and upDir
+        crossDir .scale( radius );
+        upDir .scale( radius );
+        
+        double deltaRadians = ( 2 * Math.PI ) / iterations;
+        
+        final Timer timer = new Timer( 200 / iterations, null );
+        ActionListener listener = new ActionListener()
+        {
+            int iteration = iterations * 2;
+            double radians = 0d;
+            
+            @Override
+            public void actionPerformed( ActionEvent e )
+            {
+                if ( this .iteration == 0 )
+                    timer .stop();
+                else {
+                    double x = Math .cos( radians ) - 1d; // We want this to range [-2,0], so the transition is smooth
+                    double y = Math .sin( radians );
+                    
+                    Vector3f newLook = new Vector3f( lookDir );
+                    
+                    Vector3f xComponent = new Vector3f( crossDir );
+                    xComponent .scale( (float) x );
+                    newLook .add( xComponent );
+                    
+                    Vector3f yComponent = new Vector3f( upDir );
+                    yComponent .scale( (float) y );
+                    newLook .add( yComponent );
+                    
+                    model .setViewDirection( newLook, newUp );
+                    updateViewersTransformation();
+
+                    radians += deltaRadians;
+                    -- this .iteration;
+                }
+            }
+        };
+        timer .addActionListener( listener );
+        timer .start();
     }
 
     /**
