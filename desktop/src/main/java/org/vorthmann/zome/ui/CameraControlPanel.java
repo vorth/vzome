@@ -3,6 +3,7 @@ package org.vorthmann.zome.ui;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
@@ -113,34 +114,40 @@ public class CameraControlPanel extends JPanel {
         if ( isEditor )
             add( trackpad, BorderLayout .CENTER );
 
-        JPanel topPanel = new JPanel( new BorderLayout() );
+        JPanel topPanel = new JPanel( new GridLayout( 2, 1 ) ); // one column, 2 rows
         add( topPanel, BorderLayout .NORTH );
                 
         JPanel checkboxesPanel = new JPanel();
-        topPanel .add( checkboxesPanel, BorderLayout.CENTER );
+        topPanel .add( checkboxesPanel );
         
         ActionListener actionListener = new ControllerActionListener( controller );
 
         final JCheckBox perspectiveCheckbox = new JCheckBox( "perspective" );
-        //   checkbox .setHorizontalAlignment( SwingConstants.LEFT );
         perspectiveCheckbox .addActionListener( actionListener );
         perspectiveCheckbox .setActionCommand( "togglePerspective" );
         perspectiveCheckbox .setSelected( "true" .equals( controller .getProperty( "perspective" ) ) );
         checkboxesPanel .add( perspectiveCheckbox );
 
+        final JCheckBox outlinesCheckbox = new JCheckBox( "outlines" );
+        outlinesCheckbox .addActionListener( actionListener );
+        outlinesCheckbox .setActionCommand( "toggleOutlines" );
+        outlinesCheckbox .setSelected( "true" .equals( controller .getProperty( "docDrawOutlines" ) ) );
+        checkboxesPanel .add( outlinesCheckbox );
+
+        checkboxesPanel = new JPanel();
+        topPanel .add( checkboxesPanel );
+
         final JCheckBox snapperCheckbox = new JCheckBox( "snap" );
-        //   checkbox .setHorizontalAlignment( SwingConstants.LEFT );
         snapperCheckbox .addActionListener( actionListener );
         snapperCheckbox .setActionCommand( "toggleSnap" );
         snapperCheckbox .setSelected( "true" .equals( controller .getProperty( "snap" ) ) );
         checkboxesPanel .add( snapperCheckbox );
 
-        final JCheckBox outlinesCheckbox = new JCheckBox( "outlines" );
-        //   checkbox .setHorizontalAlignment( SwingConstants.LEFT );
-        outlinesCheckbox .addActionListener( actionListener );
-        outlinesCheckbox .setActionCommand( "toggleOutlines" );
-        outlinesCheckbox .setSelected( "true" .equals( controller .getProperty( "docDrawOutlines" ) ) );
-        checkboxesPanel .add( outlinesCheckbox );
+        final JCheckBox wiggleCheckbox = new JCheckBox( "wiggle" );
+        wiggleCheckbox .addActionListener( actionListener );
+        wiggleCheckbox .setActionCommand( "toggleWiggle" );
+        wiggleCheckbox .setSelected( "true" .equals( controller .getProperty( "wiggle" ) ) );
+        checkboxesPanel .add( wiggleCheckbox );
         
         this .addMouseWheelListener( new MouseWheelListener()
         {
@@ -157,7 +164,7 @@ public class CameraControlPanel extends JPanel {
         // TODO this is silly, to have both getProperty and addPropertyListener
         perspectiveCheckbox .setSelected( "true" .equals( controller .getProperty( "perspective" ) ) );
         snapperCheckbox .setSelected( "true" .equals( controller .getProperty( "snap" ) ) );
-//        stereoCheckbox .setSelected( "true" .equals( controller .getProperty( "stereo" ) ) );
+        wiggleCheckbox .setSelected( "true" .equals( controller .getProperty( "wiggle" ) ) );
 
         controller .addPropertyListener( new PropertyChangeListener()
         {
@@ -175,6 +182,10 @@ public class CameraControlPanel extends JPanel {
                 else if ( "snap" .equals( e .getPropertyName() ) ) {
                     boolean enabling = ((Boolean) e .getNewValue()) .booleanValue();
                     snapperCheckbox .setSelected( enabling );
+                }
+                else if ( "wiggle" .equals( e .getPropertyName() ) ) {
+                    boolean enabling = ((Boolean) e .getNewValue()) .booleanValue();
+                    wiggleCheckbox .setSelected( enabling );
                 }
                 else if ( "drawOutlines" .equals( e .getPropertyName() ) ) {
                     boolean enabling = ((Boolean) e .getNewValue()) .booleanValue();

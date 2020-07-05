@@ -4,15 +4,12 @@
 package com.vzome.desktop.controller;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.swing.Timer;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Quat4d;
@@ -110,6 +107,7 @@ public class CameraController extends DefaultController implements Scene.Provide
         model = init;
         this.sceneLighting = sceneLighting;
         initialCamera = new Camera( model );
+        wiggler = new Wiggler();
     }
 
     // TODO get rid of this
@@ -219,83 +217,6 @@ public class CameraController extends DefaultController implements Scene.Provide
     }
 
     /**
-     * Straight out of https://en.wikipedia.org/wiki/Smoothstep
-     */
-    private static float smootherstep( float edge0, float edge1, float x )
-    {
-        // Scale, and clamp x to 0..1 range
-        x = clamp( (x - edge0) / (edge1 - edge0), 0.0f, 1.0f );
-        // Evaluate polynomial
-        return x * x * x * (x * (x * 6 - 15) + 10);
-    }
-
-    private static float clamp( float x, float lowerlimit, float upperlimit )
-    {
-        if (x < lowerlimit)
-            x = lowerlimit;
-        if (x > upperlimit)
-            x = upperlimit;
-        return x;
-    }
-
-    /**
-     * @param iterations
-     * @param radius should be 0 < radius < 0.3, probably
-     */
-    public void wiggle( int iterations, float radius )
-    {
-        Vector3d lookDir = new Vector3d();
-        Vector3d upDir = new Vector3d();
-        this .model .getViewOrientation( lookDir, upDir );
-        
-        Vector3f newUp = new Vector3f( upDir );
-
-        Vector3d crossDir = new Vector3d();
-        crossDir .cross( lookDir, upDir );
-        
-        // We will build a circle in the plane spanned by crossDir and upDir
-        crossDir .scale( radius );
-        upDir .scale( radius );
-        
-        final Timer timer = new Timer( 200 / iterations, null );
-        ActionListener listener = new ActionListener()
-        {
-            int iteration = 0;
-            
-            @Override
-            public void actionPerformed( ActionEvent e )
-            {
-                if ( this .iteration == iterations )
-                    timer .stop();
-                else {
-                    float parameter = iteration / (float) iterations;
-                    double radians = smootherstep( 0f, 1f, parameter ) * 2 * Math.PI;
-                    
-                    double x = Math .cos( radians ) - 1d; // We want this to range [-2,0], so the transition is smooth
-                    double y = Math .sin( radians );
-                    
-                    Vector3f newLook = new Vector3f( lookDir );
-                    
-                    Vector3f xComponent = new Vector3f( crossDir );
-                    xComponent .scale( (float) x );
-                    newLook .add( xComponent );
-                    
-                    Vector3f yComponent = new Vector3f( upDir );
-                    yComponent .scale( (float) y );
-                    newLook .add( yComponent );
-                    
-                    model .setViewDirection( newLook, newUp );
-                    updateViewersTransformation();
-
-                    ++ this .iteration;
-                }
-            }
-        };
-        timer .addActionListener( listener );
-        timer .start();
-    }
-
-    /**
      * All view parameters will scale with distance, to keep the frustum
      * shape fixed.
      * @param distance
@@ -337,10 +258,9 @@ public class CameraController extends DefaultController implements Scene.Provide
 
     private boolean snapping = false;
 
-    public boolean isSnapping()
-    {
-        return snapping;
-    }
+    private boolean wiggling = false;
+
+    private final Wiggler wiggler;
 
     public void snapView()
     {
@@ -354,62 +274,101 @@ public class CameraController extends DefaultController implements Scene.Provide
         setViewDirection( Z, Y );
     }
 
+    public void deferWiggle()
+    {
+        if ( this .wiggling )
+            this .wiggler .defer();
+    }
+    
     @Override
     public void doAction( String action ) throws Exception
     {
-        if ( action .equals( "toggleSnap" ) )
-        {
-            snapping = !snapping;
-            if ( snapping )
+        switch ( action ) {
+
+        case "toggleSnap":
+            {
+                snapping = !snapping;
+                if ( snapping )
+                {
+                    wiggling = false;
+                    firePropertyChange( "wiggle", true, false );
+                    this .wiggler .stop( () -> {
+                        saveBaselineView(); // might have been zooming
+                        snapView();
+                        saveBaselineView();
+                    } );
+                }
+            }
+            break;
+
+        case "toggleWiggle":
+            {
+                wiggling = !wiggling;
+                if ( wiggling )
+                {
+                    snapping = false;
+                    firePropertyChange( "snap", true, false );
+                    this .wiggler .start( this, 0.01f );
+                } else {
+                    this .wiggler .stop( null );
+                }
+            }
+            break;
+
+        case "toggleStereo":
+            {
+                boolean wasStereo = model .isStereo();
+                if ( ! wasStereo )
+                    model .setStereoAngle( CameraController.DEFAULT_STEREO_ANGLE );
+                else
+                    model .setStereoAngle( 0d );
+                updateViewersTransformation();
+                updateViewersProjection();
+                firePropertyChange( "stereo", wasStereo, !wasStereo );
+            }
+            break;
+
+        case "togglePerspective":
             {
                 saveBaselineView(); // might have been zooming
-                snapView();
+                model .setPerspective( ! model .isPerspective() );
+                updateViewersTransformation();
+                updateViewersProjection();
                 saveBaselineView();
             }
-        }
-        else if ( action .equals( "toggleStereo" ) )
-        {
-            boolean wasStereo = model .isStereo();
-            if ( ! wasStereo )
-                model .setStereoAngle( CameraController.DEFAULT_STEREO_ANGLE );
-            else
-                model .setStereoAngle( 0d );
-            updateViewersTransformation();
-            updateViewersProjection();
-            firePropertyChange( "stereo", wasStereo, !wasStereo );
-        }
-        else if ( action .equals( "togglePerspective" ) )
-        {
-            saveBaselineView(); // might have been zooming
-            model .setPerspective( ! model .isPerspective() );
-            updateViewersTransformation();
-            updateViewersProjection();
-            saveBaselineView();
-        }
-        else if ( action .equals( "goForward" ) )
-        {
-            if ( currentRecentView >= recentViews .size() )
-                return;
-            restoreView( recentViews .get( ++currentRecentView ) );
-        }
-        else if ( action .equals( "goBack" ) )
-        {
-            if ( currentRecentView == 0 )
-                return;
-            boolean wasZooming = saveBaselineView(); // might have been zooming
-            if ( ( currentRecentView == recentViews .size() ) && wasZooming ) // we're not browsing recent views
-                --currentRecentView; //    skip over the view we just saved
-            restoreView( recentViews .get( --currentRecentView ) );
-        }
-        else if ( action .equals( "initialView" ) )
-        {
-            saveBaselineView(); // might have been zooming
-            restoreView( this .initialCamera );
-            // bookmarked views are not "special"... they are stored in recent, too
-            saveBaselineView();
-        }
-        else
+            break;
+
+        case "goForward":
+            {
+                if ( currentRecentView >= recentViews .size() )
+                    return;
+                restoreView( recentViews .get( ++currentRecentView ) );
+            }
+            break;
+
+        case "goBack":
+            {
+                if ( currentRecentView == 0 )
+                    return;
+                boolean wasZooming = saveBaselineView(); // might have been zooming
+                if ( ( currentRecentView == recentViews .size() ) && wasZooming ) // we're not browsing recent views
+                    --currentRecentView; //    skip over the view we just saved
+                restoreView( recentViews .get( --currentRecentView ) );
+            }
+            break;
+
+        case "initialView":
+            {
+                saveBaselineView(); // might have been zooming
+                restoreView( this .initialCamera );
+                // bookmarked views are not "special"... they are stored in recent, too
+                saveBaselineView();
+            }
+            break;
+
+        default:
             super .doAction( action );
+        }
     }
 
     public MouseTool getTrackball( double speed )
@@ -499,7 +458,10 @@ public class CameraController extends DefaultController implements Scene.Provide
             return Boolean .toString( model .isPerspective() );
 
         case "snap":
-            return Boolean .toString( isSnapping() );
+            return Boolean .toString( this .snapping );
+
+        case "wiggle":
+            return Boolean .toString( this .wiggling );
 
         case "stereo":
             return Boolean .toString( model .isStereo() );
@@ -608,9 +570,11 @@ public class CameraController extends DefaultController implements Scene.Provide
             scene .manifestationAdded( rm );
         this .snapper = snapper;
         if ( snapping ) {
-            saveBaselineView(); // might have been zooming
-            snapView();
-            saveBaselineView();
+            this .wiggler .stop( () -> {
+                saveBaselineView(); // might have been zooming
+                snapView();
+                saveBaselineView();
+            } );
         }
     }
 

@@ -423,6 +423,18 @@ public class DocumentController extends DefaultController implements Scene.Provi
 
         this .strutBuilder .attach( viewer, this .mainScene );
         
+        MouseTool wiggleStopper = new MouseToolDefault() {
+
+            @Override
+            public void mouseMoved( MouseEvent e )
+            {
+                cameraController .deferWiggle();
+                super.mouseMoved(e);
+            }
+            
+        };
+        wiggleStopper .attach( this .modelCanvas );
+        
         if ( this .modelCanvas != null )
             if ( editingModel ) {
                 this .selectionClick .attach( modelCanvas );
@@ -591,10 +603,6 @@ public class DocumentController extends DefaultController implements Scene.Provi
                     drawOutlines = ! drawOutlines;
                     firePropertyChange( "drawOutlines", !drawOutlines, drawOutlines );
                 }
-                break;
-    
-            case "wiggle-camera":
-                this .cameraController .wiggle( 20, 0.01f );
                 break;
 
             case "copyThisView":
