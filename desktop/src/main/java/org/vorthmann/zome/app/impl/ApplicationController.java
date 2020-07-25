@@ -34,7 +34,9 @@ import com.vzome.core.exporters.Exporter3d;
 import com.vzome.core.math.symmetry.Symmetry;
 import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedModel;
+import com.vzome.core.render.Scene;
 import com.vzome.core.viewing.Lights;
+import com.vzome.desktop.controller.RenderingViewer;
 
 public class ApplicationController extends DefaultController
 {
@@ -164,7 +166,7 @@ public class ApplicationController extends DefaultController
         if ( result != null )
             return result;
 
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        ClassLoader cl = this .getClass() .getClassLoader();
         InputStream bytes = cl.getResourceAsStream( path );
 
         try {
@@ -248,7 +250,7 @@ public class ApplicationController extends DefaultController
                 docProps .setProperty( "reader.preview", "true" );
                 String path = action .substring( "openResource-" .length() );
                 docProps .setProperty( "window.title", path );
-                ClassLoader cl = Thread .currentThread() .getContextClassLoader();
+                ClassLoader cl = this .getClass() .getClassLoader();
                 InputStream bytes = cl .getResourceAsStream( path );
                 loadDocumentController( path, bytes, docProps );
             }
@@ -257,7 +259,7 @@ public class ApplicationController extends DefaultController
                 Properties docProps = new Properties();
                 docProps .setProperty( "as.template", "true" ); // don't set window.file!
                 String path = action .substring( "newFromResource-" .length() );
-                ClassLoader cl = Thread .currentThread() .getContextClassLoader();
+                ClassLoader cl = this .getClass() .getClassLoader();
                 InputStream bytes = cl .getResourceAsStream( path );
                 loadDocumentController( path, bytes, docProps );
             }
@@ -339,6 +341,7 @@ public class ApplicationController extends DefaultController
                 InputStream bytes = new FileInputStream( file );
                 loadDocumentController( path, bytes, docProps );
             } catch ( Exception e ) {
+                e .printStackTrace();
                 this .mErrors .reportError( UNKNOWN_ERROR_CODE, new Object[]{ e } );
             }
         }
@@ -551,4 +554,50 @@ public class ApplicationController extends DefaultController
         return modelApp .getLights();
     }
 
+    public static void main(String[] args)
+    {
+        String filePath = "noFilePath";
+        if ( args.length > 0 )
+            filePath = args[ 0 ];
+        String action = "open";
+        if ( args.length > 1 )
+            action = args[ 1 ];
+        try {
+            Properties props = new Properties();
+            props .setProperty( "entitlement.model.edit", "true" );
+            props .setProperty( "keep.alive", "true" );
+
+            ApplicationController appC = new ApplicationController( new ApplicationController.UI()
+            {   
+                @Override
+                public void doAction( String action )
+                {
+                    System .out .println( "UI event: " + action );
+                }
+            }, props, new J3dComponentFactory()
+            {
+                @Override
+                public RenderingViewer createRenderingViewer( Scene scene )
+                {
+                    // Should never be called
+                    return null;
+                }
+            });
+            appC .setErrorChannel( new Controller.ErrorChannel() {
+
+                @Override
+                public void reportError(String errorCode, Object[] arguments)
+                {
+                    System .out .println( errorCode );
+                }
+
+                @Override
+                public void clearError() {}
+            });
+            System.out.println( "about to doFileAction on " + filePath );
+            appC .doFileAction( action, new File( filePath ) );
+        } catch (Throwable e) {
+            e .printStackTrace();
+        }
+    }
 }
