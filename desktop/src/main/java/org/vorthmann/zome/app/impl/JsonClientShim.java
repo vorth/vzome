@@ -16,8 +16,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.vzome.core.algebra.AlgebraicMatrix;
+import com.vzome.core.render.JsonMapper;
+import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderedModel;
 import com.vzome.core.render.Scene;
+import com.vzome.core.viewing.Camera;
+import com.vzome.core.viewing.Lights;
+import com.vzome.desktop.controller.CameraController;
 import com.vzome.desktop.controller.JsonClientRendering;
 import com.vzome.desktop.controller.RenderingViewer;
 
@@ -26,9 +32,10 @@ public abstract class JsonClientShim implements JsonClientRendering.EventDispatc
     protected final ApplicationController applicationController;
     private final ObjectMapper objectMapper = new ObjectMapper();
     protected final ObjectWriter objectWriter = objectMapper .writer();
-    
-    private final static Logger rootLogger = Logger .getLogger("");
+    private final JsonMapper mapper = new JsonMapper();
 
+    private final static Logger rootLogger = Logger .getLogger("");
+    
     public JsonClientShim( String logLevel )
     {
         System .setProperty( "java.util.logging.SimpleFormatter.format", "%4$s: %5$s%n" );
@@ -66,20 +73,34 @@ public abstract class JsonClientShim implements JsonClientRendering.EventDispatc
         Properties props = new Properties();
         props .setProperty( "entitlement.model.edit", "true" );
         props .setProperty( "keep.alive", "true" );
+        props .setProperty( "headless.open", "true" );
 
         this .applicationController = new ApplicationController( new ApplicationController.UI()
         {   
             @Override
             public void doAction( String action )
             {
-                rootLogger .warning( "WARNING: Unhandled UI event: " + action );
+                rootLogger .warning( "Unhandled UI event: " + action );
+                new RuntimeException( "WARNING: Unhandled UI event" ) .printStackTrace();
+            }
+
+            @Override
+            public void runScript( String script, File file )
+            {
+                rootLogger .warning( "runScript: " + script );
+            }
+
+            @Override
+            public void openApplication( File file )
+            {
+                JsonClientShim.this .openApplication( file );
             }
         }, props, new J3dComponentFactory()
         {
             @Override
             public RenderingViewer createRenderingViewer( Scene scene )
             {
-                rootLogger .warning( "WARNING: createRenderingViewer called" );
+                // Can't happen, because of "headless.open" property setting above.
                 return null;
             }
         });
@@ -116,6 +137,8 @@ public abstract class JsonClientShim implements JsonClientRendering.EventDispatc
     }
 
     public abstract void dispatchSerializedJson( String eventStr );
+    
+    public abstract void openApplication( File file );
 
     public void dispatchEvent( String type, JsonNode payload )
     {
@@ -141,20 +164,37 @@ public abstract class JsonClientShim implements JsonClientRendering.EventDispatc
             dispatchEvent( "LOAD_FAILED", "Document load FAILURE: " + path );
             return null;
         }
-        String bkgdColor = docController .getProperty( "backgroundColor" );
-        if ( bkgdColor != null ) {
-            dispatchEvent( "BACKGROUND_SET", bkgdColor );
-        }
+
+        Camera camera = ((CameraController) docController .getSubController( "camera" )) .getView();
+        JsonNode cameraJson = this .objectMapper .valueToTree( camera );
+        if ( cameraJson != null )
+            dispatchEvent( "CAMERA_DEFINED", cameraJson );
+        
+        Lights lights = docController .getScene() .getLighting();
+        JsonNode lightsJson = this .objectMapper .valueToTree( lights );
+        if ( lightsJson != null )
+            dispatchEvent( "LIGHTS_DEFINED", lightsJson );
+
         // TODO: define a callback to support the ControllerWebSocket case?
         //        consumer.start();
-        JsonClientRendering clientRendering = new JsonClientRendering( this );
+        JsonClientRendering clientRendering = new JsonClientRendering( this, false );
         RenderedModel renderedModel = docController .getModel() .getRenderedModel();
         renderedModel .addListener( clientRendering );
         RenderedModel .renderChange( new RenderedModel( null, null ), renderedModel, clientRendering ); // get the origin ball
         try {
             docController .actionPerformed( this, "finish.load" );
-            if ( rootLogger .isLoggable( Level.INFO ) ) rootLogger .info( "Document load success: " + path );
-            dispatchEvent( "MODEL_LOADED", "" );
+            rootLogger .info( "Document load success: " + path );
+            for ( RenderedManifestation rm : renderedModel ) {
+                ObjectNode instance = this .objectMapper .valueToTree( rm );
+                AlgebraicMatrix orientation = rm .getOrientation();
+                if ( orientation != null ) {
+                    ObjectNode quaternion = this .mapper .getQuaternionNode( rm .getOrientation() );
+                    instance .set( "rotation", quaternion );
+                }
+                dispatchEvent( "INSTANCE_ADDED", instance );            
+            }
+            clientRendering .enableInstanceStream( true );
+            dispatchEvent( "MODEL_LOADED", "" );            
         } catch ( Exception e ) {
             e.printStackTrace();
             rootLogger .severe( "Document load unknown FAILURE: " + path );
@@ -166,20 +206,26 @@ public abstract class JsonClientShim implements JsonClientRendering.EventDispatc
     public static void main( String[] args )
     {
         try {
-            JsonClientShim shim = new JsonClientShim( "INFO" )
+            JsonClientShim shim = new JsonClientShim( "FINE" )
             {
                 @Override
                 public void dispatchSerializedJson( String eventStr )
                 {
                     rootLogger .fine( eventStr );
                 }
+
+                @Override
+                public void openApplication( File file )
+                {
+                    rootLogger .fine( "openApplication for " + file .getAbsolutePath() );
+                }
             };
             
-            String path = "/Users/vorth/Downloads/greenTetra.vZome";
+            String path = "/Users/vorth/Dropbox/vZome/attachments/2020/08-Aug/02-Scott-vZome-logo/vZomeLogo.vZome";
             shim .applicationController .doFileAction( "open", new File( path ) );
-            DocumentController documentController = shim .renderDocument( path );
 
-            documentController .doFileAction( "export.dae", new File( "/Users/vorth/Downloads/greenTetra.dae" ) );
+            DocumentController documentController = shim .renderDocument( path );
+            documentController .doFileAction( "export.cmesh", new File( "/Users/vorth/Downloads/vZomeLogo.cmesh.json" ) );
         } catch (Throwable t) {
             t .printStackTrace();
         }

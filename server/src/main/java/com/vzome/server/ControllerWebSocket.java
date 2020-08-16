@@ -1,5 +1,6 @@
 package com.vzome.server;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -121,7 +122,7 @@ public class ControllerWebSocket implements WebSocketListener, JsonClientRenderi
                 dispatchEvent( "BACKGROUND_SET", bkgdColor );
             }
             consumer.start();
-            JsonClientRendering clientRendering = new JsonClientRendering( this );
+            JsonClientRendering clientRendering = new JsonClientRendering( this, false );
             this .docController .getModel() .getRenderedModel() .addListener( clientRendering );
             try {
                 this .docController .actionPerformed( this, "finish.load" );
@@ -199,6 +200,14 @@ public class ControllerWebSocket implements WebSocketListener, JsonClientRenderi
             {
                 System .out .println( "UI event: " + action );
             }
+
+            @Override
+            public void runScript( String script, File file )
+            {}
+
+            @Override
+            public void openApplication( File file )
+            {}
         }, props, new J3dComponentFactory()
         {
             @Override
