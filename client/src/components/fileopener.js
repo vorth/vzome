@@ -1,24 +1,26 @@
 
-import React from 'react'
+import React, { useRef } from 'react'
 import { connect } from 'react-redux'
 import { fileSelected } from '../bundles/files'
+import Button from 'react-bootstrap/Button'
 
-let FileOpener = ({ enabled, loadFile }) => {
-		
-  return ( 
-    <div> 
-      <h3> 
-      Select a vZome file: 
-      </h3> 
-      <div> 
-        <input type="file" onChange={ (e) => {
+let FileOpener = ({ enabled, loadFile }) =>
+{
+  const ref = useRef()
+  const handleOpen = () => ref.current.click()
+
+  return (
+    <Button id="fileopener" variant="link" onClick={handleOpen}
+      style={{ cursor: enabled ? 'pointer' : 'default' }} >
+      <input className="FileInput" type="file" ref={ref}
+        onChange={ (e) => {
             const selected = e.target.files && e.target.files[0]
             if ( selected )
               loadFile( selected )
           } }
-          accept=".vZome" disabled={!enabled} /> 
-      </div> 
-    </div> 
+        accept=".vZome" disabled={!enabled} /> 
+      <img alt="Open your vZome file"  title="Open your vZome file" className="Icon" src="/app/folder-2.svg" />
+    </Button>
   )
 } 
 

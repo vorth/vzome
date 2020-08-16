@@ -10,18 +10,21 @@ import thunk from 'redux-thunk'
 import './index.css';
 import App from './App';
 import * as jre from './bundles/jre'
+import * as files from './bundles/files'
 import * as vzomejava from './bundles/vzomejava'
 import * as camera from './bundles/camera'
 import * as lighting from './bundles/lighting'
+import * as progress from './bundles/progress'
 
 const rootReducer = combineReducers( {
   jre: jre.reducer,
   vzomejava: vzomejava.reducer,
   lighting: lighting.reducer,
-  camera: camera.reducer
+  camera: camera.reducer,
+  progress: progress.reducer
 } )
 
-const store = createStore( rootReducer, applyMiddleware( logger, thunk, vzomejava.middleware ) );
+const store = createStore( rootReducer, applyMiddleware( logger, thunk, vzomejava.middleware, files.middleware ) );
 
 jre.init( window, store )
 

@@ -492,12 +492,13 @@ public class DocumentController extends DefaultController implements Scene.Provi
 
             boolean openUndone = propertyIsTrue( "open.undone" );
             boolean asTemplate = propertyIsTrue( "as.template" );
+            boolean headless = propertyIsTrue( "headless.open" );
 
             // used to finish loading a model history on a non-UI thread
             this .documentModel .finishLoading( openUndone, asTemplate );
                         
             // mainScene is not listening to mRenderedModel yet, so batch the rendering changes to it
-            if ( mainScene != null )
+            if ( !headless && mainScene != null )
             {
                 if ( editingModel )
                 {
@@ -841,15 +842,7 @@ public class DocumentController extends DefaultController implements Scene.Provi
 
                 String script = this .getProperty( "save.script" );
                 if ( script != null )
-                {
-                    try {
-                        Runtime .getRuntime() .exec( script + " " + file .getAbsolutePath(),
-                                null, file .getParentFile() );
-                    } catch ( IOException e ) {
-                        System .err .println( "Runtime.exec() failed on " + file .getAbsolutePath() );
-                        e .printStackTrace();
-                    }
-                }
+                    this .runScript( script, file );
                 return;
             }
             if ( "capture-animation" .equals( command ) )

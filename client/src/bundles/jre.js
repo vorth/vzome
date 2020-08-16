@@ -1,7 +1,9 @@
+import { startProgress } from './progress'
 
 const LOG_LEVEL = 'INFO'
 
-const JAVA_CODE_LOADED = 'JAVA_CODE_LOADED'
+export const JAVA_CODE_LOADED = 'JAVA_CODE_LOADED'
+export const FILE_EXPORTED = 'FILE_EXPORTED'
 
 export const reducer = ( state = { javaReady: false }, action ) => {
   switch (action.type) {
@@ -36,12 +38,14 @@ export const writeTextFile = ( path, text ) =>
 
 export const init = ( window, store ) =>
 {
-  // CheerpJ Global.jsCallS requires a global function to call
+  // CheerpJ Global.jsCallS requires global functions to call
   //   from Java back into Javascript.  The simplest way to
-  //   provide a global function that can dispatch is this,
-  //   attaching it to window.
+  //   provide global functions is to attach them to window.
   window.dispatchToRedux = (s) => {
     store.dispatch( JSON.parse( s ) )
+  }
+  window.fileExported = (name, bytes) => {
+    store.dispatch( { type: FILE_EXPORTED, payload: { name, bytes } } )
   }
 
   const resourcesToPreload = [
@@ -163,7 +167,9 @@ export const init = ( window, store ) =>
     "/lt/cheerpj/Arial.ttf",
     "/lt/runtime/rt.jar.java.nio.js"
   ]
-  
+
+  store.dispatch( startProgress( "Loading vZome Online Viewer..." ) )
+
   window.cheerpjInit( {
     preloadResources: resourcesToPreload,
     status: "splash",
@@ -176,8 +182,6 @@ export const init = ( window, store ) =>
   
   window.cheerpjRunMain( "com.vzome.cheerpj.JavascriptClientShim", classpath, LOG_LEVEL ).then( () =>
   {
-    store.dispatch( {
-      type: JAVA_CODE_LOADED
-    } )
+    store.dispatch( { type: JAVA_CODE_LOADED } )
   } )
 }
