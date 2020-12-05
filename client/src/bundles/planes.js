@@ -64,13 +64,15 @@ series.forEach( x => {
 const initialState = {
   position: [ goldenField.zero, goldenField.zero, goldenField.zero ],
   endPt: undefined,
-  quaternion: goldenField.quaternions[ 0 ],
   size: goldenField.times( [5,0,1], goldenField.goldenRatio ),
   grid: [],
   color: "#00aacc",
   enabled: false,
   buildingStruts: false,
-  field: goldenField
+  field: goldenField,
+  orbit: 0,
+  quatIndex: 0,
+  quaternions: goldenField.quaternions
 }
 
 export const reducer = ( state=initialState, action ) =>
@@ -104,7 +106,8 @@ export const reducer = ( state=initialState, action ) =>
       return { ...state, enabled: true, buildingStruts: true, grid: action.payload }
 
     case 'ORIENTATION_CHANGED':
-      return { ...state, enabled: true, orientation: (state.orientation+1)%3 }
+      const newIndex = ( state.quatIndex + 1 ) % state.quaternions.length
+      return { ...state, enabled: true, quatIndex: newIndex }
 
     default:
       return state

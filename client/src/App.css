@@ -66,6 +66,12 @@ body,
   top: 1%;
 }
 
+#planeswitch {
+  position: fixed;
+  right: 1%;
+  top: 1%;
+}
+
 #exporter {
   position: fixed;
   right: 1%;

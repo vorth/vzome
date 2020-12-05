@@ -10,11 +10,13 @@ import Exporter from './components/exporter.js'
 import ErrorAlert from './components/alert.js'
 import EditMenu from './components/editmenu.js'
 import Spinner from './components/spinner.js'
+import PlaneSwitch from './components/planeswitch.js'
 
 function App() {
   return (
     <>
       <ModelCanvas/>
+      <PlaneSwitch/>
       <WebLoader/>
       <Models/>
       <FileOpener/>

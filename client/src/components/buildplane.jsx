@@ -4,9 +4,11 @@ import { useResource } from 'react-three-fiber'
 
 function BuildPlane( { config, startGridHover, stopGridHover } )
 {
-  const { position, quaternion, grid, color, size, field } = config
+  const { position, quaternions, quatIndex, grid, color, size, field } = config
+  const quaternion = quaternions[ quatIndex ]
   const [ materialRef, material ] = useResource()
   const rsize = field.embed( size )
+  const planeSize = rsize * 8
   const dotSize = rsize / 24
   
   const makeAbsolute = ( gridPt ) =>
@@ -38,6 +40,9 @@ function BuildPlane( { config, startGridHover, stopGridHover } )
   return (
     <group position={field.embedv( position )} quaternion={field.embedv( wlast( quaternion ) )}>
       <meshLambertMaterial ref={materialRef} transparent={true} opacity={0.7} color={color} side={THREE.DoubleSide} />
+      <mesh material={material} >
+        <planeGeometry attach="geometry" args={[ planeSize, planeSize ]} />
+      </mesh>
       {grid.map( ( gv ) => {
         const [ x, y, z ] = field.embedv( gv ) 
         return (
