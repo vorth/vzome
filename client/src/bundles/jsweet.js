@@ -174,12 +174,30 @@ export const init = async ( window, store ) =>
   const originBall = mesh.createInstance( [ origin ] )
   store.dispatch( mesh.meshChanged( new Map().set( originBall.id, originBall ), new Map(), new Map() ) )
 
-  const blue = [ [0,0,1], [0,0,1], [1,0,1] ]
-  const yellow = [ [0,0,1], [1,0,1], [1,1,1] ]
-  const red = [ [1,0,1], [0,0,1], [0,1,1] ]
-  const green = [ [1,0,1], [1,0,1], [0,0,1] ]
-  const gridPoints = shimClass.getZoneGrid( orbitSource, blue )
-  store.dispatch( planes.doSetWorkingPlaneGrid( gridPoints ) )
+  // TODO: derive this table entirely from three zone names
+  const orbits = {
+    blue : {
+      normal: [ [0,0,1], [0,0,1], [1,0,1] ],
+      color: "#00aadd",
+      zones: [ 0,1,2, 3,14,21, 6,18,29, 9,26,55, 12,52,4 ],
+    },
+    red : {
+      normal: [ [1,0,1], [0,0,1], [0,1,1] ],
+      color: "#dd3300",
+      zones: [ 0, 30, 54, 21, 43, 49 ],
+    },
+    yellow : {
+      normal: [ [0,0,1], [1,0,1], [1,1,1] ],
+      color: "#bbaa00",
+      zones: [ 0,13,35,40,21, 49,51,42,16,26 ],
+    },
+  }
+  for ( const key in orbits ) {
+    if ( orbits.hasOwnProperty( key ) ) {
+      orbits[ key ].gridPoints = shimClass.getZoneGrid( orbitSource, orbits[ key ].normal )
+    }
+  }
+  store.dispatch( planes.doSetWorkingPlaneGrid( orbits ) )
 
   // TODO: fetch all shape VEFs in a ZIP, then inject each
   Promise.all( knownOrbitNames.map( name => injectResource( `com/vzome/core/parts/default/${name}.vef` ) ) )

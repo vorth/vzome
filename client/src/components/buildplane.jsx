@@ -4,9 +4,11 @@ import { useResource } from 'react-three-fiber'
 
 function BuildPlane( { config, startGridHover, stopGridHover } )
 {
-  const { position, quaternions, quatIndex, grid, color, size, field } = config
-  const quaternion = quaternions[ quatIndex ]
+  const { position, quaternions, quatIndex, orbits, orbit, size, field } = config
+  const { gridPoints, color, zones } = orbits[ orbit ]
+  const quaternion = quaternions[ zones[ quatIndex ] ]
   const [ materialRef, material ] = useResource()
+  const [ geometryRef, geometry ] = useResource()
   const rsize = field.embed( size )
   const planeSize = rsize * 8
   const dotSize = rsize / 24
@@ -39,18 +41,18 @@ function BuildPlane( { config, startGridHover, stopGridHover } )
   
   return (
     <group position={field.embedv( position )} quaternion={field.embedv( wlast( quaternion ) )}>
-      <meshLambertMaterial ref={materialRef} transparent={true} opacity={0.7} color={color} side={THREE.DoubleSide} />
-      <mesh material={material} >
+      <meshLambertMaterial ref={materialRef} transparent={false} opacity={0.7} color={"white"} side={THREE.DoubleSide} />
+      <icosahedronBufferGeometry ref={geometryRef} args={[dotSize]} />
+      {/* <mesh material={material} >
         <planeGeometry attach="geometry" args={[ planeSize, planeSize ]} />
-      </mesh>
-      {grid.map( ( gv ) => {
+      </mesh> */}
+      {gridPoints.map( ( gv ) => {
         const [ x, y, z ] = field.embedv( gv ) 
         return (
-          <mesh position={[x,y,z]} key={JSON.stringify( gv )} material={material}
+          <mesh position={[x,y,z]} key={JSON.stringify( gv )} material={material} geometry={geometry}
               onPointerOver={ e => handleHoverIn( e, gv ) }
               onPointerOut={ e => handleHoverOut( e, gv ) }
               onClick={ e => handleClick( e, gv ) }>
-            <icosahedronBufferGeometry attach="geometry" args={[dotSize]} />
           </mesh>
         )}) }
     </group>

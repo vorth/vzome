@@ -65,14 +65,13 @@ const initialState = {
   position: [ goldenField.zero, goldenField.zero, goldenField.zero ],
   endPt: undefined,
   size: goldenField.times( [5,0,1], goldenField.goldenRatio ),
-  grid: [],
-  color: "#00aacc",
   enabled: false,
   buildingStruts: false,
   field: goldenField,
-  orbit: 0,
   quatIndex: 0,
-  quaternions: goldenField.quaternions
+  quaternions: goldenField.quaternions,
+  orbit: undefined,
+  orbits: undefined
 }
 
 export const reducer = ( state=initialState, action ) =>
@@ -103,10 +102,11 @@ export const reducer = ( state=initialState, action ) =>
       return { ...state, enabled: !state.enabled }
     
     case 'WORKING_PLANE_GRID_DEFINED':
-      return { ...state, enabled: true, buildingStruts: true, grid: action.payload }
+      return { ...state, enabled: true, buildingStruts: true, orbits: action.payload, orbit: "yellow" }
 
     case 'ORIENTATION_CHANGED':
-      const newIndex = ( state.quatIndex + 1 ) % state.quaternions.length
+      const zones = state.orbits[ state.orbit ].zones
+      const newIndex = ( state.quatIndex + 1 ) % zones.length
       return { ...state, enabled: true, quatIndex: newIndex }
 
     default:
