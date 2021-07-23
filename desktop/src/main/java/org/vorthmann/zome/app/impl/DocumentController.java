@@ -104,7 +104,6 @@ public class DocumentController extends DefaultController implements Scene.Provi
     private Lights sceneLighting;
     private MouseTool modelModeMainTrackball;
     private Component modelCanvas;
-    private Dimension canvasSize = new Dimension( 700, 700 );
     private boolean drawNormals = false;
     private boolean drawOutlines = false;
     private boolean showFrameLabels = false;
@@ -410,7 +409,6 @@ public class DocumentController extends DefaultController implements Scene.Provi
     {
     		// This is called on a UI thread!
         this .modelCanvas = canvas;
-        this .canvasSize = canvas .getSize();
         this .imageCaptureViewer = viewer;
         
         // clicks become select or deselect all
@@ -710,6 +708,10 @@ public class DocumentController extends DefaultController implements Scene.Provi
             }
             break;
             
+            case "show.vZome-xml":   // invoked from custom menu
+                System.out.println(getProperty("vZome-xml"));
+                break;
+                
             default:
                 if ( action.startsWith( "setSymmetry." ) ) {
                     String system = action.substring( "setSymmetry.".length() );
@@ -850,7 +852,6 @@ public class DocumentController extends DefaultController implements Scene.Provi
             if ( "capture-animation" .equals( command ) )
             {
                 File dir = file .isDirectory()? file : file .getParentFile();
-                Dimension size = this .canvasSize;
                 String html = readResource( "org/vorthmann/zome/app/animation.html" );
                 File htmlFile = new File( dir, "index.html" );
                 writeFile( html, htmlFile );
@@ -868,7 +869,7 @@ public class DocumentController extends DefaultController implements Scene.Provi
             }
             if ( command.startsWith( "export2d." ) )
             {
-                Dimension size = this .canvasSize;
+                Dimension size = this .modelCanvas .getSize();
                 String format = command .substring( "export2d." .length() ) .toLowerCase();
                 Java2dSnapshot snapshot = documentModel .capture2d( currentSnapshot, size.height, size.width, cameraController .getView(), sceneLighting, false, true );
                 documentModel .export2d( snapshot, format, file, this .drawOutlines, false );
@@ -877,7 +878,7 @@ public class DocumentController extends DefaultController implements Scene.Provi
             }
             if ( command.startsWith( "export." ) )
             {
-                Dimension size = this .canvasSize;
+                Dimension size = this .modelCanvas .getSize();
                 Writer out = null;
                 try {
                     out = new FileWriter( file );
@@ -1267,7 +1268,9 @@ public class DocumentController extends DefaultController implements Scene.Provi
             }
             else if ( propName .startsWith( "exportExtension." ) ) {
                 String format = propName .substring( "exportExtension." .length() );
-                return this .mApp .getExporter( format .toLowerCase() ) .getFileExtension();
+                // handle null exporter so that typo in custom menu doesn't throw NPE 
+                Exporter3d exporter = this .mApp .getExporter( format .toLowerCase() );
+                return exporter == null ? "" : exporter .getFileExtension();
             }
 
             String result = this .properties .getProperty( propName );
