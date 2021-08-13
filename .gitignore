@@ -61,3 +61,6 @@ transpiled-java.js
 react-library/.snowpack
 vzome-react-vzome-*.tgz
 .vscode
+
+*~
+update_polychora.sh
