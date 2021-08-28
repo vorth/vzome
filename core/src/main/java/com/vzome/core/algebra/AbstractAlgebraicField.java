@@ -194,13 +194,14 @@ public abstract class AbstractAlgebraicField implements AlgebraicField
     }
 
     /**
-     * This method is intended to allow subclasses to intercept
-     * a pair of terms from the golden field and remap them as needed for that field.
+     * This method is intended to allow subclasses to intercept a 4 element int array 
+     * representing the numerators and denominators of a pair of terms (units and phis) 
+     * from the golden field and remap them as needed for that field.
      * Otherwise, the terms are returned unchanged.
      * @param terms
      * @return
      */
-    protected int[] convertGoldenNumberPairs( int[] pairs )
+    protected long[] convertGoldenNumberPairs( long[] pairs )
     {
         return pairs;
     }
@@ -521,17 +522,20 @@ public abstract class AbstractAlgebraicField implements AlgebraicField
             if ( coordLength % 2 != 0 ) {
                 throw new IllegalStateException( "Vector dimension " + c + " has " + coordLength + " components. An even number is required." );
             }
-            int nFactors = coordLength / 2;
-            if ( nFactors > getOrder() ) {
+            int nTerms = coordLength / 2;
+            if ( nTerms > getOrder() ) {
                 throw new IllegalStateException( "Vector dimension " + c + " has " + (coordLength /2) + " terms." 
                         + " Each dimension of the " + this.getName() + " field is limited to " + getOrder() + " terms."
                         + " Each term consists of a numerator and a denominator." );
             }
-            int[] number = nums[ c ];
-            if ( nFactors < getOrder() ) {
-                number = this .convertGoldenNumberPairs( number );
+            long[] pairs = new long[ nums[ c ] .length ];
+            for (int i = 0; i < pairs.length; i++) {
+                pairs[ i ] = nums[ c ][ i ];
             }
-            coords[c] = this.numberFactory .createAlgebraicNumberFromPairs( this, number );
+            if ( pairs.length == 4 && getOrder() > 2 ) {
+                pairs = this .convertGoldenNumberPairs( pairs );
+            }
+            coords[c] = this.numberFactory .createAlgebraicNumberFromPairs( this, pairs );
         }
         return new AlgebraicVector( coords );
     }
@@ -689,10 +693,11 @@ public abstract class AbstractAlgebraicField implements AlgebraicField
     @Override
     public AlgebraicNumber parseVefNumber( String string, boolean isRational )
     {
-        int[] pairs = new int[ this .getOrder() * 2 ];
-        // initialize with zeros
-        for ( int i = 0; i < pairs.length; i++ ) {
-            pairs[ i ] = ( i%2 == 0 )? 0 : 1;
+        long[] pairs = new long[ this .getOrder() * 2 ];
+        // The pairs array is pre-initialized with zeros since it's a native type (not Integer)
+        // so we can simply set all of the denominators to 1.
+        for ( int i = 1; i < pairs.length; i+=2 ) {
+            pairs[ i ] = 1;
         }
         // if the field is declared as rational, then we won't allow the irrational syntax using parenthesis
         // if the field is NOT declared as rational, then we will still allow the rational format as shorthand with no parenthesis
@@ -723,6 +728,9 @@ public abstract class AbstractAlgebraicField implements AlgebraicField
                 pairs[ i++ ] = numStack   .pop();
                 pairs[ i++ ] = denomStack .pop();
             }
+            if ( i == 4 && getOrder() > 2 ) {
+                pairs = this .convertGoldenNumberPairs( new long[] { pairs[0], pairs[1], pairs[2], pairs[3] } );
+            }
         }
         else {
             // format >= 7 supports the rational numeric format which expects no irrational factors,
@@ -749,13 +757,13 @@ public abstract class AbstractAlgebraicField implements AlgebraicField
     private AlgebraicNumber parseNumber( StringTokenizer tokens )
     {
         int order = this .getOrder();
-        int[] pairs = new int[ order * 2 ];
+        long[] pairs = new long[ order * 2 ];
         for ( int i = 0; i < order; i++ ) {
             String digit = tokens .nextToken();
             String[] parts = digit.split( "/" );
-            pairs[ i * 2 ] = Integer.parseInt( parts[ 0 ] );
+            pairs[ i * 2 ] = Long.parseLong( parts[ 0 ] );
             if ( parts.length > 1 )
-                pairs[ i * 2 + 1 ] = Integer.parseInt( parts[ 1 ] );
+                pairs[ i * 2 + 1 ] = Long.parseLong( parts[ 1 ] );
             else
                 pairs[ i * 2 + 1 ] = 1;
         }
