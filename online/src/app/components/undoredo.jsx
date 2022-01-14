@@ -2,12 +2,12 @@
 import React from 'react'
 // import { ActionCreators as UndoActionCreators } from 'redux-undo'
 
-import IconButton from '@material-ui/core/IconButton'
-import Tooltip from '@material-ui/core/Tooltip'
-import SkipNextRoundedIcon from '@material-ui/icons/SkipNextRounded'
-import SkipPreviousRoundedIcon from '@material-ui/icons/SkipPreviousRounded'
-import UndoRoundedIcon from '@material-ui/icons/UndoRounded'
-import RedoRoundedIcon from '@material-ui/icons/RedoRounded'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
+import SkipNextRoundedIcon from '@mui/icons-material/SkipNextRounded'
+import SkipPreviousRoundedIcon from '@mui/icons-material/SkipPreviousRounded'
+import UndoRoundedIcon from '@mui/icons-material/UndoRounded'
+import RedoRoundedIcon from '@mui/icons-material/RedoRounded'
 
 export const UndoRedoButtons = ({ doUndoAll, doUndo, doRedo, doRedoAll, canUndo, canRedo, redoAllIndex }) =>
 {

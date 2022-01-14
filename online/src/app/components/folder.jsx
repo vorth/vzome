@@ -2,12 +2,12 @@
 import React, { useRef } from 'react'
 import { useDispatch } from 'react-redux';
 
-import IconButton from '@material-ui/core/IconButton'
-import Tooltip from '@material-ui/core/Tooltip'
-import FolderOpenRoundedIcon from '@material-ui/icons/FolderOpenRounded'
-import Menu from '@material-ui/core/Menu'
-import MenuItem from '@material-ui/core/MenuItem'
-import Divider from '@material-ui/core/Divider';
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
+import FolderOpenRoundedIcon from '@mui/icons-material/FolderOpenRounded'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import Divider from '@mui/material/Divider';
 
 import UrlDialog from './webloader.jsx'
 

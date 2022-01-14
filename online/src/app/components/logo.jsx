@@ -1,8 +1,8 @@
 
 import React from 'react'
-import SvgIcon from '@material-ui/core/SvgIcon'
-import IconButton from '@material-ui/core/IconButton';
-import Link from '@material-ui/core/Link';
+import SvgIcon from '@mui/material/SvgIcon'
+import IconButton from '@mui/material/IconButton';
+import Link from '@mui/material/Link';
 
 export const VZomeLogo = () =>
 {

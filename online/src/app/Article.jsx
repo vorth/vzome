@@ -1,10 +1,10 @@
 import React from 'react'
 
-import { makeStyles } from '@material-ui/core/styles'
-import Container from '@material-ui/core/Container'
-import Paper from '@material-ui/core/Paper'
-import Typography from '@material-ui/core/Typography'
-import Link from '@material-ui/core/Link'
+import { makeStyles } from '@mui/styles'
+import Container from '@mui/material/Container'
+import Paper from '@mui/material/Paper'
+import Typography from '@mui/material/Typography'
+import Link from '@mui/material/Link'
 
 import { UrlViewer } from '../ui/viewer/index.jsx'
 import { VZomeAppBar } from './components/appbar.jsx'

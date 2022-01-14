@@ -1,8 +1,8 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 
-import { Alert, AlertTitle } from '@material-ui/lab';
-import Snackbar from '@material-ui/core/Snackbar';
+import { Alert, AlertTitle } from '@mui/lab';
+import Snackbar from '@mui/material/Snackbar';
 
 
 export const ErrorAlert = () =>

@@ -3,9 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import ReactDOM from "react-dom";
 
-import { StylesProvider, jssPreset } from '@material-ui/styles';
-import IconButton from '@material-ui/core/IconButton'
-import GetAppRoundedIcon from '@material-ui/icons/GetAppRounded'
+import { StylesProvider, jssPreset } from '@mui/styles';
+import IconButton from '@mui/material/IconButton'
+import GetAppRoundedIcon from '@mui/icons-material/GetAppRounded'
 import { create } from 'jss';
 
 import { ShapedGeometry } from './geometry.jsx'

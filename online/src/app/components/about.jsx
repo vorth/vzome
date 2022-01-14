@@ -1,15 +1,15 @@
 
 import React from 'react';
-import { withStyles } from '@material-ui/core/styles'
-import Dialog from '@material-ui/core/Dialog'
-import MuiDialogTitle from '@material-ui/core/DialogTitle'
-import MuiDialogContent from '@material-ui/core/DialogContent'
-import IconButton from '@material-ui/core/IconButton'
-import CloseIcon from '@material-ui/icons/Close'
-import Typography from '@material-ui/core/Typography'
-import InfoRoundedIcon from '@material-ui/icons/InfoRounded'
-import Link from '@material-ui/core/Link'
-import Tooltip from '@material-ui/core/Tooltip'
+import { withStyles } from '@mui/styles'
+import Dialog from '@mui/material/Dialog'
+import MuiDialogTitle from '@mui/material/DialogTitle'
+import MuiDialogContent from '@mui/material/DialogContent'
+import IconButton from '@mui/material/IconButton'
+import CloseIcon from '@mui/icons-material/Close'
+import Typography from '@mui/material/Typography'
+import InfoRoundedIcon from '@mui/icons-material/InfoRounded'
+import Link from '@mui/material/Link'
+import Tooltip from '@mui/material/Tooltip'
 
 const styles = (theme) => ({
   root: {

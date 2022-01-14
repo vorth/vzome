@@ -1,7 +1,7 @@
 
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import Grid from '@material-ui/core/Grid'
+import Grid from '@mui/material/Grid'
 
 import { HistoryInspector } from './debugger.jsx'
 import { DesignViewer } from '../../ui/viewer/index.jsx'
