@@ -53,6 +53,12 @@ jobs:
     runs-on: ubuntu-latest
     name: deploy
     steps:
+      - name: Download the vZome Online build
+        uses: actions/download-artifact@v2
+        with:
+          name: online-app
+      - name: display the download result
+        run: ls
       - name: deploy file
         uses: wlixcc/SFTP-Deploy-Action@v1.0
         with:
