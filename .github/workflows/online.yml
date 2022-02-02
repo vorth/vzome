@@ -7,10 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       doDeploy:
+        type: boolean
         description: 'Deploy to Dreamhost'     
         required: true
-        default: 'false'
-        type: boolean
 
 env:
   BUILD_NUMBER: ${{ github.run_number }}
@@ -65,5 +64,5 @@ jobs:
           username: ${{ secrets.DREAMHOST_USER }}
           server: ${{ secrets.DREAMHOST_FQDN }}
           ssh_private_key: ${{ secrets.DREAMHOST_SSH_PRIVATE_KEY }} 
-          local_path: 'online-app'
+          local_path: 'online.tgz'
           remote_path: 'vzome.com'
