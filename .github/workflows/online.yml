@@ -5,6 +5,12 @@ name: vZome Online build
 
 on:
   workflow_dispatch:
+    inputs:
+      doDeploy:
+        description: 'Deploy to Dreamhost'     
+        required: true
+        default: 'false'
+        type: boolean
 
 env:
   BUILD_NUMBER: ${{ github.run_number }}
@@ -41,3 +47,17 @@ jobs:
         name: online-app
         path: online/dist/online.tgz
 
+  deploy:
+    needs: build
+    if: github.event.inputs.doDeploy
+    runs-on: ubuntu-latest
+    name: deploy
+    steps:
+      - name: deploy file
+        uses: wlixcc/SFTP-Deploy-Action@v1.0
+        with:
+          username: ${{ secrets.DREAMHOST_USER }}
+          server: ${{ secrets.DREAMHOST_FQDN }}
+          ssh_private_key: ${{ secrets.DREAMHOST_SSH_PRIVATE_KEY }} 
+          local_path: 'online-app'
+          remote_path: 'vzome.com'
