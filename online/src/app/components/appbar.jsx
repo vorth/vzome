@@ -1,13 +1,13 @@
-import React from 'react'
-import { makeStyles } from '@mui/styles'
-import AppBar from '@material-ui/core/AppBar'
-import Toolbar from '@material-ui/core/Toolbar'
-import Typography from '@material-ui/core/Typography'
-import Box from '@material-ui/core/Box'
+import React from 'react';
+import { makeStyles } from '@mui/styles';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 
-import { AboutDialog } from './about.jsx'
-import { OpenMenu } from './folder.jsx'
-import { VZomeLogo } from './logo.jsx'
+import { AboutDialog } from './about.jsx';
+import { OpenMenu } from './folder.jsx';
+import { VZomeLogo } from './logo.jsx';
 
 const useStyles = makeStyles((theme) => ({
   root: {

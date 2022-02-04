@@ -43,7 +43,7 @@
         .then( response => response.json() )
         .then( json => {
           const allPaths = json.tree.filter( entry => entry.type==="blob" && entry.path.endsWith( '.vZome' ) )
-            .filter( entry => entry.path > "2021/07/31" )
+            .filter( entry => entry.path > "2022/01/21" )
             .map( entry => encode( entry.path ) );
           console.log( 'Repo has', allPaths.length, 'entries.' );
           return allPaths;

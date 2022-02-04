@@ -3,10 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import ReactDOM from "react-dom";
 
-import { StylesProvider, jssPreset } from '@mui/styles';
 import IconButton from '@mui/material/IconButton'
 import GetAppRoundedIcon from '@mui/icons-material/GetAppRounded'
-import { create } from 'jss';
+import { StyledEngineProvider } from '@mui/material/styles';
 
 import { ShapedGeometry } from './geometry.jsx'
 import { DesignCanvas } from './designcanvas.jsx'
@@ -66,14 +65,14 @@ export const renderViewer = ( store, container, stylesMount, url ) =>
   // TODO: Can we handle canvas resizing using `ResizeObserver` without modifying `vZome` or recreating the element constantly?
   const viewerElement = React.createElement( UrlViewer, { store } );  // I removed the url, since we prefetched it
 
-  // We need JSS to inject styles on our shadow root, not on the document head.
-  // I found this solution here:
-  //   https://stackoverflow.com/questions/51832583/react-components-material-ui-theme-not-scoped-locally-to-shadow-dom
-  const jss = create({
-      ...jssPreset(),
-      insertionPoint: container
-  });
-  const reactElement = React.createElement( StylesProvider, { jss: jss }, [ viewerElement ] );
+  // // We need JSS to inject styles on our shadow root, not on the document head.
+  // // I found this solution here:
+  // //   https://stackoverflow.com/questions/51832583/react-components-material-ui-theme-not-scoped-locally-to-shadow-dom
+  // const jss = create({
+  //     ...jssPreset(),
+  //     insertionPoint: container
+  // });
+  const reactElement = React.createElement( StyledEngineProvider, { injectFirst: false }, [ viewerElement ] );
 
   ReactDOM.render( reactElement, stylesMount );
 
