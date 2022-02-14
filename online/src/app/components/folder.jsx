@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { useDispatch } from 'react-redux';
 
 import IconButton from '@mui/material/IconButton'
@@ -54,23 +54,25 @@ export const getModelURL = key => new URL( `./models/${key}.vZome`, window.locat
 
 export const OpenMenu = props =>
 {
-  const [anchorEl, setAnchorEl] = React.useState(null)
-  const [showDialog, setShowDialog] = React.useState(false)
-  const ref = useRef()
+  const [anchorEl, setAnchorEl] = useState(null)
+  const [showDialog, setShowDialog] = useState(false)
+  const inputRef = useRef()
+  const report = useDispatch();
+
   const chooseFile = () => {
     setAnchorEl(null)
-    ref.current.click()
+    inputRef.current.click();
+  }
+  const onFileSelected = e => {
+    const selected = e.target.files && e.target.files[0]
+    if ( selected )
+      report( { type: 'FILE_PROVIDED', payload: selected } );
+    inputRef.current.value = null;
   }
 
-  const report = useDispatch();
   const openUrl = url => {
     if ( url && url.endsWith( ".vZome" ) ) {
       report( { type: 'URL_PROVIDED', payload: { url, viewOnly: false, } } );
-    }
-  }
-  const openFile = file => {
-    if ( file ) {
-      report( { type: 'FILE_PROVIDED', payload: file } );
     }
   }
 
@@ -117,13 +119,8 @@ export const OpenMenu = props =>
         onClose={handleClose}
       >
         <MenuItem onClick={chooseFile} >Local vZome file
-          <input className="FileInput" type="file" ref={ref}
-            onChange={ (e) => {
-                const selected = e.target.files && e.target.files[0]
-                if ( selected )
-                  openFile( selected )
-              } }
-            accept=".vZome" /> 
+          <input className="FileInput" type="file" ref={inputRef}
+            onChange={onFileSelected} accept=".vZome" /> 
         </MenuItem>
         <MenuItem onClick={handleShowUrlDialog} >Remote vZome URL</MenuItem>
         <Divider />

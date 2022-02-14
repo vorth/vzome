@@ -3,11 +3,12 @@ import "regenerator-runtime/runtime";
 
 import { vZomeViewerCSS } from "./vzome-viewer.css";
 
+import { muiCSS } from "./mui-styles.css";
+
 import { createWorkerStore } from '../ui/viewer/store.js';
 
 export class VZomeViewer extends HTMLElement {
   #root;
-  #stylesMount;
   #container;
   #store;
   #url;
@@ -15,9 +16,10 @@ export class VZomeViewer extends HTMLElement {
     super();
     this.#root = this.attachShadow({ mode: "open" });
 
-    this.#root.appendChild(document.createElement("style")).textContent = vZomeViewerCSS;
-    this.#stylesMount = document.createElement("div");
-    this.#container = this.#root.appendChild( this.#stylesMount );
+    this.#root.appendChild( document.createElement("style") ).textContent = vZomeViewerCSS;
+    this.#root.appendChild( document.createElement("style") ).textContent = muiCSS;
+    this.#container = document.createElement("div");
+    this.#root.appendChild( this.#container );
 
     this.#store = createWorkerStore( this );
 
@@ -29,17 +31,17 @@ export class VZomeViewer extends HTMLElement {
         alert( `Unrecognized file name: ${url}` );
       }
       else
-        this.#url = url;
+        this.#url = new URL( url, window.location ) .toString();
         // Get the fetch started by the worker before we load the dynamic module below,
         //  which is pretty big.  I really should encapsulate the message in a function!
-        this.#store.dispatch( { type: 'URL_PROVIDED', payload: { url, viewOnly: true } } );
+        this.#store.dispatch( { type: 'URL_PROVIDED', payload: { url: this.#url, viewOnly: true } } );
     }
   }
 
   connectedCallback() {
     import( '../ui/viewer/index.jsx' )
       .then( module => {
-        this.#reactElement = module.renderViewer( this.#store, this.#container, this.#stylesMount, this.#url );
+        this.#reactElement = module.renderViewer( this.#store, this.#container, this.#url );
       })
   }
 
@@ -59,8 +61,8 @@ export class VZomeViewer extends HTMLElement {
   ) {
     switch (attributeName) {
       case "src":
-      this.#url = _newValue;
-      this.#store.dispatch( { type: 'URL_PROVIDED', payload: { url: _newValue, viewOnly: true } } );
+      this.#url = new URL( _newValue, window.location ) .toString();
+      this.#store.dispatch( { type: 'URL_PROVIDED', payload: { url: this.#url, viewOnly: true } } );
     }
   }
 

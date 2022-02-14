@@ -19,7 +19,12 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -225,19 +230,28 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                     break;
 
                 case "Share":
-                    String windowName = mController .getProperty( "window.file" );
-                    if ( windowName == null ) {
+                    String filePathStr = mController .getProperty( "original.path" );
+                    if ( filePathStr == null ) {
                         JOptionPane .showMessageDialog( DocumentFrame.this, "You must save your model before you can share it.",
                                 "Command Failure", JOptionPane .ERROR_MESSAGE );
                         return;
                     }
                     if ( shareDialog == null )
                         shareDialog = new ShareDialog( DocumentFrame.this, mController );
-                    Path filePath = new File( windowName ) .toPath();
+                    Path filePath = Paths.get( filePathStr );
+                    LocalDateTime lastMod = LocalDateTime.now();
+                    if ( mController .propertyIsTrue( "share.last.mod.time" ) ) {
+                        try {
+                            FileTime fileTime = Files.getLastModifiedTime( Paths.get( filePathStr ) );
+                            lastMod = LocalDateTime.ofInstant( fileTime.toInstant(), ZoneId.systemDefault() );
+                        } catch (IOException e2) {
+                            logger.log( Level.INFO, "Unable to get last mod time for " + filePathStr );
+                        }
+                    }
                     String xml = mController .getProperty( "vZome-xml" );
                     String pngEncoded = mController .getProperty( "png-base64" );
                     String shapesJson = mController .getProperty( "shapes-json" );
-                    shareDialog .startUpload( filePath .getFileName() .toString(), xml, pngEncoded, shapesJson );
+                    shareDialog .startUpload( filePath .getFileName() .toString(), lastMod, xml, pngEncoded, shapesJson );
                     break;
 
                 case "saveDefault":
@@ -415,6 +429,16 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                         if ( importScaleDialog == null || importScaleDialog.getTitle() != cmd) {
                             importScaleDialog = new VefImportDialog( DocumentFrame.this, importScaleController, "Set Scale and Rotation",
                                 new ControllerFileAction( fileDialog, true, cmd, "vef", controller ) );
+                        }
+                        try {
+                            // The polytopesController knows how to pre-load the quaternion based on a selected strut.
+                            // TODO: It's probably better to teach the importScaleController how to do it too
+                            // or else make one of them a subcontroller of the other 
+                            // so we don't need to invoke them seperately.
+                            polytopesController = mController .getSubController( "polytopes" );
+                            polytopesController.actionPerformed(DocumentFrame.this, "setQuaternion");
+                        } catch (Exception e1) {
+                            errors.reportError(Controller.USER_ERROR_CODE, new Object[] { e1 });
                         }
                         importScaleDialog .setVisible( true );
                     }
@@ -773,7 +797,7 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
             break;
 
         case "Share":
-            enable = controller .getProperty( "window.file" ) != null;
+            enable = controller .getProperty( "original.path" ) != null;
             // We're doing this one immediately, because we need the listener attached if
             //  it is later enabled.  It is surprising that this has not been an issue for
             //  anything else!
