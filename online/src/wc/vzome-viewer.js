@@ -3,7 +3,7 @@ import "regenerator-runtime/runtime";
 
 import { vZomeViewerCSS } from "./vzome-viewer.css";
 
-import { muiCSS } from "./mui-styles.css";
+import { muiCSS } from "./mui-styles.html";
 
 import { createWorkerStore } from '../ui/viewer/store.js';
 
@@ -16,8 +16,13 @@ export class VZomeViewer extends HTMLElement {
     super();
     this.#root = this.attachShadow({ mode: "open" });
 
-    this.#root.appendChild( document.createElement("style") ).textContent = vZomeViewerCSS;
-    this.#root.appendChild( document.createElement("style") ).textContent = muiCSS;
+    this.#root.innerHTML = muiCSS; // This is a hack to work around JSS behavior from MUI.
+    // Every time I need more styles from MUI, I have to copy them from the debugger element
+    //  view of the <head/> and put them in mui-styles.html.js.
+
+    const viewerStyle = document.createElement( "style" );
+    viewerStyle.textContent = vZomeViewerCSS;
+    this.#root.prepend( viewerStyle );
     this.#container = document.createElement("div");
     this.#root.appendChild( this.#container );
 

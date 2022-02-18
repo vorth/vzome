@@ -4,34 +4,17 @@ import { Provider, useDispatch, useSelector } from 'react-redux';
 import ReactDOM from "react-dom";
 
 import { StylesProvider, jssPreset } from '@material-ui/styles';
-import IconButton from '@material-ui/core/IconButton'
-import GetAppRoundedIcon from '@material-ui/icons/GetAppRounded'
 import { create } from 'jss';
 
-import { ShapedGeometry } from './geometry.jsx'
-import { DesignCanvas } from './designcanvas.jsx'
+import { ShapedGeometry } from './geometry.jsx';
+import { DesignCanvas } from './designcanvas.jsx';
 import { createWorkerStore } from './store.js';
-import { Spinner } from './spinner.jsx'
-import { ErrorAlert } from './alert.jsx'
-
-// from https://www.bitdegree.org/learn/javascript-download
-const download = source =>
-{
-  const { name, text } = source;
-  const blob = new Blob( [ text ], { type : 'application/xml' } );
-  const element = document.createElement( 'a' )
-  const blobURI = URL.createObjectURL( blob )
-  element.setAttribute( 'href', blobURI )
-  element.setAttribute( 'download', `${name}` )
-  element.style.display = 'none'
-  document.body.appendChild( element )
-  element.click()
-  document.body.removeChild( element )
-}
+import { Spinner } from './spinner.jsx';
+import { ErrorAlert } from './alert.jsx';
+import { ActionMenu } from './menu.jsx';
 
 export const DesignViewer = ( { children, children3d, useSpinner=false } ) =>
 {
-  const source = useSelector( state => state.source );
   const scene = useSelector( state => state.scene );
   const waiting = useSelector( state => !!state.waiting );
   return (
@@ -46,13 +29,7 @@ export const DesignViewer = ( { children, children3d, useSpinner=false } ) =>
         : children // This renders the light DOM if the scene couldn't load
       }
       <Spinner visible={useSpinner && waiting} />
-      { source && source.text &&
-        <IconButton color="inherit" aria-label="download"
-            style={ { position: 'absolute', top: '5px', right: '5px' } }
-            onClick={() => download( source ) } >
-          <GetAppRoundedIcon fontSize='medium'/>
-        </IconButton>
-      }
+      <ActionMenu/>
       <ErrorAlert/> 
     </div>
   )
@@ -74,11 +51,11 @@ export const renderViewer = ( store, container, url ) =>
   // We need JSS to inject styles on our shadow root, not on the document head.
   // I found this solution here:
   //   https://stackoverflow.com/questions/51832583/react-components-material-ui-theme-not-scoped-locally-to-shadow-dom
-  const jss = create({
-      ...jssPreset(),
-      insertionPoint: container
-  });
-  const reactElement = React.createElement( StylesProvider, { jss: jss }, [ viewerElement ] );
+  // const jss = create({
+  //     ...jssPreset(),
+  //     insertionPoint: container
+  // });
+  const reactElement = React.createElement( StylesProvider, null, [ viewerElement ] );
 
   ReactDOM.render( reactElement, container );
 
