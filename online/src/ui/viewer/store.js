@@ -16,12 +16,12 @@ export const initialState = {
   }
 };
 
-export const selectEditBefore = nodeId => ({ type: 'EDIT_SELECTED', payload: { before: nodeId } } );
-export const selectEditAfter = nodeId => ({ type: 'EDIT_SELECTED', payload: { after: nodeId } } );
-export const defineCamera = camera => ({ type: 'CAMERA_DEFINED', payload: camera });
-export const setPerspective = value => ({ type: 'PERSPECTIVE_SET', payload: value });
-export const fetchDesign = ( url, preview, debug=false ) => ({ type: 'URL_PROVIDED', payload: { url, preview, debug } });
-export const openDesignFile = ( file, debug=false ) => ({ type: 'FILE_PROVIDED', payload: { file, debug } });
+export const selectEditBefore = nodeId => ( { type: 'EDIT_SELECTED', payload: { before: nodeId } } );
+export const selectEditAfter = nodeId => ( { type: 'EDIT_SELECTED', payload: { after: nodeId } } );
+export const defineCamera = camera => ( { type: 'CAMERA_DEFINED', payload: camera } );
+export const setPerspective = value => ( { type: 'PERSPECTIVE_SET', payload: value } );
+export const fetchDesign = ( url, preview, debug=false ) => ( { type: 'URL_PROVIDED', payload: { url, preview, debug } } );
+export const openDesignFile = ( file, debug=false ) => ( { type: 'FILE_PROVIDED', payload: { file, debug } } );
 
 const reducer = ( state = initialState, event ) =>
 {
@@ -111,17 +111,45 @@ const branchSelectionBlocks = node =>
     return node;
 }
 
+const contexts = {};
+
+const onWorkerMessage = ({ data }) =>
+{
+  console.log( `Message received from worker: ${JSON.stringify( data.type, null, 2 )} for context ${data.storeId}` );
+  const { store, customElement } = contexts[ data.storeId ];
+  store .dispatch( data );
+
+  // Useful for supporting regression testing of the vzome-viewer web component
+  if ( customElement ) {
+    switch (data.type) {
+
+      case 'DESIGN_INTERPRETED':
+        customElement.dispatchEvent( new Event( 'vzome-design-rendered' ) );
+        break;
+    
+      case 'ALERT_RAISED':
+        customElement.dispatchEvent( new Event( 'vzome-design-failed' ) );
+        break;
+    
+      default:
+        break;
+    }
+  }
+}
+
+// trampolining to work around worker CORS issue
+// see https://github.com/evanw/esbuild/issues/312#issuecomment-1025066671
+const workerPromise = import( "../../worker/vzome-worker-static.js" )
+  .then( module => {
+    const blob = new Blob( [ `import "${module.WORKER_ENTRY_FILE_URL}";` ], { type: "text/javascript" } );
+    const worker = new Worker( URL.createObjectURL( blob ), { type: "module" } );
+    worker.onmessage = onWorkerMessage;
+    return worker;
+  } );
+
 export const createWorkerStore = customElement =>
 {
-  // trampolining to work around worker CORS issue
-  // see https://github.com/evanw/esbuild/issues/312#issuecomment-1025066671
-  const workerPromise = import( "../../worker/vzome-worker-static.js" )
-    .then( module => {
-      const blob = new Blob( [ `import "${module.WORKER_ENTRY_FILE_URL}";` ], { type: "text/javascript" } );
-      const worker = new Worker( URL.createObjectURL( blob ), { type: "module" } );
-      worker.onmessage = onWorkerMessage;
-      return worker;
-    } );
+  const storeId = "" + Math.random();
 
   const workerSender = store => report => event =>
   {
@@ -149,6 +177,7 @@ export const createWorkerStore = customElement =>
         else {
           workerPromise.then( worker => {
             // console.log( `Message sending to worker: ${JSON.stringify( event, null, 2 )}` );
+            event.storeId = storeId;
             worker.postMessage( event );  // send them all, let the worker filter them out
           } )
           .catch( error => {
@@ -168,28 +197,7 @@ export const createWorkerStore = customElement =>
     middleware: getDefaultMiddleware => getDefaultMiddleware().concat( workerSender ),
     devTools: true,
   });
-
-  const onWorkerMessage = ({ data }) => {
-    console.log( `Message received from worker: ${JSON.stringify( data.type, null, 2 )}` );
-    store .dispatch( data );
-
-    // Useful for supporting regression testing of the vzome-viewer web component
-    if ( customElement ) {
-      switch (data.type) {
-
-        case 'DESIGN_INTERPRETED':
-          customElement.dispatchEvent( new Event( 'vzome-design-rendered' ) );
-          break;
-      
-        case 'ALERT_RAISED':
-          customElement.dispatchEvent( new Event( 'vzome-design-failed' ) );
-          break;
-      
-        default:
-          break;
-      }
-    }
-  }
+  contexts[ storeId ] = { store, customElement };
 
   return store;
 }

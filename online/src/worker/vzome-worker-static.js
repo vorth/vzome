@@ -182,27 +182,28 @@ const urlLoader = ( report, event ) =>
 onmessage = ({ data }) =>
 {
   // console.log( `Worker received: ${JSON.stringify( data, null, 2 )}` );
-  const { type, payload } = data;
+  const { type, payload, storeId } = data;
+  const reply = message => postMessage( { ...message, storeId } ); // so the message can be dispatched to the right store on the other side
 
   switch (type) {
 
     case 'URL_PROVIDED':
-      urlLoader( postMessage, data );
+      urlLoader( reply, data );
       break;
   
     case 'FILE_PROVIDED':
-      fileLoader( postMessage, data );
+      fileLoader( reply, data );
       break;
 
     case 'EDIT_SELECTED':
       const { before, after } = payload; // only one of these will have an edit ID
       const scene = before? renderHistory .getScene( before, true ) : renderHistory .getScene( after, false );
       const { edit } = scene;
-      postMessage( { type: 'SCENE_RENDERED', payload: { scene, edit } } );
+      reply( { type: 'SCENE_RENDERED', payload: { scene, edit } } );
       const error = renderHistory .getError();
       if ( !!error ) {
         console.log( `getScene error: ${error.message}` );
-        postMessage( { type: 'ALERT_RAISED', payload: 'Failed to interpret all edits.' } );
+        reply( { type: 'ALERT_RAISED', payload: 'Failed to interpret all edits.' } );
       }
       break;
   
