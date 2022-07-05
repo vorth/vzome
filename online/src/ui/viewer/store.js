@@ -38,7 +38,7 @@ const reducer = ( state = initialState, event ) =>
       if ( state.waiting )
         return state; // the fetch was started already
       const { url, preview } = event.payload;
-      return { ...state, waiting: true, editing: !preview };
+      return { ...state, url, waiting: true, editing: !preview };
     }
 
     case 'TEXT_FETCHED':
@@ -115,8 +115,8 @@ const contexts = {};
 
 const onWorkerMessage = ({ data }) =>
 {
-  console.log( `Message received from worker: ${JSON.stringify( data.type, null, 2 )} for context ${data.storeId}` );
-  const { store, customElement } = contexts[ data.storeId ];
+  console.log( `Message received from worker: ${JSON.stringify( data.type, null, 2 )} for context ${data.contextId}` );
+  const { store, customElement } = contexts[ data.contextId ];
   store .dispatch( data );
 
   // Useful for supporting regression testing of the vzome-viewer web component
@@ -149,7 +149,7 @@ const workerPromise = import( "../../worker/vzome-worker-static.js" )
 
 export const createWorkerStore = customElement =>
 {
-  const storeId = "" + Math.random();
+  const contextId = "" + Math.random();
 
   const workerSender = store => report => event =>
   {
@@ -177,7 +177,8 @@ export const createWorkerStore = customElement =>
         else {
           workerPromise.then( worker => {
             // console.log( `Message sending to worker: ${JSON.stringify( event, null, 2 )}` );
-            event.storeId = storeId;
+            event.contextId = contextId;
+            event.url = store .getState() .url; // normally has been set by prior FETCH_STARTED response
             worker.postMessage( event );  // send them all, let the worker filter them out
           } )
           .catch( error => {
@@ -197,7 +198,7 @@ export const createWorkerStore = customElement =>
     middleware: getDefaultMiddleware => getDefaultMiddleware().concat( workerSender ),
     devTools: true,
   });
-  contexts[ storeId ] = { store, customElement };
+  contexts[ contextId ] = { store, customElement };
 
   return store;
 }

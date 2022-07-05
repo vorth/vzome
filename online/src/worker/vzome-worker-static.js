@@ -49,8 +49,10 @@ const convertGeometry = preview =>
   return shapesOut
 }
 
-const fetchUrlText = async ( url ) =>
+const fetchUrlText = async ( url, cached ) =>
 {
+  if ( !!cached )
+    return cached; // will be wrapped in a Promise
   let response
   try {
     response = await fetch( url )
@@ -82,10 +84,18 @@ const fetchFileText = selected =>
   })
 }
 
-let renderHistory;
+const cache = {};
 
-const parseAndInterpret = ( xmlLoading, report, debug ) =>
+const parseAndInterpret = ( xmlLoading, report, debug, url ) =>
 {
+  if ( cache[ url ] ) {
+    const { sceneRendered, designInterpreted } = cache[ url ];
+    if ( sceneRendered && designInterpreted ) {
+      report( { type: 'SCENE_RENDERED', payload: sceneRendered } );
+      report( { type: 'DESIGN_INTERPRETED', payload: designInterpreted } );
+      return;
+    }
+  }
   let legacyModule;
   return Promise.all( [ import( './legacy/dynamic.js' ), xmlLoading ] )
 
@@ -100,7 +110,7 @@ const parseAndInterpret = ( xmlLoading, report, debug ) =>
         throw new Error( `Field "${field.name}" is not supported.` );
       }
       // the next step may take several seconds, which is why we already reported PARSE_COMPLETED
-      renderHistory = legacyModule .interpretAndRender( design, debug );
+      const renderHistory = legacyModule .interpretAndRender( design, debug );
       // TODO: define a better contract for before/after.
       //  Here we are using before=false with targetEditId, which is meant to be the *next*
       //  edit to be executed, so this really should be before=true.
@@ -110,8 +120,11 @@ const parseAndInterpret = ( xmlLoading, report, debug ) =>
       const { shapes, edit } = renderHistory .getScene( debug? '--START--' : targetEditId, false );
       const { embedding } = renderer;
       const scene = { lighting, camera, embedding, shapes };
-      report( { type: 'SCENE_RENDERED', payload: { scene, edit } } );
-      report( { type: 'DESIGN_INTERPRETED', payload: { xmlTree, snapshots } } );
+      const sceneRendered = { scene, edit };
+      const designInterpreted = { xmlTree, snapshots };
+      cache[ url ] = { ...cache[ url ], renderHistory, sceneRendered, designInterpreted };
+      report( { type: 'SCENE_RENDERED', payload: sceneRendered } );
+      report( { type: 'DESIGN_INTERPRETED', payload: designInterpreted } );
       const error = renderHistory .getError();
       if ( !! error ) {
         throw error;
@@ -154,48 +167,58 @@ const urlLoader = ( report, event ) =>
   const name = url.split( '\\' ).pop().split( '/' ).pop()
   report( { type: 'FETCH_STARTED', payload: event.payload } );
 
-  console.log( `%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ${preview? "previewing" : "interpreting " } ${url}` );
-  const xmlLoading = fetchUrlText( url );
+  const cached = cache[ url ];
 
-  xmlLoading .then( text => report( { type: 'TEXT_FETCHED', payload: { name, text, url } } ) );
+  console.log( `%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ${preview? "previewing" : "interpreting " } ${url}` );
+  const xmlLoading = fetchUrlText( url, cached && cached.text );
+
+  xmlLoading .then( text => {
+    cache[ url ] = { ...cached, text };
+    report( { type: 'TEXT_FETCHED', payload: { name, text, url } } )
+  } );
 
   if ( preview ) {
+    if ( cached && cached.scene ) {
+      return report( { type: 'SCENE_RENDERED', payload: { scene: cached.scene } } );
+    }
     const previewUrl = url.substring( 0, url.length-6 ).concat( ".shapes.json" );
     return fetchUrlText( previewUrl )
       .then( text => JSON.parse( text ) )
       .then( preview => {
         const scene = { ...convertScene( preview ), shapes: convertGeometry( preview ) };
+        cache[ url ] = { ...cached, scene };
         report( { type: 'SCENE_RENDERED', payload: { scene } } );
         return true; // probably nobody should care about the return value
       } )
       .catch( error => {
         console.log( error.message );
         console.log( `Failed to load and parse preview: ${previewUrl}` );
-        return parseAndInterpret( xmlLoading, report, debug );
+        return parseAndInterpret( xmlLoading, report, debug, url );
       } )
   }
   else {
-    return parseAndInterpret( xmlLoading, report, debug );
+    return parseAndInterpret( xmlLoading, report, debug, url );
   }
 }
 
 onmessage = ({ data }) =>
 {
   // console.log( `Worker received: ${JSON.stringify( data, null, 2 )}` );
-  const { type, payload, storeId } = data;
-  const reply = message => postMessage( { ...message, storeId } ); // so the message can be dispatched to the right store on the other side
+  const { type, payload, contextId, url } = data;
+  const reply = message => postMessage( { ...message, contextId } ); // so the message can be dispatched to the right context on the other side
 
   switch (type) {
 
     case 'URL_PROVIDED':
-      urlLoader( reply, data );
+      urlLoader( reply, data ); // data.payload.url set, but not data.url
       break;
   
     case 'FILE_PROVIDED':
-      fileLoader( reply, data );
+      fileLoader( reply, data ); // data.payload.file set, but not data.url
       break;
 
     case 'EDIT_SELECTED':
+      const { renderHistory } = cache[ url ]; // data cached after prior URL_PROVIDED or FILE_PROVIDED
       const { before, after } = payload; // only one of these will have an edit ID
       const scene = before? renderHistory .getScene( before, true ) : renderHistory .getScene( after, false );
       const { edit } = scene;
