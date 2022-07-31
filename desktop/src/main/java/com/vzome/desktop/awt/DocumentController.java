@@ -19,15 +19,18 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Point3f;
@@ -805,7 +808,11 @@ public class DocumentController extends DefaultGraphicsController implements Sce
         try {
             final Colors colors = mApp.getColors();
 
-            if ( "save".equals( command ) )
+            switch (command)
+            {
+
+            case "save":
+            case "save.html":
             {               
                 File dir = file .getParentFile();
                 if ( ! dir .exists() )
@@ -824,8 +831,21 @@ public class DocumentController extends DefaultGraphicsController implements Sce
 
                 // Sample prefs file entry: save.exports=export.dae capture.png capture.jpg export.vef
                 String exports = this .getProperty( "save.exports" );
-                if ( exports != null ) {
-                    for ( String captureOrExport : exports .split( " " ) ) {
+                if ( exports == null )
+                    exports = "";
+                                
+                List<String> listAll = Arrays.asList( exports .split( " " ) );
+
+                if ( "save.html" .equals( command ) ) {
+                    listAll .add( "export.html" );
+                    listAll .add( "capture.png" );
+                    listAll .add( "export.shapes.json" );
+                }
+
+                // Create a list with the distinct elements using stream.
+                List<String> listDistinct = listAll .stream() .distinct() .collect( Collectors.toList() );
+                
+                    for ( String captureOrExport : listDistinct ) {
                         // captureOrExport should be "capture.png" or "export.dae" or similar
                         String extension = "";
                         String[] cmd = captureOrExport .split("\\.");
@@ -838,33 +858,30 @@ public class DocumentController extends DefaultGraphicsController implements Sce
                                 break;
                             }
                         }
-                        if(extension == "") {
+                        if( extension == "" ) {
                             mErrors.reportError( UNKNOWN_PROPERTY + " save.exports=" + captureOrExport, null );
                         } else {
                             File exportFile = new File( dir, file .getName() + "." + extension );
                             doFileAction( captureOrExport, exportFile );
                         }
                     }
-                }
 
                 String script = this .getProperty( "save.script" );
                 if ( script != null )
                     this .runScript( script, file );
-                return;
             }
-
-            if ( "capture-animation" .equals( command ) )
-            {
+            break;
+            
+            case "capture-animation": 
                 EventQueue .invokeLater( new FrameGrabber( file, new RedSpinAnimation( this .cameraController ) ) );
-                return;
-            }
-
-            if ( "capture-wiggle-gif" .equals( command ) )
-            {
+                break;
+                
+            case "capture-wiggle-gif":
                 EventQueue .invokeLater( new FrameGrabber( file, new WiggleAnimation( this .cameraController ) ) );
-                return;
-            }
+                break;
 
+            default:
+            {            
             if ( command.startsWith( "capture." ) )
             {
                 final String extension = command .substring( "capture.".length() );
@@ -925,13 +942,13 @@ public class DocumentController extends DefaultGraphicsController implements Sce
                 documentModel .doEdit( command, params );
                 return;
             }
-            if ( command.equals( "import.zomecad.binary" ) ) {
+//            if ( command.equals( "import.zomecad.binary" ) ) {
                 //                InputStream bytes = new FileInputStream( file );
                 //                new ZomeCADImporter( bytes, events, (PentagonField) mField ) .parseStream();
-            }
-            if ( command.equals( "save.pdf" ) ) {
-            }
+//            }
             super.doFileAction( command, file );
+            } // default case
+            } // switch
         } catch ( Exception e ) {
             mErrors.reportError( UNKNOWN_ERROR_CODE, new Object[] { e } );
         }
