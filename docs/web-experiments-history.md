@@ -67,6 +67,15 @@ and one button that opened a DropBox chooser to load additional designs.
   </figcaption>
 </figure>
 
+This doesn't work very well embedded here in an iframe, for the following reason.
+It was my first attempt to support stereo viewing in the web.
+If you [visit the application](https://www.vzome.com/webview) on your smartphone,
+in portrait orientation, you'll get a stereo pair at the top of the screen.
+This was optimized for viewing on a [Nexus 7](https://en.wikipedia.org/wiki/Nexus_7_(2013))
+paired with a [Hasbro My3d](https://www.wired.com/2011/03/hasbro-my3d/),
+joined by a contraption I built out of model aircraft plywood.
+You can read more about my entire [stereoscopy and VR journey](/stereoscopy-and-vr.html), if you care to.
+
 ---
 
 As early as 2014, [three.js](https://threejs.org/) had come to my attention,
@@ -74,9 +83,6 @@ having already gained a high degree of adoption in the WebGL community.
 I was also starting to think about replacing desktop vZome,
 looking into [Electron](https://www.electronjs.org/), a framework for building cross-platform desktop apps using web technologies.
 In 2017 I created this application, a fairly simple first effort with three.js.
-
-The source code for this application is also [available in GitHub](https://github.com/vorth/vzome-web).
-This project started as a fork of [sample code by Jerome Etienne](https://github.com/jeromeetienne/electron-threejs-example).
 
 <figure style="margin: 5%">
   <iframe id="tdl-ball"
@@ -89,5 +95,8 @@ This project started as a fork of [sample code by Jerome Etienne](https://github
     Zome ball rendered using three.js
   </figcaption>
 </figure>
+
+The source code for this application is also [available in GitHub](https://github.com/vorth/vzome-web).
+This project started as a fork of [sample code by Jerome Etienne](https://github.com/jeromeetienne/electron-threejs-example).
 
 ## Java in the Web
