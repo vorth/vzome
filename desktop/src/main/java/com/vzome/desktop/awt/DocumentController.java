@@ -55,7 +55,8 @@ import com.vzome.core.editor.SymmetryPerspective;
 import com.vzome.core.editor.SymmetrySystem;
 import com.vzome.core.editor.api.ImplicitSymmetryParameters;
 import com.vzome.core.editor.api.OrbitSource;
-import com.vzome.core.exporters.Exporter3d;
+import com.vzome.core.exporters.DocumentExporter;
+import com.vzome.core.exporters.GeometryExporter;
 import com.vzome.core.exporters2d.Java2dSnapshot;
 import com.vzome.core.math.Polyhedron;
 import com.vzome.core.math.QuaternionProjection;
@@ -68,7 +69,6 @@ import com.vzome.core.model.Manifestation;
 import com.vzome.core.model.ManifestationChanges;
 import com.vzome.core.model.Panel;
 import com.vzome.core.model.Strut;
-import com.vzome.core.render.Colors;
 import com.vzome.core.render.RenderedManifestation;
 import com.vzome.core.render.RenderedModel;
 import com.vzome.core.render.Scene;
@@ -149,7 +149,9 @@ public class DocumentController extends DefaultGraphicsController implements Sce
     private final NumberController importScaleController;
     private final VectorController quaternionController;
     private String lastObjectColor = "#ffffffff";
-        
+    
+    private boolean mainViewRotation = true;
+
    /*
      * See the javadoc to control the logging:
      * 
@@ -289,8 +291,10 @@ public class DocumentController extends DefaultGraphicsController implements Sce
         }
 
         sceneLighting = this .documentModel .getSceneLighting();
+        
+        mainViewRotation = ! app .propertyIsTrue( "no.main.view.trackball" );
 
-        cameraController = new CameraGraphicsController( document .getCamera(), sceneLighting, maxOrientations );
+        cameraController = new CameraGraphicsController( document .getCamera(), sceneLighting, maxOrientations, mainViewRotation? 0.15d : 0.7d );
         this .addSubController( "camera", cameraController );
         this .articleModeZoom = new CameraZoomWheel( this .cameraController );
 
@@ -442,7 +446,8 @@ public class DocumentController extends DefaultGraphicsController implements Sce
         if ( this .modelCanvas != null )
             if ( editingModel ) {
                 this .selectionClick .attach( modelCanvas );
-                this .modelModeMainTrackball .attach( modelCanvas );
+                if ( mainViewRotation )
+                    this .modelModeMainTrackball .attach( modelCanvas );
                 this .strutBuilder .attach( modelCanvas );
             } else {
                 this .articleModeMainTrackball .attach( modelCanvas );
@@ -542,7 +547,8 @@ public class DocumentController extends DefaultGraphicsController implements Sce
                     
                     this .selectionClick .detach( this .modelCanvas );
                     this .strutBuilder .detach( this .modelCanvas );
-                    this .modelModeMainTrackball .detach( this .modelCanvas );
+                    if ( mainViewRotation )
+                        this .modelModeMainTrackball .detach( this .modelCanvas );
                     
                     this .lessonPageClick .attach( this .modelCanvas );
                     this .articleModeMainTrackball .attach( this .modelCanvas );
@@ -583,7 +589,8 @@ public class DocumentController extends DefaultGraphicsController implements Sce
                     this .articleModeZoom .detach( this .modelCanvas );
                     
                     this .selectionClick .attach( this .modelCanvas );
-                    this .modelModeMainTrackball .attach( this .modelCanvas );
+                    if ( mainViewRotation )
+                        this .modelModeMainTrackball .attach( this .modelCanvas );
                     this .strutBuilder .attach( this .modelCanvas );
     
                     this .editingModel = true;
@@ -806,8 +813,6 @@ public class DocumentController extends DefaultGraphicsController implements Sce
         // TODO set output file types
         if ( logger .isLoggable( Level.FINE ) ) logger .fine( String.format( "doFileAction: %s %s", command, file .getAbsolutePath() ) );
         try {
-            final Colors colors = mApp.getColors();
-
             if ( "save".equals( command ) )
             {               
                 File dir = file .getParentFile();
@@ -878,8 +883,9 @@ public class DocumentController extends DefaultGraphicsController implements Sce
             {
                 Dimension size = this .modelCanvas .getSize();
                 String format = command .substring( "export2d." .length() ) .toLowerCase();
-                Java2dSnapshot snapshot = documentModel .capture2d( currentSnapshot, size.height, size.width, cameraController .getView(), sceneLighting, false, true );
-                documentModel .export2d( snapshot, format, file, this .drawOutlines, false, true );
+                Java2dSnapshot snapshot = Java2dSnapshotController .capture2d( currentSnapshot, size.height, size.width, cameraController .getView(), sceneLighting, false, true );
+                Java2dSnapshotController controller = new Java2dSnapshotController( cameraController .getView(), sceneLighting, currentSnapshot, this .drawOutlines, this .mApp :: get2dExporter ); 
+                controller .export2d( snapshot, format, file, this .drawOutlines, false, true );
                 this .openApplication( file );
                 return;
             }
@@ -890,14 +896,12 @@ public class DocumentController extends DefaultGraphicsController implements Sce
                 try {
                     out = new FileWriter( file );
                     String format = command .substring( "export." .length() ) .toLowerCase();
-                    Exporter3d exporter = documentModel .getNaiveExporter( format, cameraController .getView(), colors, sceneLighting, currentSnapshot );
+                    GeometryExporter exporter = this .mApp .getExporter( format ); //, cameraController .getView(), colors, sceneLighting, currentSnapshot );
                     if ( exporter != null ) {
-                        exporter.doExport( file, out, size.height, size.width );
-                    }
-                    else {
-                        exporter = documentModel .getStructuredExporter( format, cameraController .getView(), colors, sceneLighting );
-                        if ( exporter != null )
-                            exporter .exportDocument( documentModel, file, out, size.height, size.width );
+                        if ( exporter instanceof DocumentExporter )
+                            ((DocumentExporter) exporter) .exportDocument( documentModel, file, out, size.height, size.width );
+                        else
+                            exporter .exportGeometry( documentModel .getRenderedModel(), file, out, size.height, size.width );
                     }
                 }
                 catch (Command.Failure f) {
@@ -1243,10 +1247,11 @@ public class DocumentController extends DefaultGraphicsController implements Sce
                     break; // fall through to properties or super
                 }
             }
+            // TODO: move this to ApplicationController!
             else if ( propName .startsWith( "exportExtension." ) ) {
                 String format = propName .substring( "exportExtension." .length() );
                 // handle null exporter so that typo in custom menu doesn't throw NPE 
-                Exporter3d exporter = this .mApp .getExporter( format .toLowerCase() );
+                GeometryExporter exporter = this .mApp .getExporter( format .toLowerCase() );
                 return exporter == null ? "" : exporter .getFileExtension();
             }
 
@@ -1270,8 +1275,8 @@ public class DocumentController extends DefaultGraphicsController implements Sce
         
         case "snapshot.2d": {
             if ( java2dController == null ) {
-                java2dController = new Java2dSnapshotController( this .documentModel, cameraController.getView(), this.sceneLighting,
-                						this.currentSnapshot, this.drawOutlines );
+                java2dController = new Java2dSnapshotController( cameraController.getView(), this.sceneLighting,
+                						this.currentSnapshot, this.drawOutlines, this .mApp :: get2dExporter );
                 this .addSubController( name, java2dController );
             }
             return java2dController;

@@ -99,6 +99,7 @@ core.config {
 
     'com/vzome/xml/DomUtils.java',
     'com/vzome/xml/ResourceLoader.java',
+    'com/vzome/xml/LocationData.java',
 
     'com/vzome/core/generic/*.java',
 
@@ -136,11 +137,6 @@ core.config {
 
     'com/vzome/core/edits/*.java',
 
-    // 'com/vzome/core/exporters/*.java',
-
-    // 'com/vzome/core/viewing/Lights.java',
-    // 'com/vzome/core/viewing/Camera.java',
-
     'com/vzome/core/kinds/DefaultFieldApplication.java',
     'com/vzome/core/kinds/GoldenFieldApplication.java',
     'com/vzome/core/kinds/RootTwoFieldApplication.java',
@@ -174,6 +170,8 @@ core.config {
     'com/vzome/core/editor/SymmetryPerspective.java',
     'com/vzome/core/editor/SelectionImpl.java',
     'com/vzome/core/editor/SelectionSummary.java',
+    'com/vzome/core/editor/EditHistory.java',
+    'com/vzome/core/editor/Branch.java',
     
     'com/vzome/core/render/Colors.java',
     'com/vzome/core/viewing/AbstractShapes.java',
@@ -190,6 +188,9 @@ core.config {
     'com/vzome/core/render/RenderingChanges.java',
     'com/vzome/core/render/RenderedManifestation.java',
     'com/vzome/core/render/RenderedModel.java',
+
+    'com/vzome/core/exporters/GeometryExporter.java',
+    'com/vzome/core/exporters/StlExporter.java',
 
     // SymmetryController and its dependencies
     'com/vzome/desktop/api/Controller.java',
@@ -216,7 +217,6 @@ core.config {
     'com/vzome/core/edits/GhostSymmetry24Cell.java',
     'com/vzome/core/edits/Symmetry4d.java',
     'com/vzome/core/edits/Run*Script.java',
-    'com/vzome/core/edits/Validate2Manifold.java',
     'com/vzome/core/edits/RealizeMetaParts.java',
     'com/vzome/core/edits/ReplaceWithShape.java',
 
@@ -227,7 +227,6 @@ core.config {
 
     'com/vzome/desktop/controller/CameraController.java',
     'com/vzome/desktop/controller/ZoneVectorBall.java',
-    'com/vzome/desktop/controller/UndoRedoController.java',
     'com/vzome/desktop/controller/JsonClientRendering.java',
 
   ]

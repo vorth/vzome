@@ -1,6 +1,7 @@
 
 import React, { useRef, useState } from 'react'
 import { useDispatch } from 'react-redux';
+
 import { fetchDesign, openDesignFile } from '../../ui/viewer/store.js';
 
 import IconButton from '@material-ui/core/IconButton'
@@ -62,9 +63,21 @@ export const OpenMenu = props =>
   const inputRef = useRef()
   const report = useDispatch();
 
+  const dropboxEnabled = window.Dropbox && window.localStorage.getItem( 'vzome.enable.dropbox' );
+
   const chooseFile = () => {
     setAnchorEl(null)
     inputRef.current.click();
+  }
+  const showDropboxChooser = () => {
+    setAnchorEl(null)
+    window.Dropbox.choose( {
+      linkType: 'direct',
+      extensions: ['.vzome'],
+      success: (files) => {
+        report( fetchDesign( files[0].link, { preview: false, debug: forDebugger } ) );
+      },
+    } );
   }
   const onFileSelected = e => {
     const selected = e.target.files && e.target.files[0]
@@ -126,6 +139,7 @@ export const OpenMenu = props =>
             onChange={onFileSelected} accept={acceptFiles} /> 
         </MenuItem>
         <MenuItem onClick={handleShowUrlDialog} >Remote vZome URL</MenuItem>
+        { dropboxEnabled && <MenuItem onClick={showDropboxChooser} >Choose from Dropbox</MenuItem> }
         <Divider />
         { models.map( (model) => (
           <MenuItem key={model.key} onClick={()=>handleSelectModel(model)}>{model.label}</MenuItem>
