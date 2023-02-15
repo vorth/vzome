@@ -219,10 +219,10 @@ jpackage {
         additionalParameters << "$keychain"
     }
     linux {
-        jLinkOptions = listOf(
+        jLinkOptions = [
             "--compress=0",
             "--no-man-pages"
-        )
+        ]
     }
     windows {
         icon = "platform/windows/resources/icons/vZomeLogo.ico"
