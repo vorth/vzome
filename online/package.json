@@ -10,6 +10,8 @@
     "@react-three/fiber": "^8.9.0",
     "@react-three/xr": "^3.5.0",
     "@reduxjs/toolkit": "^1.8.3",
+    "@solid-devtools/debugger": "^0.21.0",
+    "@solid-devtools/overlay": "^0.6.0",
     "@suid/icons-material": "^0.5.3",
     "@suid/material": "^0.8.2",
     "react": "^18.0",
@@ -22,7 +24,7 @@
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
     "redux-undo": "^1.0.1",
-    "solid-js": "^1.5.7",
+    "solid-js": "<1.7",
     "three": "^0.142",
     "three-stdlib": "^2.21.5",
     "txml": "^5.1.1",
@@ -52,8 +54,8 @@
       "last 1 safari version"
     ]
   },
-  "comments" : {
-    "tooling" : "See online/scripts/esbuild-config.mjs for esbuild rationale and bundling strategy."
+  "comments": {
+    "tooling": "See online/scripts/esbuild-config.mjs for esbuild rationale and bundling strategy."
   },
   "devDependencies": {
     "esbuild": "^0.13.12",

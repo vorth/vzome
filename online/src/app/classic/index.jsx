@@ -2,6 +2,11 @@
 import "regenerator-runtime/runtime";
 
 import { render } from 'solid-js/web';
+import { enableRootsAutoattach } from '@solid-devtools/debugger'
+import { attachDevtoolsOverlay } from '@solid-devtools/overlay'
+
+enableRootsAutoattach();
+attachDevtoolsOverlay();
 
 import { VZomeAppBar } from './components/appbar.jsx';
 import { createWorkerStore } from './controllers-solid.js';
@@ -22,4 +27,5 @@ const Classic = () =>
 );
 }
 
-render( Classic, document.getElementById( 'root' ) );
+render( Classic, document.getElementById('root'))
+
