@@ -41,9 +41,12 @@ export const SceneEditor = ( props ) =>
 
   return (
     // not using DesignViewer because it has its own UI, not corresponding to classic desktop vZome
-    <SceneCanvas height="600px" width="1000px" scene={scene()} toolActions={props.toolActions}
-      trackball={!props.strutting} syncCamera={props.syncCamera}
-      // children3d={ props.strutting && <StrutDrag state={{}} /> }
-    />
+    <div style={{ height: '100%', width: '100%' }}>
+      <SceneCanvas height="600px" width="1000px" scene={scene()} toolActions={props.toolActions}
+        trackball={!props.strutting} syncCamera={props.syncCamera}
+        // children3d={ props.strutting && <StrutDrag state={{}} /> }
+      />
+      
+    </div>
   );
 }
