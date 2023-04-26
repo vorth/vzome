@@ -7,7 +7,7 @@ import { Canvas3 } from './canvas.jsx';
 
 const SceneCanvas = ( props ) =>
 {
-  return <Canvas3 sphere={props.sphere}></Canvas3>
+  return <Canvas3 rotationOnly={props.rotationOnly}></Canvas3>
     // <Show when={ () => props.scene?.shapes }>
     //   <LightedTrackballCanvas toolActions={props.toolActions} height={props.height} width={props.width} >
     //     <ShapedGeometry embedding={props.scene.embedding} shapes={props.scene?.shapes} toolActions={props.toolActions} />

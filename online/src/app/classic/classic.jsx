@@ -1,7 +1,7 @@
 
 import { createSignal } from "solid-js";
 
-import { CameraControls } from './components/camera.jsx';
+import { CameraControls, RotationProvider } from './components/camera.jsx';
 import { StrutBuildPanel } from './components/strutbuilder.jsx';
 import { controllerProperty, subController, controllerAction } from './controllers-solid.js';
 import { BookmarkBar, ToolBar, ToolFactoryBar } from './components/toolbars.jsx';
@@ -81,6 +81,7 @@ export const ClassicEditor = ( props ) =>
   // that is a self-contained mouse tool with SolidJS state and React rendering, things would be easier.)
 
   return (
+    <RotationProvider>
     <div id='classic' style={{ display: 'grid', 'grid-template-rows': '1fr' }} class='whitesmoke-bkgd'>
       <div id='editor-main' class='grid-cols-1-min whitesmoke-bkgd' >
 
@@ -109,5 +110,6 @@ export const ClassicEditor = ( props ) =>
 
       </div>
     </div>
+    </RotationProvider>
   )
 }
