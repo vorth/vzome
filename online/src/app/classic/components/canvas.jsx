@@ -27,17 +27,6 @@ const Canvas3 = props =>
   const scene = new THREE.Scene();
   scene.background = new THREE.Color( 0x005080 );
 
-  // Objects
-  const geometry = props.rotationOnly? new THREE.BoxGeometry( 5, 8, 13 ) : new THREE.DodecahedronGeometry( 4 );
-
-  // Materials
-  const material = new THREE.MeshLambertMaterial()
-  material.color = new THREE.Color(0xff0099)
-
-  // Mesh
-  const mesh = new THREE.Mesh( geometry, material )
-  scene.add(mesh)
-
   // Camera
   const camera = new THREE.PerspectiveCamera( 50, 1, 0.1, 1000 );
   camera.position.x = 0
@@ -133,6 +122,8 @@ const Canvas3 = props =>
   animate();
 
   canvas.style = 'height: 100%; width: 100%';
+
+  props.children .forEach( child => scene .add( child ) );
   return canvas;
 }
 

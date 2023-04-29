@@ -1,31 +1,44 @@
 import { createEffect, createMemo, createSignal } from "solid-js";
-import { Vector3, Matrix4, BufferGeometry, Float32BufferAttribute } from "three";
+import { Vector3, Matrix4, BufferGeometry, Float32BufferAttribute,
+  DodecahedronGeometry, Mesh, MeshLambertMaterial, Color, Group } from "three";
 
 
 const Instance = ( props ) =>
 {
-  let meshRef;
-  createEffect( () => {
-    const m = new Matrix4();
-    m.set( ...props.rotation );
-    meshRef.matrix = m;
-  } );
+  // let meshRef;
+  // createEffect( () => {
+  //   const m = new Matrix4();
+  //   m.set( ...props.rotation );
+  //   meshRef.matrix = m;
+  // } );
   const [hovered, setHovered] = createSignal( false );
 
   const emissive = () => props.selected? "#f6f6f6" : "black"
   // TODO: cache materials
-  return (
-    <group position={ props.position } >
-      <mesh matrixAutoUpdate={false} ref={meshRef} geometry={props.geometry} 
-        onPointerEnter={ ()=>setHovered(true) }
-        onPointerLeave={ ()=>setHovered(false) }
-      >
-          {/* onPointerOver={handleHover(true)} onPointerOut={handleHover(false)} onClick={handleClick}
-          onPointerDown={handlePointerDown} > */}
-        <meshLambertMaterial attach="material" color={ hovered() ? "blue" : props.color } emissive={emissive()} />
-      </mesh>
-    </group>
-  )
+
+  // createEffect( () => {
+    const group = new Group();
+    group.position.copy( props.position );
+    const material = new MeshLambertMaterial();
+    material.color = new Color( props.color );
+    material.emissive = emissive();
+    const mesh = new Mesh( props.geometry, material );
+    const m = new Matrix4();
+    m.set( ...props.rotation );
+    mesh.matrix = m;
+  // });
+  return ( group );
+    // <group position={ props.position } >
+    //   <mesh matrixAutoUpdate={false} ref={meshRef} geometry={props.geometry} 
+    //     onPointerEnter={ ()=>setHovered(true) }
+    //     onPointerLeave={ ()=>setHovered(false) }
+    //   >
+    //       {/* onPointerOver={handleHover(true)} onPointerOut={handleHover(false)} onClick={handleClick}
+    //       onPointerDown={handlePointerDown} > */}
+    //     <meshLambertMaterial attach="material" color={ hovered() ? "blue" : props.color } emissive={emissive()} />
+    //   </mesh>
+    // </group>
+  // )
 }
 
 const InstancedShape = ( props ) =>
@@ -56,13 +69,13 @@ const InstancedShape = ( props ) =>
 
   if ( props.shape.instances.length === 0 )
     return null;
-  return (
-    <>
-      <For each={props.shape.instances}>{ instance =>
-        <Instance {...instance} geometry={geometry()} />
-      }</For>
-    </>
-  )
+
+  const instances =
+    <For each={props.shape.instances}>{ instance =>
+      <Instance {...instance} geometry={geometry()} />
+    }</For>;
+  
+  return instances;
 }
 
 export const ShapedGeometry = ( props ) =>
@@ -72,13 +85,18 @@ export const ShapedGeometry = ( props ) =>
     console.log( 'bkgdClick happened' );
   }
 
-  return (
+  const shapes =
+    <For each={Object.values( props.shapes || {} )}>{ shape =>
+      <InstancedShape shape={shape} />
+    }</For>;
+
+  return shapes;
     // <Show when={ () => props.shapes }>
-      <group matrixAutoUpdate={false} onPointerMissed={bkgdClick}>
-        <For each={Object.values( props.shapes || {} )}>{ shape =>
-          <InstancedShape shape={shape} />
-        }</For>
-      </group>
+      // <group matrixAutoUpdate={false} onPointerMissed={bkgdClick}>
+      //   <For each={Object.values( props.shapes || {} )}>{ shape =>
+      //     <InstancedShape shape={shape} />
+      //   }</For>
+      // </group>
     // </Show>
-  )
+  // )
 };
