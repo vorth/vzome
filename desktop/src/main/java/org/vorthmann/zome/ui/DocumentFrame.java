@@ -441,7 +441,9 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                     else if ( cmd .startsWith( "setSymmetry." ) )
                     {
                         system = cmd .substring( "setSymmetry.".length() );
-                        mController .actionPerformed( e .getSource(), e .getActionCommand() ); // TODO getExclusiveAction
+                        ExclusiveAction exclusiveAction = getExclusiveAction( cmd, mController );
+                        exclusiveAction .actionPerformed( e );
+//                        mController .actionPerformed( e .getSource(), e .getActionCommand() ); // TODO getExclusiveAction
                     }
                     else if ( cmd .startsWith( "execCommandLine/" ) )
                     {
@@ -981,14 +983,6 @@ public class DocumentFrame extends JFrame implements PropertyChangeListener, Con
                 else if ( command .startsWith( "export." ) ) {
                     String ext = command .substring( "export." .length() );
                     ext = controller .getProperty( "exportExtension." + ext );
-                    switch ( ext ) {
-                    case "vrml": ext = "wrl"; break;
-                    case "size": ext = "txt"; break;
-                    case "partslist": ext = "txt"; break;
-                    case "partgeom": ext = "vef"; break;
-                    default:
-                        break;
-                    }
                     actionListener = new ControllerFileAction( fileDialog, false, command, ext, controller );
                 }
                 else {

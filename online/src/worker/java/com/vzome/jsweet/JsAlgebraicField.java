@@ -415,10 +415,12 @@ public class JsAlgebraicField implements AlgebraicField
     @Override
     public AlgebraicVector parseVector(String nums)
     {
-        StringTokenizer tokens = new StringTokenizer( nums, " " );
+        String noLF = nums .replace( '\n', ' ' );
+        String noCRLF = noLF .replace( '\r', ' ' );
+        StringTokenizer tokens = new StringTokenizer( noCRLF, " " );
         int numToks = tokens .countTokens();
         if ( numToks % getOrder() != 0 )
-            throw new IllegalStateException( "Field order (" + getOrder() + ") does not divide token count: " + numToks + ", for '" + nums + "'" );
+            throw new IllegalStateException( "Field order (" + getOrder() + ") does not divide token count: " + numToks + ", for '" + noCRLF + "'" );
 
         int dims = numToks / getOrder();
         AlgebraicNumber[] coords = new AlgebraicNumber[ dims ];
@@ -485,6 +487,19 @@ public class JsAlgebraicField implements AlgebraicField
         return createAlgebraicNumber( ones, phis, div, 0 );
     }
 
+    @Override
+    public String getIrrational(int i, int format)
+    {
+        Function f = (Function) this.delegate .$get( "getIrrational" );
+        return f.$apply( any( i ) );
+    }
+
+    @Override
+    public String getIrrational(int which)
+    {
+        return this.getIrrational( which, 0 );
+    }
+
     
     
     
@@ -500,18 +515,6 @@ public class JsAlgebraicField implements AlgebraicField
     int[] scaleBy( int[] factors, int whichIrrational )
     {
         throw new RuntimeException( "unimplemented JsAlgebraicField.scaleBy" );
-    }
-
-    @Override
-    public String getIrrational(int i, int format)
-    {
-        throw new RuntimeException( "unimplemented JsAlgebraicField.getIrrational" );
-    }
-
-    @Override
-    public String getIrrational(int which)
-    {
-        throw new RuntimeException( "unimplemented JsAlgebraicField.getIrrational" );
     }
 
     @Override
