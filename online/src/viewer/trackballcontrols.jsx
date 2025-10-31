@@ -2,7 +2,7 @@
 // modified copy from https://github.com/devinxi/vinxi/blob/1514f966d9cdcc2c19e2733a8c7bf03831f7ecf3/packages/solid-drei/src/OrbitControls.tsx
 
 import { createEffect, createMemo, onCleanup, mergeProps } from "solid-js";
-import { useFrame, useThree } from "solid-three";
+import { useFrame, useThree } from "./util/solid-three.js";
 import { TrackballControls as TrackballControlsImpl } from "three-stdlib";
 
 import { useCamera } from "../viewer/context/camera.jsx";
@@ -13,16 +13,14 @@ export const TrackballControls = (props) =>
   props = mergeProps( { rotateSpeed: 4.5, zoomSpeed: 3, panSpeed: 1 }, props );
   const { perspectiveProps, trackballProps, name, cancelTweens } = useCamera();
   const [ tool ] = useInteractionTool();
-
-  const gl = useThree(({ gl }) => gl);
-  const size = useThree(({ size }) => size);
+  const { canvas, bounds } = useThree();
 
   createEffect(() => {
     // SV: This effect is necessary so that we get correctly connected to the domElement
     //   *after* it has been connected to the document and assigned a valid size.
-    if ( size().height < 0 ) // should never happen, just making a dependency
-      console.log( 'height is', size().height ); // This is the change we care about.
-    trackballControls() .connect( gl().domElement );
+    if ( bounds.height < 0 ) // should never happen, just making a dependency
+      console.log( 'height is', bounds.height ); // This is the change we care about.
+    trackballControls() .connect( canvas );
   });
 
   const trackballControls = createMemo( () => {
@@ -58,7 +56,7 @@ export const TrackballControls = (props) =>
     }
     controls.rotateSpeed = props.rotateSpeed;
 
-    controls.connect( gl().domElement );
+    controls.connect( canvas );
 
     // These listeners are now tightly coupled to the camera and tool contexts.
     //   Earlier, the listeners were injected as props.

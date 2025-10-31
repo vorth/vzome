@@ -1,12 +1,13 @@
 
-import { useFrame, Canvas } from "solid-three";
 import { Color } from "three";
 import { createRenderEffect, onMount } from "solid-js";
 import { createElementSize } from "@solid-primitives/resize-observer";
 
+import { Canvas, T, useFrame } from "./util/solid-three.js";
+
+import { TrackballControls } from "./trackballcontrols.jsx";
 import { PerspectiveCamera } from "./perspectivecamera.jsx";
 import { OrthographicCamera } from "./orthographiccamera.jsx";
-import { TrackballControls } from "./trackballcontrols.jsx";
 import { useInteractionTool } from "../viewer/context/interaction.jsx";
 import { useCamera } from "../viewer/context/camera.jsx";
 import { Labels } from "./labels.jsx";
@@ -14,7 +15,7 @@ import { useViewer } from "./context/viewer.jsx";
 
 const Lighting = () =>
 {
-  const { state } = useCamera();
+  const { state, perspectiveProps } = useCamera();
   // Adopting changes as required by https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
   //   and https://discourse.threejs.org/t/updates-to-lighting-in-three-js-r155/53733
   const mapColor = color => new Color() .setStyle( color ) .multiplyScalar( Math.PI );
@@ -23,14 +24,14 @@ const Lighting = () =>
   // The ambientLight has to be "invisible" so we don't get an empty node in glTF export.
 
   return (
-    <>
-      <object3D ref={centerObject} visible={false} />
-      <ambientLight color={mapColor( state.lighting.ambientColor )} />
-      <For each={state.lighting.directionalLights}>{ ( { direction, color }, i ) =>
-        <directionalLight target={centerObject} intensity={1.4}
+    <T.Group position={perspectiveProps.position} up={perspectiveProps.up} target={perspectiveProps.target}>
+      <T.Mesh ref={centerObject} visible={false} />
+      <T.AmbientLight color={mapColor( state.lighting.ambientColor )} />
+      <For each={state.lighting.directionalLights}>{ ( { direction, color } ) =>
+        <T.DirectionalLight target={centerObject} intensity={1.4}
           color={mapColor( color )} position={direction.map( x => -x )} />
       }</For>
-    </>
+    </T.Group>
   )
 }
 
@@ -96,7 +97,8 @@ export const LightedTrackballCanvas = ( props ) =>
   }
   const handlePointerMissed = ( e ) =>
   {
-    const handler = tool ?.bkgdClick;
+    const handler = tool && tool() ?.bkgdClick;
+
     if ( isLeftMouseButton( e ) && handler ) {
       e.stopPropagation();
       handler( e );

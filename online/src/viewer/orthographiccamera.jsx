@@ -2,17 +2,16 @@
 // Adapted from https://github.com/nksaraf/react-three-fiber/commit/581d02376d4304fb3bab5445435a61c53cc5cdc2
 
 import { createEffect, onCleanup } from 'solid-js';
-import { useThree } from 'solid-three';
+import { useThree, T } from "./util/solid-three.js";
 
 import { useCamera } from "../viewer/context/camera.jsx";
 
 export const OrthographicCamera = (props) =>
 {
-  const { perspectiveProps, name, state } = useCamera();
+  const { perspectiveProps, state } = useCamera();
   const halfWidth = () => perspectiveProps.width / 2;
-  const set = useThree(({ set }) => set);
-  const scene = useThree(({ scene }) => scene);
   let cam;
+  const { scene, setCurrentCamera } = useThree();
 
   createEffect( () => {
     if ( state.outlines )
@@ -38,15 +37,15 @@ export const OrthographicCamera = (props) =>
   });
 
   createEffect( () => {
-    set()({ camera: cam });
+    setCurrentCamera( cam );
     // I don't know why this is necessary... I guess a camera is not added automatically
-    scene() .add( cam );
-    onCleanup( () => scene() .remove( cam ) );
+    scene .add( cam );
+    onCleanup( () => scene .remove( cam ) );
   } );
 
   return (
-    <orthographicCamera ref={cam} position={perspectiveProps .position} up={perspectiveProps .up} >
+    <T.OrthographicCamera ref={cam} position={perspectiveProps .position} up={perspectiveProps .up} >
       {props.children}
-    </orthographicCamera>
+    </T.OrthographicCamera>
   );
 }

@@ -1,7 +1,8 @@
 
 import { createEffect, createMemo, onMount } from "solid-js";
 import { Vector3, Matrix4, BufferGeometry, Float32BufferAttribute, Color } from "three";
-import { useThree } from "solid-three";
+
+import { T, useThree } from "./util/solid-three.js";
 
 import { useInteractionTool } from "./context/interaction.jsx";
 
@@ -77,20 +78,19 @@ const Instance = ( props ) =>
   const emissive = () => props.selected? "#c8c8c8" : "black"
   // TODO: cache materials
   return (
-    <group position={ props.position } name={props.id} >
-      <mesh matrixAutoUpdate={false} ref={meshRef} geometry={props.geometry}
+    <T.Group position={ props.position } name={props.id} >
+      <T.Mesh matrixAutoUpdate={false} ref={meshRef} geometry={props.geometry}
           onPointerOver={handleHover(true)} onPointerOut={handleHover(false)} onPointerMove={handlePointerMove}
           onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onContextMenu={handleContextMenu}>
-        <meshLambertMaterial attach="material" color={color} emissive={emissive()} />
-      </mesh>
-      {/* DEFECT: strut outlines are triangulated (but not panels or balls) */}
+        <T.MeshLambertMaterial attach="material" color={color} emissive={emissive()} />
+      </T.Mesh>
       { !!props.outlineGeometry &&
-        <lineSegments matrixAutoUpdate={false} ref={linesRef} geometry={props.outlineGeometry} >
-          <lineBasicMaterial attach="material" linewidth={4.4} color='black' />
-        </lineSegments>
+        <T.LineSegments matrixAutoUpdate={false} ref={linesRef} geometry={props.outlineGeometry} >
+          <T.LineBasicMaterial attach="material" linewidth={4.4} color='black' />
+        </T.LineSegments>
       }
       {!!props.label && <Label parent={meshRef} position={props.geometry.shapeCentroid} text={props.label} />}
-    </group>
+    </T.Group>
   )
 }
 
@@ -176,24 +176,22 @@ const InstancedShape = ( props ) =>
 
 export const ShapedGeometry = ( props ) =>
 {
-  const scene = useThree(({ scene }) => scene);
   const { setExporter } = useGltfExporter();
+  const { scene, render, canvas, currentCamera: camera } = useThree();
   const exportGltf = callback => {
     const exporter = new GLTFExporter();
     // Parse the input and generate the glTF output
-    exporter.parse( scene(), callback, { onlyVisible: false } );
+    exporter.parse( scene, callback, { onlyVisible: false } );
   };
   setExporter( { exportGltf } );
 
-  const gl = useThree( ({ gl }) => gl );
-  const camera = useThree( ({ camera }) => camera );
   const { setCapturer } = useImageCapture();
   const capture = ( mimeType, saveBlob ) => {
     // See:
     //   https://github.com/pmndrs/react-three-fiber/discussions/2054
     //   https://stackoverflow.com/questions/12168909/blob-from-dataurl
-    gl() .render( scene(), camera() ); // The HTML canvas state is only guaranteed immediately after render
-    const dataUrl = gl() .domElement .toDataURL( mimeType );
+    render( scene, camera ); // The HTML canvas state is only guaranteed immediately after render
+    const dataUrl = canvas.toDataURL( mimeType );
     fetch( dataUrl )
       .then( res => res.blob() )
       .then( blob => {
@@ -217,11 +215,11 @@ export const ShapedGeometry = ( props ) =>
   })
   return (
     // <Show when={ () => props.shapes }>
-      <group matrixAutoUpdate={false} ref={groupRef} >
+      <T.Group matrixAutoUpdate={false} ref={groupRef} >
         <For each={Object.values( props.shapes || {} )}>{ shape =>
           <InstancedShape shape={shape} />
         }</For>
-      </group>
+      </T.Group>
     // </Show>
   )
 };

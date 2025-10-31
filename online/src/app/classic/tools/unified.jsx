@@ -1,7 +1,7 @@
 
 import { createEffect, createSignal } from 'solid-js';
 import { Vector3 } from 'three';
-import { useThree } from "solid-three";
+import { useThree } from "../../../viewer/util/solid-three.js";
 
 import { useInteractionTool } from '../../../viewer/context/interaction.jsx';
 import { ObjectTrackball } from './trackball.jsx';
@@ -17,7 +17,7 @@ I'd like to reuse their code, but that seems too complicated for the benefit.
 
 const UnifiedTool = props =>
 {
-  const eye = useThree(({ camera }) => camera.position);
+  const { currentCamera: { position: eye } } = useThree();
   const { startPreviewStrut, endPreviewStrut, movePreviewStrut, scalePreviewStrut,
           rootController, setState, controllerAction } = useEditor();
   const pickingController  = () => subController( rootController(), 'picking' );

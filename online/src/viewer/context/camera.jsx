@@ -199,7 +199,7 @@ const CameraProvider = ( props ) =>
 
   const setDistance = distance => setCamera( fixedFrustum( distance ) );
 
-  const setLighting = lighting => setState( 'lighting', lighting );
+  const setLighting = ( { backgroundColor } ) => setState( 'lighting', { backgroundColor } );
   const togglePerspective = () => setState( 'camera', 'perspective', val => !val );
   const toggleOutlines = () => setState( 'outlines', val => !val );
   const setTweenDuration = duration => setState( 'tweening', 'duration', duration );

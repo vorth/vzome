@@ -1,6 +1,6 @@
 
 import { createEffect, createResource } from "solid-js";
-import { useThree } from "solid-three";
+import { useThree } from "../../viewer/util/solid-three.js";
 import { VRMLLoader } from "./VRMLLoader.js";
 import { useCamera } from "../../viewer/context/camera.jsx";
 
@@ -21,7 +21,7 @@ export const VrmlModel = (props) =>
 
   let priorScene;
   
-  const scene = useThree(({ scene }) => scene);
+  const { scene } = useThree();
   createEffect( () => {
     const loadedScene = data();
     if ( !!loadedScene ) {
