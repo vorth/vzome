@@ -1,7 +1,7 @@
 
 import { useFrame, Canvas } from "solid-three";
 import { Color } from "three";
-import { createMemo, createRenderEffect, mergeProps, onMount } from "solid-js";
+import { createMemo, createRenderEffect, onMount } from "solid-js";
 import { createElementSize } from "@solid-primitives/resize-observer";
 
 import { PerspectiveCamera } from "./perspectivecamera.jsx";
@@ -31,36 +31,20 @@ const Lighting = () =>
   )
 }
 
-const LightedCameraControls = (props) =>
+const ControlledCamera = (props) =>
 {
-  const { perspectiveProps, trackballProps, name, state, cancelTweens } = useCamera();
-  const [ tool ] = useInteractionTool();
-  const enableTrackball = () => ( tool === undefined ) || tool .allowTrackball();
-  props = mergeProps( { rotateSpeed: 4.5, zoomSpeed: 3, panSpeed: 1 }, props );
-  const halfWidth = () => perspectiveProps.width / 2;
-
-  const onTrackballEnd = () => ( tool !== undefined ) && tool .onTrackballEnd();
+  const { state } = useCamera();
 
   return (
-    <>
-      <Show when={state.camera.perspective} fallback={
-        <OrthographicCamera aspect={props.aspect} name={name} outlines={state.outlines}
-            position={perspectiveProps.position} up={perspectiveProps.up} halfWidth={halfWidth()}
-            near={perspectiveProps.near} far={perspectiveProps.far} target={perspectiveProps.target} >
-          <Lighting />
-        </OrthographicCamera>
-      }>
-        <PerspectiveCamera aspect={props.aspect} name={name} outlines={state.outlines}
-            position={perspectiveProps.position} up={perspectiveProps.up} fov={perspectiveProps.fov( props.aspect )}
-            near={perspectiveProps.near} far={perspectiveProps.far} target={perspectiveProps.target} >
-          <Lighting />
-        </PerspectiveCamera>
-      </Show>
-      <TrackballControls enabled={enableTrackball()} rotationOnly={props.rotationOnly} name={name}
-        camera={trackballProps.camera} target={perspectiveProps.target} sync={trackballProps.sync}
-        trackballStart={cancelTweens} trackballEnd={onTrackballEnd}
-        rotateSpeed={props.rotateSpeed} zoomSpeed={props.zoomSpeed} panSpeed={props.panSpeed} />
-    </>
+    <Show when={state.camera.perspective} fallback={
+      <OrthographicCamera aspect={props.aspect}>
+        {props.children}
+      </OrthographicCamera>
+    }>
+      <PerspectiveCamera aspect={props.aspect}>
+        {props.children}
+      </PerspectiveCamera>
+    </Show>
   );
 }
 
@@ -100,14 +84,14 @@ export const LightedTrackballCanvas = ( props ) =>
     }
   }
   const handleWheel = ( e ) =>
-    {
-      const handler = tool ?.onWheel;
-      if ( handler ) {
-        e.preventDefault();
-        handler( e.deltaY );
-      }
+  {
+    const handler = tool ?.onWheel;
+    if ( handler ) {
+      e.preventDefault();
+      handler( e.deltaY );
     }
-    const handlePointerMissed = ( e ) =>
+  }
+  const handlePointerMissed = ( e ) =>
   {
     const handler = tool ?.bkgdClick;
     if ( isLeftMouseButton( e ) && handler ) {
@@ -117,11 +101,19 @@ export const LightedTrackballCanvas = ( props ) =>
   }
 
   const canvas =
-    <Canvas class='canvas3d' dpr={ window.devicePixelRatio } gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true }}
+    <Canvas class='canvas3d' dpr={ window.devicePixelRatio } 
+        gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true }}
         height={props.height ?? "100vh"} width={props.width ?? "100vw"}
         frameloop="always" onPointerMissed={handlePointerMissed} >
-      <LightedCameraControls aspect={aspect()}
-        rotationOnly={props.rotationOnly} rotateSpeed={props.rotateSpeed} zoomSpeed={props.zoomSpeed} panSpeed={props.panSpeed} />
+
+      { /* This should add the camera to the scene so that the lights move with the camera,
+            but it apparently does not. */ }
+      <ControlledCamera aspect={aspect()} >
+        <Lighting />
+      </ControlledCamera>
+
+      <TrackballControls rotationOnly={props.rotationOnly}
+        rotateSpeed={props.rotateSpeed} zoomSpeed={props.zoomSpeed} panSpeed={props.panSpeed} />
 
       {props.children}
 

@@ -1,15 +1,20 @@
 
 // modified copy from https://github.com/devinxi/vinxi/blob/1514f966d9cdcc2c19e2733a8c7bf03831f7ecf3/packages/solid-drei/src/OrbitControls.tsx
 
-import { createEffect, createMemo, onCleanup } from "solid-js";
+import { createEffect, createMemo, onCleanup, mergeProps } from "solid-js";
 import { useFrame, useThree } from "solid-three";
 import { TrackballControls as TrackballControlsImpl } from "three-stdlib";
 
+import { useCamera } from "../viewer/context/camera.jsx";
+import { useInteractionTool } from "../viewer/context/interaction.jsx";
+
 export const TrackballControls = (props) =>
 {
+  props = mergeProps( { rotateSpeed: 4.5, zoomSpeed: 3, panSpeed: 1 }, props );
+  const { perspectiveProps, trackballProps, name, cancelTweens } = useCamera();
+  const [ tool ] = useInteractionTool();
+
   const gl = useThree(({ gl }) => gl);
-  const set = useThree(({ set }) => set);
-  const get = useThree(({ get }) => get);
   const size = useThree(({ size }) => size);
 
   createEffect(() => {
@@ -21,7 +26,7 @@ export const TrackballControls = (props) =>
   });
 
   const trackballControls = createMemo( () => {
-    return new TrackballControlsImpl( props.camera, gl().domElement );
+    return new TrackballControlsImpl( trackballProps .camera, gl().domElement );
   } );
 
   useFrame(() => {
@@ -34,7 +39,7 @@ export const TrackballControls = (props) =>
   });
 
   createEffect( () => {
-    trackballControls() .enabled = props.enabled;
+    trackballControls() .enabled = ( tool === undefined ) || tool .allowTrackball();
   });
 
   createEffect(() =>
@@ -55,35 +60,34 @@ export const TrackballControls = (props) =>
 
     controls.connect( gl().domElement );
 
-    const onStart = () => {
-      props.trackballStart && props.trackballStart( controls .target, props.name );
-    }
+    // These listeners are now tightly coupled to the camera and tool contexts.
+    //   Earlier, the listeners were injected as props.
+    const onStart = () => cancelTweens();
+    const onChange = () => trackballProps .sync( controls .target, name );
+    const onEnd = () => ( tool !== undefined ) && tool .onTrackballEnd();
     controls .addEventListener( "start", onStart );
-    const onChange = () => props.sync( controls .target, props.name );
     controls .addEventListener( "change", onChange );
-    const onEnd = () => {
-      props.trackballEnd && props.trackballEnd( controls .target, props.name );
-    }
     controls .addEventListener( "end", onEnd );
-
     onCleanup(() => {
+      controls .removeEventListener( "start", onStart );
       controls .removeEventListener( "change", onChange );
+      controls .removeEventListener( "end", onEnd );
       controls .dispose();
     });
   });
 
   createEffect(() => {
-    const [ x, y, z ] = props.target;
+    const [ x, y, z ] = perspectiveProps .target;
     trackballControls() .target .set( x, y, z );
   });
 
-  createEffect(() => {
-    if (props.makeDefault) {
-      const old = get()().controls;
-      set()({ controls: trackballControls() });
-      onCleanup(() => set()({ controls: old }));
-    }
-  });
+  // createEffect(() => {
+  //   if (props.makeDefault) {
+  //     const old = get()().controls;
+  //     set()({ controls: trackballControls() });
+  //     onCleanup(() => set()({ controls: old }));
+  //   }
+  // });
 
   return null;
 };
