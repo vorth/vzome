@@ -26,7 +26,7 @@ export const TrackballControls = (props) =>
   });
 
   const trackballControls = createMemo( () => {
-    return new TrackballControlsImpl( trackballProps .camera, gl().domElement );
+    return new TrackballControlsImpl( trackballProps .camera );
   } );
 
   useFrame(() => {

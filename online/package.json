@@ -20,7 +20,7 @@
     "@tweenjs/tween.js": "^25.0.0",
     "antlr4": "^4.13.1-patch-1",
     "chevrotain": "^11.0.3",
-    "solid-js": "^1.7.0",
+    "solid-js": "^1.9.10",
     "solid-three": "^0.2.0",
     "three": "^0.180.0",
     "three-stdlib": "^2.36.0",
