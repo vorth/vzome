@@ -1,7 +1,7 @@
 
 import { useFrame, Canvas } from "solid-three";
 import { Color } from "three";
-import { createMemo, createRenderEffect, onMount } from "solid-js";
+import { createRenderEffect, onMount } from "solid-js";
 import { createElementSize } from "@solid-primitives/resize-observer";
 
 import { PerspectiveCamera } from "./perspectivecamera.jsx";
@@ -15,17 +15,19 @@ import { useViewer } from "./context/viewer.jsx";
 const Lighting = () =>
 {
   const { state } = useCamera();
-  const color = createMemo( () => new Color( state.lighting.backgroundColor ) );
-  useFrame( ({scene}) => { scene.background = color() } )
+  // Adopting changes as required by https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
+  const mapColor = color => new Color() .setStyle( color );
+  useFrame( ({scene}) => { scene.background = new Color() .setStyle( state.lighting.backgroundColor ) } ); // NOT converting to Linear!
   let centerObject;
   // The ambientLight has to be "invisible" so we don't get an empty node in glTF export.
 
   return (
     <>
       <object3D ref={centerObject} visible={false} />
-      <ambientLight color={state.lighting.ambientColor} />
-      <For each={state.lighting.directionalLights}>{ ( { color, direction } ) =>
-        <directionalLight target={centerObject} intensity={1.7} color={color} position={direction.map( x => -x )} />
+      <ambientLight color={mapColor( state.lighting.ambientColor )} />
+      <For each={state.lighting.directionalLights}>{ ( { direction, color }, i ) =>
+        <directionalLight target={centerObject} intensity={1.4}
+          color={mapColor( color )} position={direction.map( x => -x )} />
       }</For>
     </>
   )

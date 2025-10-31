@@ -1,6 +1,6 @@
 
 import { createEffect, createMemo, onMount } from "solid-js";
-import { Vector3, Matrix4, BufferGeometry, Float32BufferAttribute } from "three";
+import { Vector3, Matrix4, BufferGeometry, Float32BufferAttribute, Color } from "three";
 import { useThree } from "solid-three";
 
 import { useInteractionTool } from "./context/interaction.jsx";
@@ -70,6 +70,9 @@ const Instance = ( props ) =>
 
   onMount( () => linesRef && linesRef.layers.set( 4 ) );
 
+  // Adopting changes as required by https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
+  const color = new Color() .setStyle( props.color ); // not reactive, don't care, I think
+
   // TODO give users control over emissive color
   const emissive = () => props.selected? "#c8c8c8" : "black"
   // TODO: cache materials
@@ -78,8 +81,9 @@ const Instance = ( props ) =>
       <mesh matrixAutoUpdate={false} ref={meshRef} geometry={props.geometry}
           onPointerOver={handleHover(true)} onPointerOut={handleHover(false)} onPointerMove={handlePointerMove}
           onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onContextMenu={handleContextMenu}>
-        <meshLambertMaterial attach="material" color={props.color} emissive={emissive()} />
+        <meshLambertMaterial attach="material" color={color} emissive={emissive()} />
       </mesh>
+      {/* DEFECT: strut outlines are triangulated (but not panels or balls) */}
       { !!props.outlineGeometry &&
         <lineSegments matrixAutoUpdate={false} ref={linesRef} geometry={props.outlineGeometry} >
           <lineBasicMaterial attach="material" linewidth={4.4} color='black' />
