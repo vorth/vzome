@@ -182,8 +182,11 @@ export const ShapedGeometry = ( props ) =>
   const { scene, render, canvas, currentCamera: camera } = useThree();
   const exportGltf = callback => {
     const exporter = new GLTFExporter();
+    const onError = ( error ) => {
+      console.error( 'An error happened during glTF export:', error );
+    }
     // Parse the input and generate the glTF output
-    exporter.parse( scene, callback, { onlyVisible: false } );
+    exporter.parse( scene, callback, onError, { onlyVisible: false, binary: true } );
   };
   setExporter( { exportGltf } );
 

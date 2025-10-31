@@ -10,7 +10,7 @@ import { CommandAction, Divider, Menu, MenuAction, MenuItem, SubMenu } from "../
 import { UrlDialog } from '../dialogs/webloader.jsx'
 import { SvgPreviewDialog } from "../dialogs/svgpreview.jsx";
 import { INITIAL_DISTANCE, useCamera } from "../../../viewer/context/camera.jsx";
-import { useImageCapture } from "../../../viewer/context/export.jsx";
+import { useImageCapture, useGltfExporter } from "../../../viewer/context/export.jsx";
 import { useViewer } from "../../../viewer/context/viewer.jsx";
 
 const queryParams = new URLSearchParams( window.location.search );
@@ -140,19 +140,27 @@ export const FileMenu = () =>
 
   const [ svgPreview, setSvgPreview ] = createSignal( false );
 
+  const { exporter } = useGltfExporter();
+
   const exportAs = ( extension, mimeType, format=extension, params={} ) => evt =>
   {
-    const camera = unwrap( cameraState.camera );
-    camera .magnification = Math.log( camera.distance / INITIAL_DISTANCE );
+    if (format === 'gltf') {
+      const { exportGltf } = exporter();
+      const name = (state.designName || 'untitled') .concat( ".glb" );
+      exportGltf( glb => saveFileAs( name, glb, "model/gltf+binary" ) );
+    } else {
+      const camera = unwrap( cameraState.camera );
+      camera .magnification = Math.log( camera.distance / INITIAL_DISTANCE );
 
-    const lighting = unwrap( cameraState.lighting );
-    lighting .directionalLights .forEach( light => light .worldDirection = mapViewToWorld( light.direction ) );
+      const lighting = unwrap( cameraState.lighting );
+      lighting .directionalLights .forEach( light => light .worldDirection = mapViewToWorld( light.direction ) );
 
-    controllerExportAction( rootController(), format, { camera, lighting, scenes: unwrap( scenes ), ...params } )
-      .then( text => {
-        const name = (state.designName || 'untitled') .concat( "." + extension );
-        saveTextFileAs( name, text, mimeType );
-      });
+      controllerExportAction( rootController(), format, { camera, lighting, scenes: unwrap( scenes ), ...params } )
+        .then( text => {
+          const name = (state.designName || 'untitled') .concat( "." + extension );
+          saveTextFileAs( name, text, mimeType );
+        });
+    }
   }
 
   const { capturer } = useImageCapture();
@@ -181,7 +189,7 @@ export const FileMenu = () =>
     return <MenuItem onClick={ captureImage( props.ext, props.mime ) } disabled={props.disabled}>{props.label}</MenuItem>
   }
   
-    return (
+  return (
     <Menu label="File" dialogs={<>
       <UrlDialog show={showDialog()} setShow={setShowDialog} openDesign={openUrl} />
 
@@ -217,6 +225,7 @@ export const FileMenu = () =>
         <Divider/>
 
         <SubMenu label="Export 3D Rendering">
+          <ExportItem label="glTF" ext="gltf" />
           <ExportItem label="Collada DAE" ext="dae" mime="text/plain" disabled={true} />
           <ExportItem label="POV-Ray" ext="pov" mime="text/plain" />
           <ExportItem label="vZome Shapes JSON" format="shapes" ext="shapes.json" mime="application/json" />
