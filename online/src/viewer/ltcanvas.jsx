@@ -16,7 +16,8 @@ const Lighting = () =>
 {
   const { state } = useCamera();
   // Adopting changes as required by https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
-  const mapColor = color => new Color() .setStyle( color );
+  //   and https://discourse.threejs.org/t/updates-to-lighting-in-three-js-r155/53733
+  const mapColor = color => new Color() .setStyle( color ) .multiplyScalar( Math.PI );
   useFrame( ({scene}) => { scene.background = new Color() .setStyle( state.lighting.backgroundColor ) } ); // NOT converting to Linear!
   let centerObject;
   // The ambientLight has to be "invisible" so we don't get an empty node in glTF export.
