@@ -1,5 +1,5 @@
 
-import { createEffect, createMemo, onMount } from "solid-js";
+import { createEffect, createMemo, onCleanup, onMount } from "solid-js";
 import { Vector3, Matrix4, BufferGeometry, Float32BufferAttribute, Color } from "three";
 
 import { T, useThree } from "./util/solid-three.js";
@@ -80,7 +80,7 @@ const Instance = ( props ) =>
   return (
     <T.Group position={ props.position } name={props.id} >
       <T.Mesh matrixAutoUpdate={false} ref={meshRef} geometry={props.geometry}
-          onPointerOver={handleHover(true)} onPointerOut={handleHover(false)} onPointerMove={handlePointerMove}
+          onPointerEnter={handleHover(true)} onPointerLeave={handleHover(false)} onPointerMove={handlePointerMove}
           onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onContextMenu={handleContextMenu}>
         <T.MeshLambertMaterial attach="material" color={color} emissive={emissive()} />
       </T.Mesh>
@@ -143,6 +143,7 @@ const InstancedShape = ( props ) =>
     geometry.setAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
     geometry.computeBoundingSphere();
     geometry.shapeCentroid = centroid( vertices );
+    onCleanup( () => geometry.dispose() );
     return geometry;
   } );
 
@@ -162,9 +163,10 @@ const InstancedShape = ( props ) =>
     geometry .setIndex( indices );
     geometry .setAttribute( 'position', new Float32BufferAttribute( positions, 3 ) );
     geometry .computeBoundingSphere();
+    onCleanup( () => geometry.dispose() );
     return geometry;
   } );
-
+  
   return (
     <>
       <For each={props.shape.instances}>{ instance =>
