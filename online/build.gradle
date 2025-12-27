@@ -65,14 +65,24 @@ sourceSets {
             srcDirs = [ 'src/worker/java', "$projectDir/../core/src/main/java", "$projectDir/../desktop/src/main/java" ]
         }
     }
+    candies {
+        java {
+            srcDirs = [ 'src/worker/java' ]
+            include 'def/**/*.java'
+        }
+    }
 }
 
 dependencies {
     coreCompileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.9.3'
     coreCompileOnly group: 'java3d',                     name: 'vecmath',             version:'1.6.0-final'
 
-    coreCompileOnly group: 'org.jsweet', name: 'jsweet-core', version: "6.1.0"
+    coreCompileOnly group: 'org.jsweet', name: 'jsweet-core', version: "6.3.0"
     coreCompileOnly group: 'org.jsweet', name: 'j4ts',        version: '2.1.0-SNAPSHOT'
+    
+    // Add our custom type definitions (candies) to the classpath
+    candiesCompileOnly group: 'org.jsweet', name: 'jsweet-core', version: "6.3.0"
+    coreCompileOnly sourceSets.candies.output
 }
 
 JavaPluginConvention javaPluginConvention = getConvention().getPlugin(JavaPluginConvention.class);
