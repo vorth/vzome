@@ -62,6 +62,11 @@ namespace com.vzome.jsweet {
             return this.getNumIrrationals();
         }
 
+        parseInt(s: string): number {
+            const f: Function = <any>(this.delegate["parseInt"]);
+            return <any>(f(<any>((<any>(s)))));
+        }
+
         add(v1: number[], v2: number[]): number[] {
             const f: Function = <any>(this.delegate["plus"]);
             return <any>(f(<any>((<any>(v1))), <any>((<any>(v2)))));
@@ -130,11 +135,6 @@ namespace com.vzome.jsweet {
             return new com.vzome.core.algebra.AlgebraicVector(x, y, z);
         }
 
-        /**
-         * 
-         * @param {int[][]} nums
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
         public createVectorFromTDs(nums: number[][]): com.vzome.core.algebra.AlgebraicVector {
             const dims: number = nums.length;
             const coords: com.vzome.core.algebra.AlgebraicNumber[] = (s => { let a=[]; while(s-->0) a.push(null); return a; })(dims);
@@ -266,7 +266,8 @@ namespace com.vzome.jsweet {
             if (n < 0){
                 return this.zero();
             }
-            const factors: number[] = this.zero().toTrailingDivisor();
+            const f: Function = <any>(this.delegate["zeroCopy"]);
+            const factors: number[] = <any>(f());
             factors[n] = factors[factors.length - 1];
             return new com.vzome.jsweet.JsAlgebraicNumber(this, factors);
         }
@@ -275,12 +276,7 @@ namespace com.vzome.jsweet {
             return this.createRational$long$long(wholeNumber, 1);
         }
 
-        /**
-         * 
-         * @param {int[]} trailingDivisorForm
-         * @return {*}
-         */
-        public createAlgebraicNumberFromTD(trailingDivisorForm: number[]): com.vzome.core.algebra.AlgebraicNumber {
+        /*private*/ createAlgebraicNumberFromTD(trailingDivisorForm: number[]): com.vzome.core.algebra.AlgebraicNumber {
             const f: Function = <any>(this.delegate["createNumber"]);
             const simplified: number[] = <any>(f(<any>((<any>(trailingDivisorForm)))));
             return new com.vzome.jsweet.JsAlgebraicNumber(this, simplified);
@@ -317,7 +313,8 @@ namespace com.vzome.jsweet {
         }
 
         public createAlgebraicNumber$int_A$int(numerators: number[], denominator: number): com.vzome.core.algebra.AlgebraicNumber {
-            const factors: number[] = this.zero().toTrailingDivisor();
+            const f: Function = <any>(this.delegate["zeroCopy"]);
+            const factors: number[] = <any>(f());
             java.lang.System.arraycopy(numerators, 0, factors, 0, numerators.length);
             factors[numerators.length] = denominator;
             return this.createAlgebraicNumberFromTD(factors);
@@ -347,7 +344,7 @@ namespace com.vzome.jsweet {
         }
 
         /**
-         * Modeled after AbstractAlgebraicField, with a switch from BigRationals to int[]s.
+         * Modeled after AbstractAlgebraicField, with a switch from ints to int[]s.
          * @param {string} string
          * @param {boolean} isRational
          * @return {*}
@@ -363,8 +360,8 @@ namespace com.vzome.jsweet {
                         throw new java.lang.RuntimeException("VEF format error: \"" + string + "\" has too many factors for " + this.getName() + " field");
                     }
                     const parts: string[] = tokens.nextToken().split("/");
-                    numStack.push(javaemul.internal.IntegerHelper.parseInt(parts[0]));
-                    denomStack.push((parts.length > 1) ? javaemul.internal.IntegerHelper.parseInt(parts[1]) : 1);
+                    numStack.push(this.parseInt(parts[0]));
+                    denomStack.push((parts.length > 1) ? this.parseInt(parts[1]) : 1);
                 }};
                 let i: number = 0;
                 while((!numStack.empty())) {{
@@ -373,8 +370,8 @@ namespace com.vzome.jsweet {
                 }};
             } else {
                 const parts: string[] = string.split("/");
-                pairs[0] = javaemul.internal.IntegerHelper.parseInt(parts[0]);
-                pairs[1] = (parts.length > 1) ? javaemul.internal.IntegerHelper.parseInt(parts[1]) : 1;
+                pairs[0] = this.parseInt(parts[0]);
+                pairs[1] = (parts.length > 1) ? this.parseInt(parts[1]) : 1;
             }
             return this.createAlgebraicNumberFromPairs(pairs);
         }
@@ -466,8 +463,8 @@ namespace com.vzome.jsweet {
             for(let i: number = 0; i < order; i++) {{
                 const digit: string = tokens.nextToken();
                 const parts: string[] = digit.split("/");
-                pairs[i * 2] = javaemul.internal.IntegerHelper.parseInt(parts[0]);
-                if (parts.length > 1)pairs[i * 2 + 1] = javaemul.internal.IntegerHelper.parseInt(parts[1]); else pairs[i * 2 + 1] = 1;
+                pairs[i * 2] = this.parseInt(parts[0]);
+                if (parts.length > 1)pairs[i * 2 + 1] = this.parseInt(parts[1]); else pairs[i * 2 + 1] = 1;
             };}
             return this.createAlgebraicNumberFromPairs(pairs);
         }
@@ -481,20 +478,25 @@ namespace com.vzome.jsweet {
             let div: number = 1;
             if (/* startsWith */((str, searchString, position = 0) => str.substr(position, searchString.length) === searchString)(string, "(")){
                 const closeParen: number = string.indexOf(')');
-                div = javaemul.internal.IntegerHelper.parseInt(string.substring(closeParen + 2));
+                div = this.parseInt(string.substring(closeParen + 2));
                 string = string.substring(1, closeParen);
             }
             let phis: number = 0;
-            const phiIndex: number = string.indexOf("phi");
+            let bump: number = 3;
+            let phiIndex: number = string.indexOf("phi");
+            if (phiIndex < 0){
+                phiIndex = string.indexOf("sqrt2");
+                bump = 5;
+            }
             if (phiIndex >= 0){
                 const part: string = string.substring(0, phiIndex);
-                if (part.length === 0)phis = 1; else if (part === ("-"))phis = -1; else phis = javaemul.internal.IntegerHelper.parseInt(part);
-                string = string.substring(phiIndex + 3);
+                if (part.length === 0)phis = 1; else if (part === ("-"))phis = -1; else phis = this.parseInt(part);
+                string = string.substring(phiIndex + bump);
             }
             let ones: number;
             if (string.length === 0)ones = 0; else {
                 if (/* startsWith */((str, searchString, position = 0) => str.substr(position, searchString.length) === searchString)(string, "+"))string = string.substring(1);
-                ones = javaemul.internal.IntegerHelper.parseInt(string);
+                ones = this.parseInt(string);
             }
             return this.createAlgebraicNumber$int$int$int$int(ones, phis, div, 0);
         }

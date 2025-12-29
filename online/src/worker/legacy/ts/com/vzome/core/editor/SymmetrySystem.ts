@@ -2,6 +2,33 @@
 namespace com.vzome.core.editor {
     export class SymmetrySystem implements com.vzome.core.editor.api.OrbitSource {
         /* Default method injected from com.vzome.core.editor.api.OrbitSource */
+        getOrientations$(): number[][] {
+            return this.getOrientations(false);
+        }
+        /* Default method injected from com.vzome.core.editor.api.OrbitSource */
+        getEmbedding(): number[] {
+            const symmetry: com.vzome.core.math.symmetry.Symmetry = this.getSymmetry();
+            const field: com.vzome.core.algebra.AlgebraicField = symmetry.getField();
+            const embedding: number[] = (s => { let a=[]; while(s-->0) a.push(0); return a; })(16);
+            for(let i: number = 0; i < 3; i++) {{
+                const columnSelect: com.vzome.core.algebra.AlgebraicVector = field.basisVector(3, i);
+                const colRV: com.vzome.core.math.RealVector = symmetry.embedInR3(columnSelect);
+                embedding[i * 4 + 0] = colRV.x;
+                embedding[i * 4 + 1] = colRV.y;
+                embedding[i * 4 + 2] = colRV.z;
+                embedding[i * 4 + 3] = 0.0;
+            };}
+            embedding[12] = 0.0;
+            embedding[13] = 0.0;
+            embedding[14] = 0.0;
+            embedding[15] = 1.0;
+            return embedding;
+        }
+        /* Default method injected from com.vzome.core.editor.api.OrbitSource */
+        getZone(orbit: string, orientation: number): com.vzome.core.math.symmetry.Axis {
+            return this.getSymmetry().getDirection(orbit).getAxis(com.vzome.core.math.symmetry.Symmetry.PLUS, orientation);
+        }
+        /* Default method injected from com.vzome.core.editor.api.OrbitSource */
         public getOrientations(rowMajor?: any): number[][] {
             if (((typeof rowMajor === 'boolean') || rowMajor === null)) {
                 let __args = arguments;
@@ -51,34 +78,7 @@ namespace com.vzome.core.editor {
                 return <any>this.getOrientations$();
             } else throw new Error('invalid overload');
         }
-        /* Default method injected from com.vzome.core.editor.api.OrbitSource */
-        getEmbedding(): number[] {
-            const symmetry: com.vzome.core.math.symmetry.Symmetry = this.getSymmetry();
-            const field: com.vzome.core.algebra.AlgebraicField = symmetry.getField();
-            const embedding: number[] = (s => { let a=[]; while(s-->0) a.push(0); return a; })(16);
-            for(let i: number = 0; i < 3; i++) {{
-                const columnSelect: com.vzome.core.algebra.AlgebraicVector = field.basisVector(3, i);
-                const colRV: com.vzome.core.math.RealVector = symmetry.embedInR3(columnSelect);
-                embedding[i * 4 + 0] = colRV.x;
-                embedding[i * 4 + 1] = colRV.y;
-                embedding[i * 4 + 2] = colRV.z;
-                embedding[i * 4 + 3] = 0.0;
-            };}
-            embedding[12] = 0.0;
-            embedding[13] = 0.0;
-            embedding[14] = 0.0;
-            embedding[15] = 1.0;
-            return embedding;
-        }
-        /* Default method injected from com.vzome.core.editor.api.OrbitSource */
-        getZone(orbit: string, orientation: number): com.vzome.core.math.symmetry.Axis {
-            return this.getSymmetry().getDirection(orbit).getAxis(com.vzome.core.math.symmetry.Symmetry.PLUS, orientation);
-        }
-        /* Default method injected from com.vzome.core.editor.api.OrbitSource */
-        getOrientations$(): number[][] {
-            return this.getOrientations(false);
-        }
-        static logger: java.util.logging.Logger; public static logger_$LI$(): java.util.logging.Logger { if (SymmetrySystem.logger == null) { SymmetrySystem.logger = java.util.logging.Logger.getLogger("com.vzome.core.editor"); }  return SymmetrySystem.logger; }
+        static LOGGER: java.util.logging.Logger; public static LOGGER_$LI$(): java.util.logging.Logger { if (SymmetrySystem.LOGGER == null) { SymmetrySystem.LOGGER = java.util.logging.Logger.getLogger("com.vzome.core.editor"); }  return SymmetrySystem.LOGGER; }
 
         /*private*/ nextNewAxis: number;
 
@@ -150,7 +150,10 @@ namespace com.vzome.core.editor {
                                 const prototype: com.vzome.core.algebra.AlgebraicVector = this.symmetry.getField().parseVector(nums);
                                 orbit = this.symmetry.createNewZoneOrbit(name, 0, com.vzome.core.math.symmetry.Symmetry.NO_ROTATION, prototype);
                             } catch(e) {
-                                console.error("Integer overflow happened while creating orbit: " + name);
+                                if (SymmetrySystem.LOGGER_$LI$().isLoggable(java.util.logging.Level.INFO)){
+                                    const msg: string = "Integer overflow while recreating automatic orbit: " + name + ". Failed to parseVector(\'" + nums + "\').";
+                                    SymmetrySystem.LOGGER_$LI$().info(msg);
+                                }
                                 continue;
                             }
                             orbit.setAutomatic(true);
@@ -158,11 +161,13 @@ namespace com.vzome.core.editor {
                                 const autoNum: number = javaemul.internal.IntegerHelper.parseInt(name);
                                 this.nextNewAxis = Math.max(this.nextNewAxis, autoNum + 1);
                             } catch(e) {
-                                console.error(e.message);
+                                SymmetrySystem.LOGGER_$LI$().fine(e.message);
                             }
                         } else {
                             orbit = this.symmetry.getDirection(name);
-                            if (orbit == null)continue;
+                            if (orbit == null){
+                                continue;
+                            }
                         }
                         this.orbits.add(orbit);
                         let color: com.vzome.core.construction.Color = colors.getColor(com.vzome.core.render.Colors.DIRECTION_$LI$() + orbit.getCanonicalName());
@@ -207,6 +212,10 @@ namespace com.vzome.core.editor {
             }
         }
 
+        /**
+         * 
+         * @return {string}
+         */
         public getName(): string {
             return this.symmetry.getName();
         }
@@ -279,6 +288,11 @@ namespace com.vzome.core.editor {
             return orbit;
         }
 
+        /**
+         * 
+         * @param {com.vzome.core.algebra.AlgebraicVector} vector
+         * @return {com.vzome.core.construction.Color}
+         */
         public getVectorColor(vector: com.vzome.core.algebra.AlgebraicVector): com.vzome.core.construction.Color {
             if (vector == null || vector.isOrigin()){
                 return this.colors.getColor(com.vzome.core.render.Colors.CONNECTOR_$LI$());
@@ -364,7 +378,7 @@ namespace com.vzome.core.editor {
         public setStyle(styleName: string) {
             const result: com.vzome.core.editor.api.Shapes = this.getStyle$java_lang_String(styleName);
             if (result != null)this.shapes = result; else {
-                SymmetrySystem.logger_$LI$().warning("UNKNOWN STYLE NAME: " + styleName);
+                SymmetrySystem.LOGGER_$LI$().warning("UNKNOWN STYLE NAME: " + styleName);
                 this.shapes = this.symmetryPerspective.getDefaultGeometry();
             }
         }

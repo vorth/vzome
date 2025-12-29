@@ -32,6 +32,7 @@ import { ZometoolInstructions } from "../../../wc/zometool/index.jsx";
 import { instructionsCSS } from "../../../wc/zometool/zometool.css.js";
 import { SceneIndexingProvider, SceneProvider, useSceneIndexing } from "../../../viewer/context/scene.jsx";
 import { urlViewerCSS } from "../../../viewer/urlviewer.css.js";
+import { useImageCapture, ImageCaptureProvider } from "../../../viewer/context/export.jsx";
 
 const CONFIGURING = 1;
 const AUTHENTICATING = 2;
@@ -157,12 +158,14 @@ const ConfigPage = () =>
       <fieldset class="viewer-preview">
         <legend><span>viewer preview</span></legend>
         <div class="viewer-preview-inner">
-          <CameraProvider>
-            <SceneProvider index={ sceneIndex() } passive={true} config={{ preview: true, debug: false, labels: true, source: false }}>
-              {/* <ViewerPreview scenesStyle={ state.sharing.style } camera={ copyOfCamera( mainCamera ) } /> */}
-              <ViewerPreview scenesStyle={ state.sharing.style } />
-            </SceneProvider>
-          </CameraProvider>
+          <ImageCaptureProvider>
+            <CameraProvider>
+              <SceneProvider index={ sceneIndex() } passive={true} config={{ preview: true, debug: false, labels: true, source: false }}>
+                {/* <ViewerPreview scenesStyle={ state.sharing.style } camera={ copyOfCamera( mainCamera ) } /> */}
+                <ViewerPreview scenesStyle={ state.sharing.style } />
+              </SceneProvider>
+            </CameraProvider>
+          </ImageCaptureProvider>
         </div>
       </fieldset>
     </div>
@@ -180,65 +183,105 @@ export const SharingDialog = ( props ) =>
   const [ disabled, setDisabled ] = createSignal( true );
   const [ blog, setBlog ] = createSignal( false );
   const [ publish, setPublish ] = createSignal( false );
+  const { setProblem } = useViewer();
 
   const { shareToGitHub } = useEditor();
+  const { captureImage } = useImageCapture();
 
   const TARGET_KEY = 'classic-github-target-details';
 
+  let image = null;
+
   const handleClickOpen = () => {
-    setError( '' );
-    suspendMenuKeyEvents();
-    setDisabled( false );
-    setStage( CONFIGURING );
-    setOpen( true );
-    return;
+
+    // We have to capture the image first, because any other approach
+    // seems to yield an empty image, perhaps due to the dialog messing up
+    // the GPU state.
+    captureImage( 'image/png' ) .then( blob => {
+      if ( blob.size === 0 ) {
+        setProblem( 'Captured image is empty; please report this as a defect' );
+        return;
+      }
+
+      const reader = new FileReader();
+      reader .onloadend = () => {
+        const imageDataUrl = reader.result;
+        image = imageDataUrl .substring( 22 ); // remove "data:image/png;base64,"
+        setError( '' );
+        suspendMenuKeyEvents();
+        setDisabled( false );
+        setStage( CONFIGURING );
+        setOpen( true );
+      }
+      reader .readAsDataURL( blob );
+    });
   };
 
   const handleCancel = () => {
     setOpen( false );
     resumeMenuKeyEvents();
   };
+
+  const reportError = ( message, forUser=message ) => {
+    setError( forUser );
+    console.log( `Error during GitHub share: ${message}` );
+  }
   
-  const nextState = () =>
+  const nextStage = () =>
   {
-    if ( stage()===CONFIGURING ) {
+    const priorStage = stage();
+    if ( priorStage===CONFIGURING ) {
       const target = localStorage .getItem( TARGET_KEY );
-      if ( !!target ) {
-        setStage( CHOOSING_REPO );
-        const stored = JSON.parse( target );
-        setTarget( stored );
-        getUserRepos( stored )
-          .then( repos => {
-            if ( repos.length === 0 ) {
-              setError( 'You are authenticated to GitHub, but no repositories were found.  Please create a repository.' );
-            } else {
-              const { orgName, repoName } = stored;
-              setRepo( orgName + '/' + repoName );
-              setRepos( repos );
-              setDisabled( false );
-            }
-          })
-          .catch( error => {
-            setError( `Unable to list GitHub repos: ${error.message}` );
-          } );
-      } else {
+
+      // Assume we have no token, or a bad token, by default.
+      setDisabled( true );
+      if ( !target  ) {
         setStage( AUTHENTICATING );
-        setDisabled( true );
+        return;
       }
+
+      const stored = JSON.parse( target );
+      setTarget( stored );
+      getUserRepos( stored )
+        .then( repos => {
+          if ( repos.length === 0 ) {
+            setError( 'You are authenticated to GitHub, but no repositories were found.  Please create a repository.' );
+          } else {
+            const { orgName, repoName } = stored;
+            setRepo( orgName + '/' + repoName );
+            setRepos( repos );
+            setStage( CHOOSING_REPO );
+            setDisabled( false );
+          }
+        })
+        .catch( ( { message, status } ) => {
+          if ( status === 500 )
+            reportError( message, 'Your Internet may be disconnected.' );
+          else {
+            console.warn( `Unable to list GitHub repos: ${error.message}; requested a new token from user` );
+            // Don't report an error, just go to the authentication stage; we are assuming
+            //   that the token was expired or invalid.
+            setStage( AUTHENTICATING );
+          }
+        } );
       return;
     }
-    if ( stage()===AUTHENTICATING ) {
-      setStage( CHOOSING_REPO );
+    if ( priorStage===AUTHENTICATING ) {
       getUserRepos( target() )
         .then( repos => {
           setRepo( repos[ 0 ] );
           setRepos( repos );
           setStage( CHOOSING_REPO );
         })
-        .catch( error => setError( `GitHub authentication failed: ${error.message}` ) );
+        .catch( ( { message, status } ) => {
+          if ( status === 500 )
+            reportError( message, 'Your Internet may be disconnected.' );
+          else
+            reportError( message, `Getting repositories failed.` );
+        });
       return;
     }
-    if ( stage()===CHOOSING_REPO ) {
+    if ( priorStage===CHOOSING_REPO ) {
       const [ orgName, repoName ] = repo() .split( '/' );
       const { token, branchName } = target();
       const newTarget = { token, orgName, repoName, branchName };
@@ -246,14 +289,19 @@ export const SharingDialog = ( props ) =>
       localStorage .setItem( TARGET_KEY, JSON.stringify( newTarget ) );
       setStage( UPLOADING );
       setDisabled( true );
-      shareToGitHub( unwrap( target() ), blog(), publish() )
+      shareToGitHub( unwrap( target() ), blog(), publish(), image )
         .then( url => {
           window.open( url, '_blank' );
           setOpen( false );
           resumeMenuKeyEvents();
         })
-        .catch( error => {
-          setError( error );
+        .catch( ({ message, status }) => {
+          if ( status === 500 ) {
+            reportError( message, 'Your Internet may be disconnected.' );
+          } else {
+            //   If we got this far, the token was valid, but the scope may be insufficient.
+            reportError( message, 'Did you grant the "repo" scope to the token?' );
+          }
         });
     }
   }
@@ -291,7 +339,7 @@ export const SharingDialog = ( props ) =>
                 Personal Access Token (classic) for the account.
                 GitHub accounts are free of charge. <Link href='https://github.com/settings/tokens' target="_blank" rel="noopener">
                   Click here to sign in (or sign up) and generate the token.
-                </Link>
+                </Link>   Be sure to select "classic" token generation, and give the token "repo" scope.
               </DialogContentText>
               <TextField onChange={handleTokenEntered}
                 autoFocus
@@ -343,7 +391,7 @@ export const SharingDialog = ( props ) =>
           <Button onClick={handleCancel} color="secondary">
             Cancel
           </Button>
-          <Button disabled={disabled() || error()} onClick={nextState} color="primary">
+          <Button disabled={disabled() || error()} onClick={nextStage} color="primary">
             { stage()===AUTHENTICATING? 'Authenticate' : stage()===CONFIGURING? 'Confirm' : 'Share' }
           </Button>
         </DialogActions>

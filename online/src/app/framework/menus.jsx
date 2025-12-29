@@ -1,6 +1,7 @@
 
-import { mergeProps } from "solid-js";
+import { mergeProps, Show, Switch } from "solid-js";
 
+import { Link } from "@kobalte/core/link";
 import { Menubar } from "@kobalte/core/menubar";
 import { ContextMenu } from "@kobalte/core/context-menu";
 
@@ -176,3 +177,51 @@ export const createCheckboxItem = ( controller ) => ( props ) =>
   return CheckboxItem( mergeProps( { onClick }, props ) );
 }
 
+const DeclarativeMenuItems = props =>
+{
+  return (
+    <For each={props.items}>{ ({ label, action, key, mods, divider, submenu, menuSlot }) =>
+      <Switch fallback={
+
+          <CommandAction label={label} action={action || label} mods={mods || "⌥⌃"} key={key} disabled={props.disabled} />
+
+        }>
+        <Match when={divider}>
+
+          <Divider/>
+
+        </Match>
+        <Match when={submenu}>
+
+          <SubMenu label={label} disabled={props.disabled}>
+            <DeclarativeMenuItems items={submenu} menuSlots={props.menuSlots} disabled={props.disabled} defaultMods={props.defaultMods} />
+          </SubMenu>
+
+        </Match>
+        <Match when={menuSlot}>
+
+          {props.menuSlots[menuSlot]}
+
+        </Match>
+      </Switch>
+    }</For>
+  );
+}
+
+export const DeclarativeMenu = (props) =>
+{
+  return (
+    <Menu label={props.label}>
+      <DeclarativeMenuItems items={props.items} menuSlots={props.menuSlots} disabled={props.disabled} defaultMods={props.defaultMods} />
+      { props.children }
+    </Menu>
+  );
+}
+
+export const LinkItem  = props => (
+  <MenuItem disabled={props.disabled}>
+    <Link class="link" href={props.href} target="_blank" rel="noopener">
+      {props.label}
+    </Link>
+  </MenuItem>
+);

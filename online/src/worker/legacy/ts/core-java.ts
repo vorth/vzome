@@ -759,428 +759,6 @@ namespace java.text {
 
 }
 namespace com.vzome.jsweet {
-    export class JsSelection implements com.vzome.core.editor.api.Selection {
-        /*private*/ adapter: Object;
-
-        /*private*/ field: com.vzome.jsweet.JsAlgebraicField;
-
-        public constructor(field: com.vzome.jsweet.JsAlgebraicField, adapter: Object) {
-            if (this.adapter === undefined) { this.adapter = null; }
-            if (this.field === undefined) { this.field = null; }
-            this.field = field;
-            this.adapter = adapter;
-        }
-
-        setAdapter(adapter: Object) {
-            this.adapter = adapter;
-        }
-
-        /**
-         * 
-         * @return {*}
-         */
-        public iterator(): java.util.Iterator<com.vzome.core.model.Manifestation> {
-            if (this.adapter == null)return java.util.Collections.emptyIterator<any>();
-            const f: Function = <any>(this.adapter["selectedIterator"]);
-            const jSiterator: Iterator<number[][][]> = <Iterator<number[][][]>>f.apply(this.adapter);
-            return new JsSelection.JsSelection$0(this, jSiterator);
-        }
-
-        /**
-         * 
-         */
-        public clear() {
-            (<any>(this.adapter["clearSelection"])).apply(this.adapter);
-        }
-
-        /**
-         * 
-         * @param {*} man
-         * @return {boolean}
-         */
-        public manifestationSelected(man: com.vzome.core.model.Manifestation): boolean {
-            const vectors: number[][][] = (<com.vzome.jsweet.JsManifestation><any>man).getVectors();
-            return <boolean>(<any>(this.adapter["manifestationSelected"])).apply(this.adapter, [vectors]);
-        }
-
-        /**
-         * 
-         * @param {*} man
-         */
-        public select(man: com.vzome.core.model.Manifestation) {
-            const vectors: number[][][] = (<com.vzome.jsweet.JsManifestation><any>man).getVectors();
-            (<any>(this.adapter["select"])).apply(this.adapter, [vectors]);
-        }
-
-        /**
-         * 
-         * @param {*} man
-         */
-        public unselect(man: com.vzome.core.model.Manifestation) {
-            const vectors: number[][][] = (<com.vzome.jsweet.JsManifestation><any>man).getVectors();
-            (<any>(this.adapter["unselect"])).apply(this.adapter, [vectors]);
-        }
-
-        /**
-         * 
-         * @return {number}
-         */
-        public size(): number {
-            return (<number>(<any>(this.adapter["selectionSize"])).apply(this.adapter)|0);
-        }
-
-        /**
-         * 
-         */
-        public gatherGroup() {
-            (<any>(this.adapter["createGroup"])).apply(this.adapter);
-        }
-
-        /**
-         * 
-         */
-        public scatterGroup() {
-            (<any>(this.adapter["disbandGroup"])).apply(this.adapter);
-        }
-
-        /**
-         * 
-         */
-        public gatherGroup211() {
-            (<any>(this.adapter["createLegacyGroup"])).apply(this.adapter);
-        }
-
-        /**
-         * 
-         */
-        public scatterGroup211() {
-            (<any>(this.adapter["disbandLegacyGroup"])).apply(this.adapter);
-        }
-
-        /**
-         * 
-         * @param {*} man
-         */
-        public selectWithGrouping(man: com.vzome.core.model.Manifestation) {
-            if (man == null)return;
-            const vectors: number[][][] = (<com.vzome.jsweet.JsManifestation><any>man).getVectors();
-            (<any>(this.adapter["selectWithGrouping"])).apply(this.adapter, [vectors]);
-        }
-
-        /**
-         * 
-         * @param {*} man
-         */
-        public unselectWithGrouping(man: com.vzome.core.model.Manifestation) {
-            if (man == null)return;
-            const vectors: number[][][] = (<com.vzome.jsweet.JsManifestation><any>man).getVectors();
-            (<any>(this.adapter["unselectWithGrouping"])).apply(this.adapter, [vectors]);
-        }
-
-        /**
-         * 
-         * @return {boolean}
-         */
-        public isSelectionAGroup(): boolean {
-            return <boolean>(<any>(this.adapter["selectionIsGroup"])).apply(this.adapter);
-        }
-
-        /**
-         * 
-         * @param {java.lang.Class} class1
-         * @return {*}
-         */
-        public getSingleSelection(class1: any): com.vzome.core.model.Manifestation {
-            throw new java.lang.RuntimeException("unimplemented getSingleSelection");
-        }
-
-        /**
-         * 
-         * @param {*} bookmarkedSelection
-         */
-        public copy(bookmarkedSelection: java.util.List<com.vzome.core.model.Manifestation>) {
-            throw new java.lang.RuntimeException("unimplemented");
-        }
-    }
-    JsSelection["__class"] = "com.vzome.jsweet.JsSelection";
-    JsSelection["__interfaces"] = ["com.vzome.core.editor.api.Selection","java.lang.Iterable"];
-
-
-
-    export namespace JsSelection {
-
-        export class JsSelection$0 implements java.util.Iterator<com.vzome.core.model.Manifestation> {
-            public __parent: any;
-            peek: IteratorResult<number[][][]>;
-
-            /**
-             * 
-             * @return {boolean}
-             */
-            public hasNext(): boolean {
-                return !this.peek.done;
-            }
-
-            /**
-             * 
-             * @return {*}
-             */
-            public next(): com.vzome.core.model.Manifestation {
-                const result: com.vzome.core.model.Manifestation = com.vzome.jsweet.JsManifestation.manifest(this.peek.value, this.__parent.field, this.__parent.adapter);
-                this.peek = this.jSiterator.next();
-                return result;
-            }
-
-            constructor(__parent: any, private jSiterator: any) {
-                this.__parent = __parent;
-                this.peek = this.jSiterator.next();
-            }
-        }
-        JsSelection$0["__interfaces"] = ["java.util.Iterator"];
-
-
-    }
-
-}
-namespace com.vzome.jsweet {
-    export class JsEditContext implements com.vzome.core.editor.api.Context {
-        public constructor() {
-        }
-
-        /**
-         * 
-         * @param {*} xml
-         * @return {com.vzome.core.editor.api.UndoableEdit}
-         */
-        public createEdit(xml: org.w3c.dom.Element): com.vzome.core.editor.api.UndoableEdit {
-            throw new java.lang.RuntimeException("unimplemented createEdit");
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.editor.api.UndoableEdit} edit
-         */
-        public performAndRecord(edit: com.vzome.core.editor.api.UndoableEdit) {
-            throw new java.lang.RuntimeException("unimplemented performAndRecord");
-        }
-
-        /**
-         * 
-         * @param {string} cmdName
-         * @return {*}
-         */
-        public createLegacyCommand(cmdName: string): com.vzome.core.commands.Command {
-            throw new java.lang.RuntimeException("unimplemented createLegacyCommand");
-        }
-
-        /**
-         * 
-         * @param {string} action
-         * @param {*} props
-         * @return {boolean}
-         */
-        public doEdit(action: string, props: java.util.Map<string, any>): boolean {
-            throw new java.lang.RuntimeException("unimplemented doEdit");
-        }
-    }
-    JsEditContext["__class"] = "com.vzome.jsweet.JsEditContext";
-    JsEditContext["__interfaces"] = ["com.vzome.core.editor.api.Context"];
-
-
-}
-namespace com.vzome.jsweet {
-    export class JsRealizedModel implements com.vzome.core.model.RealizedModel {
-        /*private*/ field: com.vzome.core.algebra.AlgebraicField;
-
-        /*private*/ adapter: Object;
-
-        public constructor(field: com.vzome.core.algebra.AlgebraicField, adapter: Object) {
-            if (this.field === undefined) { this.field = null; }
-            if (this.adapter === undefined) { this.adapter = null; }
-            this.field = field;
-            this.adapter = adapter;
-        }
-
-        setAdapter(adapter: Object) {
-            this.adapter = adapter;
-        }
-
-        /**
-         * 
-         * @return {*}
-         */
-        public iterator(): java.util.Iterator<com.vzome.core.model.Manifestation> {
-            const f: Function = <any>(this.adapter["allIterator"]);
-            const jSiterator: Iterator<number[][][]> = <Iterator<number[][][]>>f.apply(this.adapter);
-            return new JsRealizedModel.JsRealizedModel$0(this, jSiterator);
-        }
-
-        /**
-         * 
-         * @return {*}
-         */
-        public getField(): com.vzome.core.algebra.AlgebraicField {
-            return this.field;
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.construction.Construction} c
-         * @return {*}
-         */
-        public findConstruction(c: com.vzome.core.construction.Construction): com.vzome.core.model.Manifestation {
-            if (c == null)return null;
-            let vectors: number[][][] = com.vzome.jsweet.JsManifestation.canonicalizeConstruction(c);
-            if (vectors == null)return null;
-            vectors = <number[][][]>(<any>(this.adapter["findOrCreateManifestation"])).apply(this.adapter, [vectors]);
-            if (vectors == null)return null;
-            return com.vzome.jsweet.JsManifestation.manifest(vectors, this.field, this.adapter);
-        }
-
-        /**
-         * 
-         * @param {*} man
-         */
-        public remove(man: com.vzome.core.model.Manifestation) {
-            const vectors: number[][][] = (<com.vzome.jsweet.JsManifestation><any>man).getVectors();
-            (<any>(this.adapter["delete"])).apply(this.adapter, [vectors]);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.construction.Construction} c
-         * @return {*}
-         */
-        public getManifestation(c: com.vzome.core.construction.Construction): com.vzome.core.model.Manifestation {
-            return this.findConstruction(c);
-        }
-
-        /**
-         * 
-         * @param {*} man
-         */
-        public show(man: com.vzome.core.model.Manifestation) {
-            const vectors: number[][][] = (<com.vzome.jsweet.JsManifestation><any>man).getVectors();
-            (<any>(this.adapter["showManifestation"])).apply(this.adapter, [vectors]);
-        }
-
-        /**
-         * 
-         * @param {*} man
-         */
-        public hide(man: com.vzome.core.model.Manifestation) {
-            const vectors: number[][][] = (<com.vzome.jsweet.JsManifestation><any>man).getVectors();
-            (<any>(this.adapter["hideManifestation"])).apply(this.adapter, [vectors]);
-        }
-
-        /**
-         * 
-         * @param {*} man
-         * @param {com.vzome.core.construction.Color} color
-         */
-        public setColor(man: com.vzome.core.model.Manifestation, color: com.vzome.core.construction.Color) {
-            (<com.vzome.jsweet.JsManifestation><any>man).setColor(color);
-        }
-
-        /**
-         * 
-         * @param {*} man
-         * @param {string} label
-         */
-        public setLabel(man: com.vzome.core.model.Manifestation, label: string) {
-            (<com.vzome.jsweet.JsManifestation><any>man).setLabel(label);
-        }
-
-        /**
-         * 
-         * @param {*} man
-         */
-        public add(man: com.vzome.core.model.Manifestation) {
-            const vectors: number[][][] = (<com.vzome.jsweet.JsManifestation><any>man).getVectors();
-            (<any>(this.adapter["showManifestation"])).apply(this.adapter, [vectors]);
-        }
-
-        /**
-         * 
-         * @param {string} signature
-         * @return {*}
-         */
-        public findPerEditManifestation(signature: string): com.vzome.core.model.Manifestation {
-            return null;
-        }
-
-        /**
-         * 
-         * @param {string} signature
-         * @param {*} m
-         */
-        public addPerEditManifestation(signature: string, m: com.vzome.core.model.Manifestation) {
-        }
-
-        /**
-         * 
-         */
-        public clearPerEditManifestations() {
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.construction.Construction} c
-         * @return {*}
-         */
-        public removeConstruction(c: com.vzome.core.construction.Construction): com.vzome.core.model.Manifestation {
-            throw new java.lang.RuntimeException("unimplemented");
-        }
-
-        /**
-         * 
-         * @return {number}
-         */
-        public size(): number {
-            throw new java.lang.RuntimeException("unimplemented");
-        }
-    }
-    JsRealizedModel["__class"] = "com.vzome.jsweet.JsRealizedModel";
-    JsRealizedModel["__interfaces"] = ["com.vzome.core.model.RealizedModel","java.lang.Iterable"];
-
-
-
-    export namespace JsRealizedModel {
-
-        export class JsRealizedModel$0 implements java.util.Iterator<com.vzome.core.model.Manifestation> {
-            public __parent: any;
-            peek: IteratorResult<number[][][]>;
-
-            /**
-             * 
-             * @return {boolean}
-             */
-            public hasNext(): boolean {
-                return !this.peek.done;
-            }
-
-            /**
-             * 
-             * @return {*}
-             */
-            public next(): com.vzome.core.model.Manifestation {
-                const result: com.vzome.core.model.Manifestation = com.vzome.jsweet.JsManifestation.manifest(this.peek.value, this.__parent.field, this.__parent.adapter);
-                this.peek = this.jSiterator.next();
-                return result;
-            }
-
-            constructor(__parent: any, private jSiterator: any) {
-                this.__parent = __parent;
-                this.peek = this.jSiterator.next();
-            }
-        }
-        JsRealizedModel$0["__interfaces"] = ["java.util.Iterator"];
-
-
-    }
-
-}
-namespace com.vzome.jsweet {
     export class JsAlgebraicField implements com.vzome.core.algebra.AlgebraicField {
         /* Default method injected from com.vzome.core.algebra.AlgebraicField */
         supportsSubfield(fieldName: string): boolean {
@@ -1241,6 +819,11 @@ namespace com.vzome.jsweet {
          */
         public getNumMultipliers(): number {
             return this.getNumIrrationals();
+        }
+
+        parseInt(s: string): number {
+            const f: Function = <any>(this.delegate["parseInt"]);
+            return <any>(f(<any>((<any>(s)))));
         }
 
         add(v1: number[], v2: number[]): number[] {
@@ -1311,11 +894,6 @@ namespace com.vzome.jsweet {
             return new com.vzome.core.algebra.AlgebraicVector(x, y, z);
         }
 
-        /**
-         * 
-         * @param {int[][]} nums
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
         public createVectorFromTDs(nums: number[][]): com.vzome.core.algebra.AlgebraicVector {
             const dims: number = nums.length;
             const coords: com.vzome.core.algebra.AlgebraicNumber[] = (s => { let a=[]; while(s-->0) a.push(null); return a; })(dims);
@@ -1447,7 +1025,8 @@ namespace com.vzome.jsweet {
             if (n < 0){
                 return this.zero();
             }
-            const factors: number[] = this.zero().toTrailingDivisor();
+            const f: Function = <any>(this.delegate["zeroCopy"]);
+            const factors: number[] = <any>(f());
             factors[n] = factors[factors.length - 1];
             return new com.vzome.jsweet.JsAlgebraicNumber(this, factors);
         }
@@ -1456,12 +1035,7 @@ namespace com.vzome.jsweet {
             return this.createRational$long$long(wholeNumber, 1);
         }
 
-        /**
-         * 
-         * @param {int[]} trailingDivisorForm
-         * @return {*}
-         */
-        public createAlgebraicNumberFromTD(trailingDivisorForm: number[]): com.vzome.core.algebra.AlgebraicNumber {
+        /*private*/ createAlgebraicNumberFromTD(trailingDivisorForm: number[]): com.vzome.core.algebra.AlgebraicNumber {
             const f: Function = <any>(this.delegate["createNumber"]);
             const simplified: number[] = <any>(f(<any>((<any>(trailingDivisorForm)))));
             return new com.vzome.jsweet.JsAlgebraicNumber(this, simplified);
@@ -1498,7 +1072,8 @@ namespace com.vzome.jsweet {
         }
 
         public createAlgebraicNumber$int_A$int(numerators: number[], denominator: number): com.vzome.core.algebra.AlgebraicNumber {
-            const factors: number[] = this.zero().toTrailingDivisor();
+            const f: Function = <any>(this.delegate["zeroCopy"]);
+            const factors: number[] = <any>(f());
             java.lang.System.arraycopy(numerators, 0, factors, 0, numerators.length);
             factors[numerators.length] = denominator;
             return this.createAlgebraicNumberFromTD(factors);
@@ -1528,7 +1103,7 @@ namespace com.vzome.jsweet {
         }
 
         /**
-         * Modeled after AbstractAlgebraicField, with a switch from BigRationals to int[]s.
+         * Modeled after AbstractAlgebraicField, with a switch from ints to int[]s.
          * @param {string} string
          * @param {boolean} isRational
          * @return {*}
@@ -1544,8 +1119,8 @@ namespace com.vzome.jsweet {
                         throw new java.lang.RuntimeException("VEF format error: \"" + string + "\" has too many factors for " + this.getName() + " field");
                     }
                     const parts: string[] = tokens.nextToken().split("/");
-                    numStack.push(javaemul.internal.IntegerHelper.parseInt(parts[0]));
-                    denomStack.push((parts.length > 1) ? javaemul.internal.IntegerHelper.parseInt(parts[1]) : 1);
+                    numStack.push(this.parseInt(parts[0]));
+                    denomStack.push((parts.length > 1) ? this.parseInt(parts[1]) : 1);
                 }};
                 let i: number = 0;
                 while((!numStack.empty())) {{
@@ -1554,8 +1129,8 @@ namespace com.vzome.jsweet {
                 }};
             } else {
                 const parts: string[] = string.split("/");
-                pairs[0] = javaemul.internal.IntegerHelper.parseInt(parts[0]);
-                pairs[1] = (parts.length > 1) ? javaemul.internal.IntegerHelper.parseInt(parts[1]) : 1;
+                pairs[0] = this.parseInt(parts[0]);
+                pairs[1] = (parts.length > 1) ? this.parseInt(parts[1]) : 1;
             }
             return this.createAlgebraicNumberFromPairs(pairs);
         }
@@ -1647,8 +1222,8 @@ namespace com.vzome.jsweet {
             for(let i: number = 0; i < order; i++) {{
                 const digit: string = tokens.nextToken();
                 const parts: string[] = digit.split("/");
-                pairs[i * 2] = javaemul.internal.IntegerHelper.parseInt(parts[0]);
-                if (parts.length > 1)pairs[i * 2 + 1] = javaemul.internal.IntegerHelper.parseInt(parts[1]); else pairs[i * 2 + 1] = 1;
+                pairs[i * 2] = this.parseInt(parts[0]);
+                if (parts.length > 1)pairs[i * 2 + 1] = this.parseInt(parts[1]); else pairs[i * 2 + 1] = 1;
             };}
             return this.createAlgebraicNumberFromPairs(pairs);
         }
@@ -1662,20 +1237,25 @@ namespace com.vzome.jsweet {
             let div: number = 1;
             if (/* startsWith */((str, searchString, position = 0) => str.substr(position, searchString.length) === searchString)(string, "(")){
                 const closeParen: number = string.indexOf(')');
-                div = javaemul.internal.IntegerHelper.parseInt(string.substring(closeParen + 2));
+                div = this.parseInt(string.substring(closeParen + 2));
                 string = string.substring(1, closeParen);
             }
             let phis: number = 0;
-            const phiIndex: number = string.indexOf("phi");
+            let bump: number = 3;
+            let phiIndex: number = string.indexOf("phi");
+            if (phiIndex < 0){
+                phiIndex = string.indexOf("sqrt2");
+                bump = 5;
+            }
             if (phiIndex >= 0){
                 const part: string = string.substring(0, phiIndex);
-                if (part.length === 0)phis = 1; else if (part === ("-"))phis = -1; else phis = javaemul.internal.IntegerHelper.parseInt(part);
-                string = string.substring(phiIndex + 3);
+                if (part.length === 0)phis = 1; else if (part === ("-"))phis = -1; else phis = this.parseInt(part);
+                string = string.substring(phiIndex + bump);
             }
             let ones: number;
             if (string.length === 0)ones = 0; else {
                 if (/* startsWith */((str, searchString, position = 0) => str.substr(position, searchString.length) === searchString)(string, "+"))string = string.substring(1);
-                ones = javaemul.internal.IntegerHelper.parseInt(string);
+                ones = this.parseInt(string);
             }
             return this.createAlgebraicNumber$int$int$int$int(ones, phis, div, 0);
         }
@@ -1759,214 +1339,6 @@ namespace com.vzome.jsweet {
 
 }
 namespace com.vzome.jsweet {
-    export abstract class JsManifestation implements com.vzome.core.model.Manifestation {
-        vectors: number[][][];
-
-        field: com.vzome.core.algebra.AlgebraicField;
-
-        adapter: Object;
-
-        public constructor(field: com.vzome.core.algebra.AlgebraicField, adapter: Object, vectors: number[][][]) {
-            if (this.vectors === undefined) { this.vectors = null; }
-            if (this.field === undefined) { this.field = null; }
-            if (this.adapter === undefined) { this.adapter = null; }
-            this.field = field;
-            this.adapter = adapter;
-            this.vectors = vectors;
-        }
-
-        public getVectors(): number[][][] {
-            return this.vectors;
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.construction.Color}
-         */
-        public getColor(): com.vzome.core.construction.Color {
-            const colorful: boolean = <boolean>(<any>(this.adapter["manifestationHasColor"])).apply(this.adapter, [this.vectors]);
-            if (!colorful)return null;
-            const rgb: number = (<number>(<any>(this.adapter["manifestationColor"])).apply(this.adapter, [this.vectors])|0);
-            return new com.vzome.core.construction.Color(rgb);
-        }
-
-        /**
-         * 
-         * @return {string}
-         */
-        public getLabel(): string {
-            return null;
-        }
-
-        /**
-         * 
-         * @param {string} label
-         */
-        public setLabel(label: string) {
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.construction.Color} color
-         */
-        public setColor(color: com.vzome.core.construction.Color) {
-            if (color != null)(<any>(this.adapter["setManifestationColor"])).apply(this.adapter, [this.vectors, color.getRGB()]);
-        }
-
-        /**
-         * 
-         * @return {boolean}
-         */
-        public isRendered(): boolean {
-            return <boolean>(<any>(this.adapter["manifestationRendered"])).apply(this.adapter, [this.vectors]);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.construction.Construction} mConstruction
-         */
-        public addConstruction(mConstruction: com.vzome.core.construction.Construction) {
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.construction.Construction} mConstruction
-         */
-        public removeConstruction(mConstruction: com.vzome.core.construction.Construction) {
-        }
-
-        /**
-         * 
-         * @return {boolean}
-         */
-        public isUnnecessary(): boolean {
-            return true;
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.construction.Construction}
-         */
-        public getFirstConstruction(): com.vzome.core.construction.Construction {
-            return this.toConstruction();
-        }
-
-        public static canonicalizeNumbers(...ns: com.vzome.core.algebra.AlgebraicNumber[]): number[][] {
-            return <number[][]>java.util.Arrays.stream<any>(ns).map<any>((n) => n.toTrailingDivisor()).toArray();
-        }
-
-        /**
-         * Note: this does NOT order the vectors canonically in the outermost array
-         * @param {com.vzome.core.algebra.AlgebraicVector[]} vs
-         * @return
-         * @return {int[][][]}
-         */
-        public static canonicalizeVectors(...vs: com.vzome.core.algebra.AlgebraicVector[]): number[][][] {
-            return <number[][][]>java.util.Arrays.stream<any>(vs).map<any>((v) => JsManifestation.canonicalizeNumbers.apply(this, v.getComponents())).toArray();
-        }
-
-        public static canonicalizeConstruction(c: com.vzome.core.construction.Construction): number[][][] {
-            if (c != null && c instanceof <any>com.vzome.core.construction.Point){
-                const p: com.vzome.core.construction.Point = <com.vzome.core.construction.Point>c;
-                return JsManifestation.canonicalizeVectors(p.getLocation());
-            } else if (c != null && c instanceof <any>com.vzome.core.construction.Segment){
-                const s: com.vzome.core.construction.Segment = <com.vzome.core.construction.Segment>c;
-                return JsManifestation.canonicalizeVectors(s.getStart(), s.getEnd());
-            } else if (c != null && c instanceof <any>com.vzome.core.construction.Polygon){
-                return JsManifestation.canonicalizeVectors.apply(this, (<com.vzome.core.construction.Polygon>c).getVertices());
-            }
-            return null;
-        }
-
-        public static manifest(vectors: number[][][], field: com.vzome.core.algebra.AlgebraicField, adapter: Object): com.vzome.core.model.Manifestation {
-            switch((vectors.length)) {
-            case 1:
-                return new com.vzome.jsweet.JsBall(field, adapter, vectors);
-            case 2:
-                const strut: com.vzome.jsweet.JsStrut = new com.vzome.jsweet.JsStrut(field, adapter, vectors);
-                if (strut.getOffset().isOrigin())return null; else return strut;
-            default:
-                return new com.vzome.jsweet.JsPanel(field, adapter, vectors);
-            }
-        }
-
-        /**
-         * 
-         * @param {boolean} b
-         */
-        public setHidden(b: boolean) {
-        }
-
-        /**
-         * 
-         * @return {boolean}
-         */
-        public isHidden(): boolean {
-            return <boolean>(<any>(this.adapter["manifestationHidden"])).apply(this.adapter, [this.vectors]);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.model.Group} container
-         */
-        public setContainer(container: com.vzome.core.model.Group) {
-            throw new java.lang.RuntimeException("unimplemented");
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.model.Group}
-         */
-        public getContainer(): com.vzome.core.model.Group {
-            const members: number[][][][] = <number[][][][]>(<any>(this.adapter["getLargestGroup"])).apply(this.adapter, [this.vectors]);
-            if (members == null)return null;
-            const group: com.vzome.core.model.Group = new com.vzome.core.model.Group();
-            for(let i: number = 0; i < members.length; i++) {{
-                group.add(JsManifestation.manifest(members[i], this.field, this.adapter));
-            };}
-            return group;
-        }
-
-        /**
-         * 
-         * @param {*} renderedObject
-         */
-        public setRenderedObject(renderedObject: com.vzome.core.model.RenderedObject) {
-        }
-
-        /**
-         * 
-         * @return {*}
-         */
-        public getConstructions(): java.util.Iterator<com.vzome.core.construction.Construction> {
-            throw new java.lang.RuntimeException("unimplemented");
-        }
-
-        /**
-         * 
-         * @param {*} doc
-         * @return {*}
-         */
-        public getXml(doc: org.w3c.dom.Document): org.w3c.dom.Element {
-            throw new java.lang.RuntimeException("unimplemented");
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
-        public getCentroid(): com.vzome.core.algebra.AlgebraicVector {
-            throw new java.lang.RuntimeException("unimplemented");
-        }
-
-        public abstract getLocation(): any;
-        public abstract toConstruction(): any;    }
-    JsManifestation["__class"] = "com.vzome.jsweet.JsManifestation";
-    JsManifestation["__interfaces"] = ["com.vzome.core.model.GroupElement","com.vzome.core.model.Manifestation"];
-
-
-}
-namespace com.vzome.jsweet {
     export class JsAlgebraicNumber implements com.vzome.core.algebra.AlgebraicNumber {
         /*private*/ field: com.vzome.jsweet.JsAlgebraicField;
 
@@ -1997,10 +1369,10 @@ namespace com.vzome.jsweet {
 
         /**
          * 
-         * @return {int[]}
+         * @return {java.lang.String[]}
          */
-        public toTrailingDivisor(): number[] {
-            return <any>((<any>(this.factors).slice()));
+        public toTrailingDivisor(): string[] {
+            return <any>((<any>(this.factors).map((bi) => bi.toString())));
         }
 
         /**
@@ -2455,58 +1827,6 @@ namespace com.vzome.jsweet {
     JsEditorModel["__class"] = "com.vzome.jsweet.JsEditorModel";
     JsEditorModel["__interfaces"] = ["com.vzome.core.editor.api.EditorModel","com.vzome.core.editor.api.LegacyEditorModel","com.vzome.core.editor.api.ImplicitSymmetryParameters","com.vzome.core.editor.api.SymmetryAware"];
 
-
-}
-namespace com.vzome.jsweet {
-    export class JsAdapter {
-        public static mapVectorToJava(vector: number[][], field: com.vzome.jsweet.JsAlgebraicField): com.vzome.core.algebra.AlgebraicVector {
-            const ans: com.vzome.core.algebra.AlgebraicNumber[] = <com.vzome.core.algebra.AlgebraicNumber[]>java.util.stream.Stream.of<any>(vector).map<any>((ints) => new com.vzome.jsweet.JsAlgebraicNumber(field, ints)).toArray();
-            return new com.vzome.core.algebra.AlgebraicVector(ans);
-        }
-
-        public static mapVectorToJavascript(vector: com.vzome.core.algebra.AlgebraicVector): number[][] {
-            return <number[][]>java.util.stream.Stream.of<any>(vector.getComponents()).map<any>((an) => an.toTrailingDivisor()).toArray();
-        }
-
-        public static getZoneGrid(orbits: com.vzome.core.editor.api.OrbitSource, planeNormal: number[][]): Object {
-            const field: com.vzome.jsweet.JsAlgebraicField = <com.vzome.jsweet.JsAlgebraicField><any>orbits.getSymmetry().getField();
-            const normal: com.vzome.core.algebra.AlgebraicVector = JsAdapter.mapVectorToJava(planeNormal, field);
-            const planeColor: string = orbits.getVectorColor(normal).toWebString();
-            const planeName: string = orbits.getSymmetry()['getAxis$com_vzome_core_algebra_AlgebraicVector'](normal).getOrbit().getName();
-            const zonesList: java.util.ArrayList<Object> = <any>(new java.util.ArrayList<any>());
-            const planeOrbits: com.vzome.core.math.symmetry.PlaneOrbitSet = new com.vzome.core.math.symmetry.PlaneOrbitSet(orbits.getOrbits(), normal);
-            for(const iterator: java.util.Iterator<com.vzome.core.math.symmetry.Axis> = planeOrbits.zones(); iterator.hasNext(); ) {{
-                const zone: com.vzome.core.math.symmetry.Axis = <com.vzome.core.math.symmetry.Axis>iterator.next();
-                const orbit: com.vzome.core.math.symmetry.Direction = zone.getDirection();
-                if (!orbit.isStandard())continue;
-                const gridPoints: java.util.ArrayList<com.vzome.core.algebra.AlgebraicVector> = <any>(new java.util.ArrayList<any>());
-                const zoneNormal: com.vzome.core.algebra.AlgebraicVector = zone.normal();
-                const zoneColor: string = orbits.getVectorColor(zoneNormal).toWebString();
-                let scale: com.vzome.core.algebra.AlgebraicNumber = orbit.getUnitLength();
-                for(let i: number = 0; i < 5; i++) {{
-                    scale = scale['times$com_vzome_core_algebra_AlgebraicNumber'](field.createPower$int(1));
-                    const gridPoint: com.vzome.core.algebra.AlgebraicVector = zoneNormal.scale(scale);
-                    gridPoints.add(gridPoint);
-                };}
-                const vectors: com.vzome.core.algebra.AlgebraicVector[] = gridPoints.stream().toArray<any>((size) => (s => { let a=[]; while(s-->0) a.push(null); return a; })(size));
-                const zoneObj: Object = ((target:Object) => {
-                    target["color"] = zoneColor;
-                    target["vectors"] = vectors;
-                    return target;
-
-                })(new Object());
-                zonesList.add(zoneObj);
-            };}
-            const zones: Object[] = zonesList.stream().toArray<any>((size) => (s => { let a=[]; while(s-->0) a.push(null); return a; })(size));
-            return ((target:Object) => {
-                target["color"] = planeColor;
-                target["zones"] = zones;
-                return target;
-
-            })(new Object());
-        }
-    }
-    JsAdapter["__class"] = "com.vzome.jsweet.JsAdapter";
 
 }
 namespace com.vzome.core.kinds {
@@ -4169,6 +3489,10 @@ namespace com.vzome.core.render {
 
         export class SymmetryOrbitSource implements com.vzome.core.editor.api.OrbitSource {
             /* Default method injected from com.vzome.core.editor.api.OrbitSource */
+            getZone(orbit: string, orientation: number): com.vzome.core.math.symmetry.Axis {
+                return this.getSymmetry().getDirection(orbit).getAxis(com.vzome.core.math.symmetry.Symmetry.PLUS, orientation);
+            }
+            /* Default method injected from com.vzome.core.editor.api.OrbitSource */
             public getOrientations(rowMajor?: any): number[][] {
                 if (((typeof rowMajor === 'boolean') || rowMajor === null)) {
                     let __args = arguments;
@@ -4210,10 +3534,6 @@ namespace com.vzome.core.render {
             /* Default method injected from com.vzome.core.editor.api.OrbitSource */
             getOrientations$(): number[][] {
                 return this.getOrientations(false);
-            }
-            /* Default method injected from com.vzome.core.editor.api.OrbitSource */
-            getZone(orbit: string, orientation: number): com.vzome.core.math.symmetry.Axis {
-                return this.getSymmetry().getDirection(orbit).getAxis(com.vzome.core.math.symmetry.Symmetry.PLUS, orientation);
             }
             /* Default method injected from com.vzome.core.editor.api.OrbitSource */
             getEmbedding(): number[] {
@@ -10921,6 +10241,7 @@ namespace com.vzome.core.math.symmetry {
                     y = y.dividedBy(x);
                     z = z.dividedBy(x);
                     this.canonicalName = "[" + /* replace */java.util.Arrays.toString(y.toTrailingDivisor()).split(" ").join("") + "," + /* replace */java.util.Arrays.toString(z.toTrailingDivisor()).split(" ").join("") + "]";
+                    Direction.logger_$LI$().finer("Direction.canonicalName: " + this.canonicalName);
                 }
             }
             return this.canonicalName;
@@ -17106,6 +16427,10 @@ namespace com.vzome.core.editor {
 namespace com.vzome.core.editor {
     export class SymmetrySystem implements com.vzome.core.editor.api.OrbitSource {
         /* Default method injected from com.vzome.core.editor.api.OrbitSource */
+        getZone(orbit: string, orientation: number): com.vzome.core.math.symmetry.Axis {
+            return this.getSymmetry().getDirection(orbit).getAxis(com.vzome.core.math.symmetry.Symmetry.PLUS, orientation);
+        }
+        /* Default method injected from com.vzome.core.editor.api.OrbitSource */
         public getOrientations(rowMajor?: any): number[][] {
             if (((typeof rowMajor === 'boolean') || rowMajor === null)) {
                 let __args = arguments;
@@ -17160,10 +16485,6 @@ namespace com.vzome.core.editor {
             return this.getOrientations(false);
         }
         /* Default method injected from com.vzome.core.editor.api.OrbitSource */
-        getZone(orbit: string, orientation: number): com.vzome.core.math.symmetry.Axis {
-            return this.getSymmetry().getDirection(orbit).getAxis(com.vzome.core.math.symmetry.Symmetry.PLUS, orientation);
-        }
-        /* Default method injected from com.vzome.core.editor.api.OrbitSource */
         getEmbedding(): number[] {
             const symmetry: com.vzome.core.math.symmetry.Symmetry = this.getSymmetry();
             const field: com.vzome.core.algebra.AlgebraicField = symmetry.getField();
@@ -17182,7 +16503,7 @@ namespace com.vzome.core.editor {
             embedding[15] = 1.0;
             return embedding;
         }
-        static logger: java.util.logging.Logger; public static logger_$LI$(): java.util.logging.Logger { if (SymmetrySystem.logger == null) { SymmetrySystem.logger = java.util.logging.Logger.getLogger("com.vzome.core.editor"); }  return SymmetrySystem.logger; }
+        static LOGGER: java.util.logging.Logger; public static LOGGER_$LI$(): java.util.logging.Logger { if (SymmetrySystem.LOGGER == null) { SymmetrySystem.LOGGER = java.util.logging.Logger.getLogger("com.vzome.core.editor"); }  return SymmetrySystem.LOGGER; }
 
         /*private*/ nextNewAxis: number;
 
@@ -17254,7 +16575,10 @@ namespace com.vzome.core.editor {
                                 const prototype: com.vzome.core.algebra.AlgebraicVector = this.symmetry.getField().parseVector(nums);
                                 orbit = this.symmetry.createNewZoneOrbit(name, 0, com.vzome.core.math.symmetry.Symmetry.NO_ROTATION, prototype);
                             } catch(e) {
-                                console.error("Integer overflow happened while creating orbit: " + name);
+                                if (SymmetrySystem.LOGGER_$LI$().isLoggable(java.util.logging.Level.INFO)){
+                                    const msg: string = "Integer overflow while recreating automatic orbit: " + name + ". Failed to parseVector(\'" + nums + "\').";
+                                    SymmetrySystem.LOGGER_$LI$().info(msg);
+                                }
                                 continue;
                             }
                             orbit.setAutomatic(true);
@@ -17262,11 +16586,13 @@ namespace com.vzome.core.editor {
                                 const autoNum: number = javaemul.internal.IntegerHelper.parseInt(name);
                                 this.nextNewAxis = Math.max(this.nextNewAxis, autoNum + 1);
                             } catch(e) {
-                                console.error(e.message);
+                                SymmetrySystem.LOGGER_$LI$().fine(e.message);
                             }
                         } else {
                             orbit = this.symmetry.getDirection(name);
-                            if (orbit == null)continue;
+                            if (orbit == null){
+                                continue;
+                            }
                         }
                         this.orbits.add(orbit);
                         let color: com.vzome.core.construction.Color = colors.getColor(com.vzome.core.render.Colors.DIRECTION_$LI$() + orbit.getCanonicalName());
@@ -17311,6 +16637,10 @@ namespace com.vzome.core.editor {
             }
         }
 
+        /**
+         * 
+         * @return {string}
+         */
         public getName(): string {
             return this.symmetry.getName();
         }
@@ -17383,6 +16713,11 @@ namespace com.vzome.core.editor {
             return orbit;
         }
 
+        /**
+         * 
+         * @param {com.vzome.core.algebra.AlgebraicVector} vector
+         * @return {com.vzome.core.construction.Color}
+         */
         public getVectorColor(vector: com.vzome.core.algebra.AlgebraicVector): com.vzome.core.construction.Color {
             if (vector == null || vector.isOrigin()){
                 return this.colors.getColor(com.vzome.core.render.Colors.CONNECTOR_$LI$());
@@ -17468,7 +16803,7 @@ namespace com.vzome.core.editor {
         public setStyle(styleName: string) {
             const result: com.vzome.core.editor.api.Shapes = this.getStyle$java_lang_String(styleName);
             if (result != null)this.shapes = result; else {
-                SymmetrySystem.logger_$LI$().warning("UNKNOWN STYLE NAME: " + styleName);
+                SymmetrySystem.LOGGER_$LI$().warning("UNKNOWN STYLE NAME: " + styleName);
                 this.shapes = this.symmetryPerspective.getDefaultGeometry();
             }
         }
@@ -18946,27 +18281,24 @@ namespace com.vzome.core.algebra {
         }
 
         /**
-         * Generates an AlgebraicNumber from a "trailing divisor" int array representation.
-         * @param {int[]} trailingDivisorForm numerators trailed by a common denominator for all numerators
-         * @return
+         * TODO: BigInteger.longValue() may silently lose precision here.
+         * That's why it's deprecated.
+         * I'm going to live with that possibility for now to avoid the overhead
+         * of calling a BigInt version of convertGoldenNumberPairs().
+         * @param {com.vzome.core.algebra.BigRational[]} trailingDivisorForm
          * @return {*}
          */
-        public createAlgebraicNumberFromTD(trailingDivisorForm: number[]): com.vzome.core.algebra.AlgebraicNumber {
-            let terms: number = trailingDivisorForm.length - 1;
-            if (terms === 2 && this.getOrder() > 2){
+        public createAlgebraicNumberFromTD(trailingDivisorForm: com.vzome.core.algebra.BigRational[]): com.vzome.core.algebra.AlgebraicNumber {
+            const terms: number = trailingDivisorForm.length - 1;
+            if (terms === 2 && this.getOrder() > 2 && this.getGoldenRatio() != null){
                 let pairs: number[] = (s => { let a=[]; while(s-->0) a.push(0); return a; })(2 * terms);
-                const divisor: number = trailingDivisorForm[terms];
+                const divisor: number = trailingDivisorForm[terms].getNumerator().longValue();
                 for(let i: number = 0; i < terms; i++) {{
-                    pairs[2 * i + 0] = trailingDivisorForm[i];
+                    pairs[2 * i + 0] = trailingDivisorForm[i].getNumerator().longValue();
                     pairs[2 * i + 1] = divisor;
                 };}
                 pairs = this.convertGoldenNumberPairs(pairs);
-                terms = (pairs.length / 2|0);
-                trailingDivisorForm = (s => { let a=[]; while(s-->0) a.push(0); return a; })(terms + 1);
-                trailingDivisorForm[terms] = (<number>pairs[1]|0);
-                for(let i: number = 0; i < (pairs.length / 2|0); i++) {{
-                    trailingDivisorForm[i] = (<number>pairs[2 * i]|0);
-                };}
+                return this.numberFactory.createAlgebraicNumberFromPairs(this, pairs);
             }
             return this.numberFactory.createAlgebraicNumberFromTD(this, trailingDivisorForm);
         }
@@ -18976,14 +18308,13 @@ namespace com.vzome.core.algebra {
         }
 
         public createAlgebraicNumber$int$int$int$int(ones: number, irrat: number, denominator: number, scalePower: number): com.vzome.core.algebra.AlgebraicNumber {
-            const factors: number[] = (s => { let a=[]; while(s-->0) a.push(0); return a; })(this.order + 1);
+            const factors: number[] = (s => { let a=[]; while(s-->0) a.push(0); return a; })(this.order);
             factors[0] = ones;
             factors[1] = irrat;
-            for(let i: number = 2; i < this.order; i++) {{
+            for(let i: number = 2; i < factors.length; i++) {{
                 factors[i] = 0;
             };}
-            factors[this.order] = denominator;
-            const result: com.vzome.core.algebra.AlgebraicNumber = this.numberFactory.createAlgebraicNumberFromTD(this, factors);
+            const result: com.vzome.core.algebra.AlgebraicNumber = this.numberFactory.createAlgebraicNumber(this, factors, denominator);
             if (scalePower !== 0){
                 const multiplier: com.vzome.core.algebra.AlgebraicNumber = this.createPower$int(scalePower);
                 return result['times$com_vzome_core_algebra_AlgebraicNumber'](multiplier);
@@ -19115,9 +18446,12 @@ namespace com.vzome.core.algebra {
             if (n < 0){
                 return this.zero();
             }
-            const factors: number[] = this.zero().toTrailingDivisor();
-            factors[n] = factors[factors.length - 1];
-            return this.numberFactory.createAlgebraicNumberFromTD(this, factors);
+            const numerators: number[] = (s => { let a=[]; while(s-->0) a.push(0); return a; })(this.getOrder());
+            for(let i: number = 0; i < numerators.length; i++) {{
+                numerators[i] = 0;
+            };}
+            numerators[n] = 1;
+            return this.numberFactory.createAlgebraicNumber(this, numerators, 1);
         }
 
         /**
@@ -19250,7 +18584,7 @@ namespace com.vzome.core.algebra {
                 for(let i: number = 0; i < pairs.length; i++) {{
                     pairs[i] = nums[c][i];
                 };}
-                if (pairs.length === 4 && this.getOrder() > 2){
+                if (pairs.length === 4 && this.getOrder() > 2 && this.getGoldenRatio() != null){
                     pairs = this.convertGoldenNumberPairs(pairs);
                 }
                 coords[c] = this.numberFactory.createAlgebraicNumberFromPairs(this, pairs);
@@ -19258,12 +18592,7 @@ namespace com.vzome.core.algebra {
             return new com.vzome.core.algebra.AlgebraicVector(coords);
         }
 
-        /**
-         * 
-         * @param {int[][]} nums
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
-        public createVectorFromTDs(nums: number[][]): com.vzome.core.algebra.AlgebraicVector {
+        public createVectorFromTDs(nums: com.vzome.core.algebra.BigRational[][]): com.vzome.core.algebra.AlgebraicVector {
             const dims: number = nums.length;
             const coords: com.vzome.core.algebra.AlgebraicNumber[] = (s => { let a=[]; while(s-->0) a.push(null); return a; })(dims);
             for(let c: number = 0; c < coords.length; c++) {{
@@ -19389,36 +18718,37 @@ namespace com.vzome.core.algebra {
          * @return {*}
          */
         public parseVefNumber(string: string, isRational: boolean): com.vzome.core.algebra.AlgebraicNumber {
-            let pairs: number[] = (s => { let a=[]; while(s-->0) a.push(0); return a; })(this.getOrder() * 2);
-            for(let i: number = 1; i < pairs.length; i += 2) {{
-                pairs[i] = 1;
+            const fractions: string[] = (s => { let a=[]; while(s-->0) a.push(null); return a; })(this.getOrder());
+            for(let i: number = 0; i < this.getOrder(); i++) {{
+                fractions[i] = "0/1";
             };}
             if ((!isRational) && /* startsWith */((str, searchString, position = 0) => str.substr(position, searchString.length) === searchString)(string, "(") && /* endsWith */((str, searchString) => { let pos = str.length - searchString.length; let lastIndex = str.indexOf(searchString, pos); return lastIndex !== -1 && lastIndex === pos; })(string, ")")){
                 const tokens: java.util.StringTokenizer = new java.util.StringTokenizer(string.substring(1, string.length - 1), ",");
-                const numStack: java.util.Stack<number> = <any>(new java.util.Stack<any>());
-                const denomStack: java.util.Stack<number> = <any>(new java.util.Stack<any>());
+                const numStack: java.util.Stack<string> = <any>(new java.util.Stack<any>());
+                const denomStack: java.util.Stack<string> = <any>(new java.util.Stack<any>());
                 while((tokens.hasMoreTokens())) {{
                     if (numStack.size() >= this.getOrder()){
                         throw new java.lang.RuntimeException("VEF format error: \"" + string + "\" has too many factors for " + this.getName() + " field");
                     }
                     const parts: string[] = tokens.nextToken().split("/");
-                    numStack.push(javaemul.internal.IntegerHelper.parseInt(parts[0]));
-                    denomStack.push((parts.length > 1) ? javaemul.internal.IntegerHelper.parseInt(parts[1]) : 1);
+                    numStack.push(parts[0]);
+                    denomStack.push((parts.length > 1) ? parts[1] : "1");
                 }};
                 let i: number = 0;
                 while((!numStack.empty())) {{
-                    pairs[i++] = numStack.pop();
-                    pairs[i++] = denomStack.pop();
+                    fractions[i++] = numStack.pop() + "/" + denomStack.pop();
                 }};
-                if (i === 4 && this.getOrder() > 2){
+                if (i === 2 && this.getOrder() > 2 && this.getGoldenRatio() != null){
+                    const fractionParts: string[][] = [fractions[0].split("/"), fractions[1].split("/")];
+                    let pairs: number[] = [javaemul.internal.LongHelper.parseLong(fractionParts[0][0]), javaemul.internal.LongHelper.parseLong(fractionParts[0][1]), javaemul.internal.LongHelper.parseLong(fractionParts[1][0]), javaemul.internal.LongHelper.parseLong(fractionParts[1][1])];
                     pairs = this.convertGoldenNumberPairs([pairs[0], pairs[1], pairs[2], pairs[3]]);
+                    return this.numberFactory.createAlgebraicNumberFromPairs(this, pairs);
                 }
             } else {
                 const parts: string[] = string.split("/");
-                pairs[0] = javaemul.internal.IntegerHelper.parseInt(parts[0]);
-                pairs[1] = (parts.length > 1) ? javaemul.internal.IntegerHelper.parseInt(parts[1]) : 1;
+                fractions[0] = parts[0] + "/" + ((parts.length > 1) ? parts[1] : "1");
             }
-            return this.numberFactory.createAlgebraicNumberFromPairs(this, pairs);
+            return this.parseNumber$java_lang_String(javaemul.internal.StringHelper.join(" ", fractions));
         }
 
         public parseNumber$java_lang_String(nums: string): com.vzome.core.algebra.AlgebraicNumber {
@@ -19441,14 +18771,12 @@ namespace com.vzome.core.algebra {
 
         /*private*/ parseNumber$java_util_StringTokenizer(tokens: java.util.StringTokenizer): com.vzome.core.algebra.AlgebraicNumber {
             const order: number = this.getOrder();
-            const pairs: number[] = (s => { let a=[]; while(s-->0) a.push(0); return a; })(order * 2);
+            const bigs: com.vzome.core.algebra.BigRational[] = (s => { let a=[]; while(s-->0) a.push(null); return a; })(order);
             for(let i: number = 0; i < order; i++) {{
                 const digit: string = tokens.nextToken();
-                const parts: string[] = digit.split("/");
-                pairs[i * 2] = javaemul.internal.LongHelper.parseLong(parts[0]);
-                if (parts.length > 1)pairs[i * 2 + 1] = javaemul.internal.LongHelper.parseLong(parts[1]); else pairs[i * 2 + 1] = 1;
+                bigs[i] = this.numberFactory.parseBigRational(digit);
             };}
-            return this.numberFactory.createAlgebraicNumberFromPairs(this, pairs);
+            return this.numberFactory.createAlgebraicNumberFromBRs(this, bigs);
         }
 
         /**
@@ -19923,11 +19251,28 @@ namespace com.vzome.core.algebra {
      * Immutable Abstract Data Type for arbitrarily large rational numbers.
      * @class
      */
-    export interface BigRational extends com.vzome.core.algebra.Fields.Element<BigRational> {
+    export interface BigRational extends com.vzome.core.algebra.Fields.RationalElement<java.math.BigInteger, BigRational> {
         isNegative(): boolean;
     }
 }
 namespace com.vzome.core.algebra {
+    /**
+     * @author vorth
+     * 
+     * This interface exists so that the AlgegraicField and AlgebraicNumber interfaces do not
+     * need to depend on BigRational.  We need this because we have two kinds of AlgebraicField
+     * implementations in Javascript: ones that use BigRational and are transpiled from Java, and
+     * ones that are reimplemented in native Javascript using BigInt in trailing-denominator format.
+     * 
+     * For the transpiled field implementations, we have implementations of AlgebraicNumberFactory,
+     * AlgebraicNumber (JavaAlgebraicNumber), and BigRational reimplemented in Javascript.
+     * 
+     * For the native Javascript field implementations, we have a *different* implementation of
+     * AlgebraicNumber (JsAlgebraicNumber) that does not use a factory at all.
+     * 
+     * We also have the Java implementation of this interface, AlgebraicNumberImpl.FACTORY.
+     * @class
+     */
     export interface AlgebraicNumberFactory {
         zero(): com.vzome.core.algebra.BigRational;
 
@@ -19935,11 +19280,15 @@ namespace com.vzome.core.algebra {
 
         createBigRational(numerator: number, denominator: number): com.vzome.core.algebra.BigRational;
 
+        parseBigRational(str: string): com.vzome.core.algebra.BigRational;
+
         createAlgebraicNumber(field: com.vzome.core.algebra.AlgebraicField, numerators: number[], divisor: number): com.vzome.core.algebra.AlgebraicNumber;
 
-        createAlgebraicNumberFromTD(field: com.vzome.core.algebra.AlgebraicField, trailingDivisorForm: number[]): com.vzome.core.algebra.AlgebraicNumber;
+        createAlgebraicNumberFromTD(field: com.vzome.core.algebra.AlgebraicField, trailingDivisorForm: com.vzome.core.algebra.BigRational[]): com.vzome.core.algebra.AlgebraicNumber;
 
         createAlgebraicNumberFromPairs(field: com.vzome.core.algebra.AlgebraicField, pairs: number[]): com.vzome.core.algebra.AlgebraicNumber;
+
+        createAlgebraicNumberFromBRs(field: com.vzome.core.algebra.AlgebraicField, pairs: com.vzome.core.algebra.BigRational[]): com.vzome.core.algebra.AlgebraicNumber;
 
         createRational(field: com.vzome.core.algebra.AlgebraicField, numerator: number, denominator: number): com.vzome.core.algebra.AlgebraicNumber;
 
@@ -19968,14 +19317,6 @@ namespace com.vzome.core.algebra {
         nearestAlgebraicVector(target: com.vzome.core.math.RealVector): com.vzome.core.algebra.AlgebraicVector;
 
         getName(): string;
-
-        /**
-         * Generates an AlgebraicNumber from a "trailing divisor" int array representation.
-         * @param {int[]} trailingDivisorForm numerators trailed by a common denominator for all numerators
-         * @return
-         * @return {*}
-         */
-        createAlgebraicNumberFromTD(trailingDivisorForm: number[]): com.vzome.core.algebra.AlgebraicNumber;
 
         createAlgebraicNumber(ones?: any, irrat?: any, denominator?: any, scalePower?: any): com.vzome.core.algebra.AlgebraicNumber;
 
@@ -20054,17 +19395,6 @@ namespace com.vzome.core.algebra {
          * @return {com.vzome.core.algebra.AlgebraicVector} an AlgebraicVector
          */
         createVector(nums: number[][]): com.vzome.core.algebra.AlgebraicVector;
-
-        /**
-         * 
-         * @param {int[][]} nums nums is an array of integer arrays: One array of coordinate terms per dimension.
-         * Each inner array is in "trailing divisor" form, to represent a rational AlgebraicNumber.
-         * If the order of the field is N, each inner array will be of length N+1, with the last
-         * element being the divisor.
-         * @return
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
-        createVectorFromTDs(nums: number[][]): com.vzome.core.algebra.AlgebraicVector;
 
         /**
          * Generates an AlgebraicVector with all AlgebraicNumber terms being integers (having unit denominators).
@@ -20455,7 +19785,7 @@ namespace com.vzome.core.algebra {
          */
         toString(format: number): string;
 
-        toTrailingDivisor(): number[];
+        toTrailingDivisor(): string[];
     }
 
     export namespace AlgebraicNumber {
@@ -20937,7 +20267,7 @@ namespace com.vzome.desktop.controller {
                 this.doAction(action);
             } catch(ex) {
                 console.error(ex.message, ex);
-                this.mErrors.reportError(com.vzome.desktop.api.Controller.UNKNOWN_ERROR_CODE, [ex]);
+                this.mErrors.reportError(com.vzome.desktop.api.Controller.UNKNOWN_ERROR_CODE, [ex, action]);
             }
         }
 
@@ -22020,276 +21350,6 @@ namespace com.vzome.core.math {
     RealVector["__class"] = "com.vzome.core.math.RealVector";
 
 }
-namespace com.vzome.jsweet {
-    export class JsPanel extends com.vzome.jsweet.JsManifestation implements com.vzome.core.model.Panel {
-        public constructor(field: com.vzome.core.algebra.AlgebraicField, adapter: Object, coords: number[][][]) {
-            super(field, adapter, coords);
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.construction.Construction}
-         */
-        public toConstruction(): com.vzome.core.construction.Construction {
-            const projected: java.util.List<com.vzome.core.construction.Point> = <any>(new java.util.ArrayList<com.vzome.core.construction.Point>());
-            for(let i: number = 0; i < this.vectors.length; i++) {{
-                const pt: com.vzome.core.algebra.AlgebraicVector = (<com.vzome.jsweet.JsAlgebraicField><any>this.field).createVectorFromTDs(this.vectors[i]);
-                projected.add(new com.vzome.core.construction.FreePoint(this.field.projectTo3d(pt, true)));
-            };}
-            return new com.vzome.core.construction.PolygonFromVertices(projected);
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
-        public getLocation(): com.vzome.core.algebra.AlgebraicVector {
-            return null;
-        }
-
-        public getNormal$(): com.vzome.core.algebra.AlgebraicVector {
-            return this.getZoneVector();
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
-        public getZoneVector(): com.vzome.core.algebra.AlgebraicVector {
-            const v0: com.vzome.core.algebra.AlgebraicVector = (<com.vzome.jsweet.JsAlgebraicField><any>this.field).createVectorFromTDs(this.vectors[0]);
-            const v1: com.vzome.core.algebra.AlgebraicVector = (<com.vzome.jsweet.JsAlgebraicField><any>this.field).createVectorFromTDs(this.vectors[1]);
-            const v2: com.vzome.core.algebra.AlgebraicVector = (<com.vzome.jsweet.JsAlgebraicField><any>this.field).createVectorFromTDs(this.vectors[2]);
-            return com.vzome.core.algebra.AlgebraicVectors.getNormal$com_vzome_core_algebra_AlgebraicVector$com_vzome_core_algebra_AlgebraicVector$com_vzome_core_algebra_AlgebraicVector(v0, v1, v2);
-        }
-
-        /**
-         * 
-         * @return {*}
-         */
-        public iterator(): java.util.Iterator<com.vzome.core.algebra.AlgebraicVector> {
-            return new JsPanel.JsPanel$0(this);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.algebra.AlgebraicVector} vector
-         */
-        public setZoneVector(vector: com.vzome.core.algebra.AlgebraicVector) {
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
-        public getFirstVertex(): com.vzome.core.algebra.AlgebraicVector {
-            return (<com.vzome.jsweet.JsAlgebraicField><any>this.field).createVectorFromTDs(this.vectors[0]);
-        }
-
-        /**
-         * 
-         * @return {number}
-         */
-        public getVertexCount(): number {
-            return this.vectors.length;
-        }
-
-        /**
-         * 
-         * @return {*}
-         */
-        public getQuadrea(): com.vzome.core.algebra.AlgebraicNumber {
-            return this.field.one();
-        }
-
-        public getNormal$com_vzome_core_math_symmetry_Embedding(embedding: com.vzome.core.math.symmetry.Embedding): com.vzome.core.math.RealVector {
-            throw new java.lang.RuntimeException("unimplemented");
-        }
-
-        /**
-         * 
-         * @param {*} embedding
-         * @return {com.vzome.core.math.RealVector}
-         */
-        public getNormal(embedding?: any): any {
-            if (((embedding != null && (embedding.constructor != null && embedding.constructor["__interfaces"] != null && embedding.constructor["__interfaces"].indexOf("com.vzome.core.math.symmetry.Embedding") >= 0)) || embedding === null)) {
-                return <any>this.getNormal$com_vzome_core_math_symmetry_Embedding(embedding);
-            } else if (embedding === undefined) {
-                return <any>this.getNormal$();
-            } else throw new Error('invalid overload');
-        }
-    }
-    JsPanel["__class"] = "com.vzome.jsweet.JsPanel";
-    JsPanel["__interfaces"] = ["com.vzome.core.model.GroupElement","com.vzome.core.model.Panel","com.vzome.core.model.Manifestation","java.lang.Iterable"];
-
-
-
-    export namespace JsPanel {
-
-        export class JsPanel$0 implements java.util.Iterator<com.vzome.core.algebra.AlgebraicVector> {
-            public __parent: any;
-            i: number;
-
-            /**
-             * 
-             * @return {boolean}
-             */
-            public hasNext(): boolean {
-                return this.i < this.__parent.vectors.length;
-            }
-
-            /**
-             * 
-             * @return {com.vzome.core.algebra.AlgebraicVector}
-             */
-            public next(): com.vzome.core.algebra.AlgebraicVector {
-                return (<com.vzome.jsweet.JsAlgebraicField><any>this.__parent.field).createVectorFromTDs(this.__parent.vectors[this.i++]);
-            }
-
-            constructor(__parent: any) {
-                this.__parent = __parent;
-                this.i = 0;
-            }
-        }
-        JsPanel$0["__interfaces"] = ["java.util.Iterator"];
-
-
-    }
-
-}
-namespace com.vzome.jsweet {
-    export class JsBall extends com.vzome.jsweet.JsManifestation implements com.vzome.core.model.Connector {
-        public constructor(field: com.vzome.core.algebra.AlgebraicField, adapter: Object, coords: number[][][]) {
-            super(field, adapter, coords);
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
-        public getLocation(): com.vzome.core.algebra.AlgebraicVector {
-            return (<com.vzome.jsweet.JsAlgebraicField><any>this.field).createVectorFromTDs(this.vectors[0]);
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.construction.Construction}
-         */
-        public toConstruction(): com.vzome.core.construction.Construction {
-            return new com.vzome.core.construction.FreePoint(this.getLocation());
-        }
-
-        /**
-         * 
-         * @param {*} other
-         * @return {number}
-         */
-        public compareTo(other: com.vzome.core.model.Connector): number {
-            if (this === other){
-                return 0;
-            }
-            if (/* equals */(<any>((o1: any, o2: any) => { if (o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(other,this))){
-                return 0;
-            }
-            return this.getLocation().compareTo(other.getLocation());
-        }
-    }
-    JsBall["__class"] = "com.vzome.jsweet.JsBall";
-    JsBall["__interfaces"] = ["com.vzome.core.model.GroupElement","com.vzome.core.model.Connector","java.lang.Comparable","com.vzome.core.model.Manifestation"];
-
-
-}
-namespace com.vzome.jsweet {
-    export class JsStrut extends com.vzome.jsweet.JsManifestation implements com.vzome.core.model.Strut {
-        public constructor(field: com.vzome.core.algebra.AlgebraicField, adapter: Object, coords: number[][][]) {
-            super(field, adapter, coords);
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
-        public getLocation(): com.vzome.core.algebra.AlgebraicVector {
-            return (<com.vzome.jsweet.JsAlgebraicField><any>this.field).createVectorFromTDs(this.vectors[0]);
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.construction.Construction}
-         */
-        public toConstruction(): com.vzome.core.construction.Construction {
-            return new com.vzome.core.construction.SegmentJoiningPoints(new com.vzome.core.construction.FreePoint(this.getLocation()), new com.vzome.core.construction.FreePoint(this.getEnd()));
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
-        public getEnd(): com.vzome.core.algebra.AlgebraicVector {
-            return (<com.vzome.jsweet.JsAlgebraicField><any>this.field).createVectorFromTDs(this.vectors[1]);
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
-        public getOffset(): com.vzome.core.algebra.AlgebraicVector {
-            const start: com.vzome.core.algebra.AlgebraicVector = this.getLocation();
-            const end: com.vzome.core.algebra.AlgebraicVector = this.getEnd();
-            return end.minus(start);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.algebra.AlgebraicVector} vector
-         */
-        public setZoneVector(vector: com.vzome.core.algebra.AlgebraicVector) {
-        }
-
-        /**
-         * 
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
-        public getZoneVector(): com.vzome.core.algebra.AlgebraicVector {
-            return this.getOffset();
-        }
-
-        /**
-         * 
-         * @param {*} other
-         * @return {number}
-         */
-        public compareTo(other: com.vzome.core.model.Strut): number {
-            if (this === other){
-                return 0;
-            }
-            if (/* equals */(<any>((o1: any, o2: any) => { if (o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(other,this))){
-                return 0;
-            }
-            const thisFirst: com.vzome.core.algebra.AlgebraicVector = this.getCanonicalLesserEnd();
-            const thisLast: com.vzome.core.algebra.AlgebraicVector = this.getCanonicalGreaterEnd();
-            const otherFirst: com.vzome.core.algebra.AlgebraicVector = other.getCanonicalLesserEnd();
-            const otherLast: com.vzome.core.algebra.AlgebraicVector = other.getCanonicalGreaterEnd();
-            const comparison: number = thisFirst.compareTo(otherFirst);
-            return (comparison === 0) ? thisLast.compareTo(otherLast) : comparison;
-        }
-
-        public getCanonicalLesserEnd(): com.vzome.core.algebra.AlgebraicVector {
-            const m_end1: com.vzome.core.algebra.AlgebraicVector = this.getLocation();
-            const m_end2: com.vzome.core.algebra.AlgebraicVector = this.getEnd();
-            return (m_end1.compareTo(m_end2) < 0) ? m_end1 : m_end2;
-        }
-
-        public getCanonicalGreaterEnd(): com.vzome.core.algebra.AlgebraicVector {
-            const m_end1: com.vzome.core.algebra.AlgebraicVector = this.getLocation();
-            const m_end2: com.vzome.core.algebra.AlgebraicVector = this.getEnd();
-            return (m_end1.compareTo(m_end2) > 0) ? m_end1 : m_end2;
-        }
-    }
-    JsStrut["__class"] = "com.vzome.jsweet.JsStrut";
-    JsStrut["__interfaces"] = ["com.vzome.core.model.GroupElement","com.vzome.core.model.Strut","java.lang.Comparable","com.vzome.core.model.Manifestation"];
-
-
-}
 namespace com.vzome.core.kinds {
     export class OctahedralSymmetryPerspective extends com.vzome.core.kinds.AbstractSymmetryPerspective {
         public constructor(field: com.vzome.core.algebra.AlgebraicField) {
@@ -22435,10 +21495,10 @@ namespace com.vzome.core.kinds {
                     const tinyShapes: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "tiny", "tiny connectors", this.symmetry);
                     const tinyDodecs: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "dodecs", "small dodecahedra", "tiny dodecahedra", this.symmetry, tinyShapes);
                     const bigZome: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "bigzome", "Big Zome", this.symmetry, tinyShapes);
-                    const noTwist: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "noTwist", "no-twist 121 zone", this.symmetry, true);
+                    const noTwist: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "noTwist", "no-twist 121 zone", null, this.symmetry);
                     const vienne2: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "vienne2", "Vienne", this.symmetry, icosadefaultShapes);
                     const vienne3: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "vienne3", "Vienne lifelike", this.symmetry, vienne2);
-                    const vienne: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "vienne", "Vienne 121 zone", this.symmetry, true);
+                    const vienne: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "vienne", "Vienne 121 zone", null, this.symmetry);
                     const dimtoolShapes: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "dimtool", "dimtool", this.symmetry, icosadefaultShapes);
                     this.setDefaultGeometry(printableShapes);
                     this.addShapes(icosadefaultShapes);
@@ -22485,10 +21545,10 @@ namespace com.vzome.core.kinds {
                 const tinyShapes: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "tiny", "tiny connectors", this.symmetry);
                 const tinyDodecs: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "dodecs", "small dodecahedra", "tiny dodecahedra", this.symmetry, tinyShapes);
                 const bigZome: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "bigzome", "Big Zome", this.symmetry, tinyShapes);
-                const noTwist: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "noTwist", "no-twist 121 zone", this.symmetry, true);
+                const noTwist: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "noTwist", "no-twist 121 zone", null, this.symmetry);
                 const vienne2: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "vienne2", "Vienne", this.symmetry, icosadefaultShapes);
                 const vienne3: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "vienne3", "Vienne lifelike", this.symmetry, vienne2);
-                const vienne: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "vienne", "Vienne 121 zone", this.symmetry, true);
+                const vienne: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "vienne", "Vienne 121 zone", null, this.symmetry);
                 const dimtoolShapes: com.vzome.core.viewing.AbstractShapes = new com.vzome.core.viewing.ExportedVEFShapes(null, "dimtool", "dimtool", this.symmetry, icosadefaultShapes);
                 this.setDefaultGeometry(printableShapes);
                 this.addShapes(icosadefaultShapes);
@@ -26907,33 +25967,6 @@ namespace com.vzome.core.viewing {
                 {
                     let __args = arguments;
                     let alias: any = null;
-                    {
-                        let __args = arguments;
-                        let isSnub: any = false;
-                        super(pkgName, name, alias, symm);
-                        if (this.fallback === undefined) { this.fallback = null; } 
-                        if (this.isSnub === undefined) { this.isSnub = false; } 
-                        this.colors = new java.util.Properties();
-                        this.fallback = fallback;
-                        this.isSnub = isSnub;
-                        const colorProps: string = ExportedVEFShapes.MODEL_PREFIX + pkgName + "/colors.properties";
-                        const resource: string = com.vzome.xml.ResourceLoader.loadStringResource(colorProps);
-                        if (resource != null)try {
-                            const inputStream: java.io.InputStream = new java.io.ByteArrayInputStream(/* getBytes */(resource).split('').map(s => s.charCodeAt(0)));
-                            this.colors.load(inputStream);
-                        } catch(ioe) {
-                            if (ExportedVEFShapes.LOGGER_$LI$().isLoggable(java.util.logging.Level.FINE))ExportedVEFShapes.LOGGER_$LI$().fine("problem with shape color properties: " + colorProps);
-                        }
-                    }
-                }
-            } else if (((prefsFolder != null && prefsFolder instanceof <any>java.io.File) || prefsFolder === null) && ((typeof pkgName === 'string') || pkgName === null) && ((typeof name === 'string') || name === null) && ((alias != null && (alias.constructor != null && alias.constructor["__interfaces"] != null && alias.constructor["__interfaces"].indexOf("com.vzome.core.math.symmetry.Symmetry") >= 0)) || alias === null) && ((typeof symm === 'boolean') || symm === null) && fallback === undefined && isSnub === undefined) {
-                let __args = arguments;
-                let symm: any = __args[3];
-                let useZomic: any = __args[4];
-                {
-                    let __args = arguments;
-                    let alias: any = null;
-                    let fallback: any = new com.vzome.core.viewing.OctahedralShapes(__args[1], __args[2], __args[4]);
                     {
                         let __args = arguments;
                         let isSnub: any = false;
@@ -33412,9 +32445,9 @@ namespace com.vzome.desktop.controller {
                 for(let i: number = 1; i < order; i++) {result[i] = this.field['getIrrational$int'](i);}
                 return result;
             case "values":
-                const td: number[] = this.value.toTrailingDivisor();
+                const td: string[] = this.value.toTrailingDivisor();
                 result = (s => { let a=[]; while(s-->0) a.push(null); return a; })(td.length);
-                for(let i: number = 0; i < td.length; i++) {result[i] = /* toString */(''+(td[i]));}
+                for(let i: number = 0; i < td.length; i++) {result[i] = td[i];}
                 return result;
             case "named-values":
                 return this.getNamedValues();
@@ -33459,11 +32492,13 @@ namespace com.vzome.desktop.controller {
         public setModelProperty(property: string, value: any) {
             switch((property)) {
             case "values":
-                const values: java.util.StringTokenizer = new java.util.StringTokenizer(<string>value);
-                const inputs: number[] = (s => { let a=[]; while(s-->0) a.push(0); return a; })(this.field.getOrder());
-                let divisor: number = 1;
-                for(let i: number = 0; values.hasMoreTokens(); i++) {if (i < inputs.length)inputs[i] = javaemul.internal.IntegerHelper.parseInt(values.nextToken()); else divisor = javaemul.internal.IntegerHelper.parseInt(values.nextToken());;}
-                this.value = this.field['createAlgebraicNumber$int_A'](inputs).dividedBy(this.field['createRational$long'](divisor));
+                const tokens: string[] = (<string>value).split(" ");
+                const divisor: string = tokens[tokens.length - 1];
+                let rejoined: string = "";
+                for(let i: number = 0; i < tokens.length - 1; i++) {{
+                    rejoined += tokens[i] + "/" + divisor + " ";
+                };}
+                this.value = this.field.parseNumber(rejoined);
                 return;
             case "named-value":
                 this.setValueByName(/* valueOf */String(value).toString());
@@ -36143,6 +35178,7 @@ namespace com.vzome.fields.sqrtphi {
                 case com.vzome.api.Tool.Kind.TRANSFORM:
                     result.add(new com.vzome.core.tools.ScalingToolFactory(tools, pentaSymm).createPredefinedTool("scale down"));
                     result.add(new com.vzome.core.tools.ScalingToolFactory(tools, pentaSymm).createPredefinedTool("scale up"));
+                    result.add(new com.vzome.core.tools.RotationToolFactory(tools, pentaSymm, false).createPredefinedTool("fivefold rotation through origin"));
                     result.add(new com.vzome.core.tools.RotationToolFactory(tools, pentaSymm, true).createPredefinedTool("fivefold rotation through origin"));
                     break;
                 default:
@@ -41014,15 +40050,12 @@ namespace com.vzome.core.algebra {
          */
         public getUnitDiagonal(n: number): com.vzome.core.algebra.AlgebraicNumber {
             if (n >= this.getOrder() && n < this.diagonalCount()){
-                const terms: number[] = this.zero().toTrailingDivisor();
+                const numerators: number[] = (s => { let a=[]; while(s-->0) a.push(0); return a; })(this.getOrder());
                 const row: number = n - this.getOrder();
-                for(let i: number = 0; i < this.getOrder(); i++) {{
-                    const term: number = this.normalizerMatrix[row][i];
-                    if (term !== 0){
-                        terms[i] = term;
-                    }
+                for(let i: number = 0; i < numerators.length; i++) {{
+                    numerators[i] = this.normalizerMatrix[row][i];
                 };}
-                return this.createAlgebraicNumberFromTD(terms);
+                return this.numberFactory.createAlgebraicNumber(this, numerators, 1);
             }
             return super.getUnitTerm(n);
         }
@@ -46566,6 +45599,10 @@ namespace com.vzome.core.edits {
         export class ReplaceWithShape$0 implements com.vzome.core.editor.api.OrbitSource {
             public __parent: any;
             /* Default method injected from com.vzome.core.editor.api.OrbitSource */
+            getZone(orbit: string, orientation: number): com.vzome.core.math.symmetry.Axis {
+                return this.getSymmetry().getDirection(orbit).getAxis(com.vzome.core.math.symmetry.Symmetry.PLUS, orientation);
+            }
+            /* Default method injected from com.vzome.core.editor.api.OrbitSource */
             public getOrientations(rowMajor?: any): number[][] {
                 if (((typeof rowMajor === 'boolean') || rowMajor === null)) {
                     let __args = arguments;
@@ -46605,10 +45642,6 @@ namespace com.vzome.core.edits {
             /* Default method injected from com.vzome.core.editor.api.OrbitSource */
             getOrientations$(): number[][] {
                 return this.getOrientations(false);
-            }
-            /* Default method injected from com.vzome.core.editor.api.OrbitSource */
-            getZone(orbit: string, orientation: number): com.vzome.core.math.symmetry.Axis {
-                return this.getSymmetry().getDirection(orbit).getAxis(com.vzome.core.math.symmetry.Symmetry.PLUS, orientation);
             }
             /* Default method injected from com.vzome.core.editor.api.OrbitSource */
             getEmbedding(): number[] {
@@ -51796,7 +50829,7 @@ com.vzome.xml.ResourceLoader.logger_$LI$();
 
 com.vzome.xml.ResourceLoader.RESOURCE_LOADER_$LI$();
 
-com.vzome.core.editor.SymmetrySystem.logger_$LI$();
+com.vzome.core.editor.SymmetrySystem.LOGGER_$LI$();
 
 com.vzome.core.editor.SelectionSummary.LOGGER_$LI$();
 
