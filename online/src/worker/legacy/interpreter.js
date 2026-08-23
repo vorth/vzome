@@ -1,5 +1,5 @@
 
-import { com } from './core-java.js';
+import { Branch } from './ts/com/vzome/core/editor/Branch.js';
 import { realizeShape, normalizeRenderedManifestation } from './scenes.js';
 
 //  Right now this is duplicated!
@@ -214,7 +214,7 @@ export class EditCursor
 
   startBranch( parsedEdit, editContext )
   {
-    const branch = new com.vzome.core.editor.Branch( editContext );
+    const branch = new Branch( editContext );
     this.history .addEdit( branch, editContext );
     parsedEdit .legacyEdit = branch; // oops, violating encapsulation
     return new EditCursor( branch, parsedEdit.firstChild() );

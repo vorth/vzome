@@ -196,7 +196,7 @@ const openDesign = async ( xmlLoading, name, report, debug, polygons, shapshot=D
         importZomic() .then( async (zomic) => {
           const api = await legacy .initialize();
           const field = api .getField( 'golden' );
-          field .setInterpreterModule( zomic, legacy .vzomePkg );
+          field .setInterpreterModule( zomic );
           doLoad()
             .catch( error => {
               console.log( `openDesign failure: ${error.message}` );
@@ -253,7 +253,7 @@ const shareToGitHub = async ( target, config, data, report ) =>
       const creation = ( originalDate || new Date() ) .toISOString();
       const date = creation .substring( 0, 10 );
       const time = creation .substring( 11 ) .replaceAll( ':', '-' ) .replaceAll( '.', '-' );
-      const shareData = new module .vzomePkg.core.exporters.GitHubShare( title, date, time, xml, image, preview );
+      const shareData = new module .GitHubShare( title, date, time, xml, image, preview );
 
       const uploads = [];
       shareData .setEntryHandler( { addEntry: (path, data, encoding) => {

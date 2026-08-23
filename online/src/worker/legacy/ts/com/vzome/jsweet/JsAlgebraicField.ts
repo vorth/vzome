@@ -32,7 +32,6 @@ export class JsAlgebraicField implements AlgebraicField {
         if (this.positivePowers === undefined) { this.positivePowers = null; }
         if (this.negativePowers === undefined) { this.negativePowers = null; }
         if (this.zomicModule === undefined) { this.zomicModule = null; }
-        if (this.vzomePkg === undefined) { this.vzomePkg = null; }
         this.delegate = delegate;
         const order: number = <any>(delegate["order"]);
         this.positivePowers = (s => { let a=[]; while(s-->0) a.push(null); return a; })(order - 1);
@@ -535,17 +534,14 @@ export class JsAlgebraicField implements AlgebraicField {
 
     /*private*/ zomicModule: Object;
 
-    /*private*/ vzomePkg: Object;
-
-    public setInterpreterModule(module: Object, vzomePkg: Object) {
+    public setInterpreterModule(module: Object) {
         this.zomicModule = module;
-        this.vzomePkg = vzomePkg;
     }
 
     public interpretScript(script: string, language: string, offset: Point, symmetry: Symmetry, effects: ConstructionChanges) {
         if (this.zomicModule == null)throw new Error("The Zomic module was not loaded.");
         const f: Function = <any>(this.zomicModule["interpretScript"]);
-        f(<any>((<any>(script))), <any>((<any>(language))), <any>((<any>(offset))), <any>((<any>(symmetry))), <any>((<any>(effects))), <any>((<any>(this.vzomePkg))));
+        f(<any>((<any>(script))), <any>((<any>(language))), <any>((<any>(offset))), <any>((<any>(symmetry))), <any>((<any>(effects))));
     }
 
     public getNumberByName(name: string): AlgebraicNumber {

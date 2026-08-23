@@ -1,5 +1,5 @@
 
-import { com } from '../core-java.js';
+import { RealVector } from '../ts/com/vzome/core/math/RealVector.js';
 import { initialize } from '../core.js';
 import { Interpreter, RenderHistory, Step } from '../interpreter.js';
 import { ControllerWrapper } from './wrapper.js';
@@ -32,13 +32,13 @@ const createControllers = ( design, core, renderingChanges, clientEvents ) =>
     const rm = renderedModel.getRenderedManifestation( ballId );
     const point = rm ?.getManifestation() ?.toConstruction();
     if ( point ) {
-      strutBuilder .startRendering( point, new com.vzome.core.math.RealVector( x, y, z ) );
+      strutBuilder .startRendering( point, new RealVector( x, y, z ) );
     } else
       throw new Error( `No ball for ID ${ballId}` );
   }
   wrapper.movePreviewStrut = ( direction ) => {
     const [ x, y, z ] = direction;
-    strutBuilder .previewStrut .zoneBall .setVector( new com.vzome.core.math.RealVector( x, y, z ) );
+    strutBuilder .previewStrut .zoneBall .setVector( new RealVector( x, y, z ) );
   }
   wrapper.scalePreviewStrut = increment => {
     const lengthController = strutBuilder .previewStrut .getLengthController();
@@ -57,8 +57,8 @@ const createControllers = ( design, core, renderingChanges, clientEvents ) =>
 export const snapCamera = ( symmController, upArray, lookArray ) =>
 {
   const snapper = symmController .getSnapper();
-  let up = new com.vzome.core.math.RealVector( ...upArray );
-  let look = new com.vzome.core.math.RealVector( ...lookArray );
+  let up = new RealVector( ...upArray );
+  let look = new RealVector( ...lookArray );
   look = snapper .snapZ( look ) .normalize();
   up = snapper .snapY( look, up ) .normalize();
   const toArray = rv => {
