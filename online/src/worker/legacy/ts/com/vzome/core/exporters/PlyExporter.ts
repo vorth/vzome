@@ -105,3 +105,9 @@ export class PlyExporter extends GeometryExporter {
     }
 }
 PlyExporter["__class"] = "com.vzome.core.exporters.PlyExporter";
+
+//  Run the Java static initializer eagerly at module load, as the monolithic
+//  bundle did.  The lazy _$LI$ accessors are not enough for these classes:
+//  e.g. XmlSymmetryFormat registers every format in FORMATS here, and
+//  getFormat() reads that map without touching any accessor.
+PlyExporter.__static_initialize();

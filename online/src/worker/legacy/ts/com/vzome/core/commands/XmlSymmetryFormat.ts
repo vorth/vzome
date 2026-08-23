@@ -112,3 +112,9 @@ export class XmlSymmetryFormat extends XmlSaveFormat {
     }
 }
 XmlSymmetryFormat["__class"] = "com.vzome.core.commands.XmlSymmetryFormat";
+
+//  Run the Java static initializer eagerly at module load, as the monolithic
+//  bundle did.  The lazy _$LI$ accessors are not enough for these classes:
+//  e.g. XmlSymmetryFormat registers every format in FORMATS here, and
+//  getFormat() reads that map without touching any accessor.
+XmlSymmetryFormat.__static_initialize();

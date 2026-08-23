@@ -227,3 +227,9 @@ export class RealVector {
     }
 }
 RealVector["__class"] = "com.vzome.core.math.RealVector";
+
+//  Run the Java static initializer eagerly at module load, as the monolithic
+//  bundle did.  The lazy _$LI$ accessors are not enough for these classes:
+//  e.g. XmlSymmetryFormat registers every format in FORMATS here, and
+//  getFormat() reads that map without touching any accessor.
+RealVector.__static_initialize();

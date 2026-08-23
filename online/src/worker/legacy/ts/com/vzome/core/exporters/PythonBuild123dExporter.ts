@@ -84,3 +84,9 @@ export class PythonBuild123dExporter extends GeometryExporter {
     }
 }
 PythonBuild123dExporter["__class"] = "com.vzome.core.exporters.PythonBuild123dExporter";
+
+//  Run the Java static initializer eagerly at module load, as the monolithic
+//  bundle did.  The lazy _$LI$ accessors are not enough for these classes:
+//  e.g. XmlSymmetryFormat registers every format in FORMATS here, and
+//  getFormat() reads that map without touching any accessor.
+PythonBuild123dExporter.__static_initialize();
