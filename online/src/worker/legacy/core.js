@@ -49,6 +49,10 @@ import { SymmetrySystem } from './from-java/com/vzome/core/editor/SymmetrySystem
 import { ToolsModel } from './from-java/com/vzome/core/editor/ToolsModel.js';
 import { XmlSymmetryFormat } from './from-java/com/vzome/core/commands/XmlSymmetryFormat.js';
 import { Properties } from './from-java/java/util/Properties.js';
+import { AlgebraicVector } from './from-java/com/vzome/core/algebra/AlgebraicVector.js';
+import { AlgebraicVectors } from './from-java/com/vzome/core/algebra/AlgebraicVectors.js';
+import { AlgebraicMatrix } from './from-java/com/vzome/core/algebra/AlgebraicMatrix.js';
+import { GrahamScan2D } from './from-java/com/vzome/core/math/convexhull/GrahamScan2D.js';
 import { GitHubShare } from './from-java/com/vzome/core/exporters/GitHubShare.js';
 import { SideEffects } from './from-java/com/vzome/core/editor/api/SideEffects.js';
 import { editClasses, commandClasses, editorClasses } from './registry.js';
@@ -147,9 +151,12 @@ const makeFloatMatrices = ( matrices ) =>
   });
 }
 
-//  GitHubShare is the only legacy class the worker needs by name; exporting it
-//  directly replaces the old whole-namespace `vzomePkg` export.
+//  Classes needed by name outside this module.  These replace the old
+//  whole-namespace `vzomePkg` export: GitHubShare for the worker's sharing
+//  action, and the algebra/hull classes for the standalone experiment pages
+//  under serve/app/test/cases/.
 export { GitHubShare };
+export { AlgebraicVector, AlgebraicVectors, AlgebraicMatrix, GrahamScan2D };
 export const util = java.util;
 
 // This is a bit of a hack, but how else would you configure system props for JSweet?
