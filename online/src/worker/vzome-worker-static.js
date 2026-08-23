@@ -538,9 +538,13 @@ onmessage = ({ data }) =>
         clientEvents( sendToClient ) .textExported( 'exportText', xml );
         return;
       }
-      whenResourcesLoaded() .then( () => {
-        design.wrapper .doAction( '', 'exportText', payload );
-      } );
+      //  Load the exporters only when an export is actually requested.  They pull in a
+      //  lot of geometry code, and this is the sole path that reaches them, so a dynamic
+      //  import keeps them out of the chunk fetched just to open a design.
+      Promise.all( [ whenResourcesLoaded(), import( './legacy/exporters.js' ) ] )
+        .then( ( [ , exporters ] ) => {
+          design.wrapper .doAction( '', 'exportText', { ...payload, exporters } );
+        } );
       break;
     }
 
