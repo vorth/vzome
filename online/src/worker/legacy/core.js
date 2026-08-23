@@ -48,6 +48,7 @@ import { SuperGoldenField } from './ts/com/vzome/core/algebra/SuperGoldenField.j
 import { SymmetrySystem } from './ts/com/vzome/core/editor/SymmetrySystem.js';
 import { ToolsModel } from './ts/com/vzome/core/editor/ToolsModel.js';
 import { XmlSymmetryFormat } from './ts/com/vzome/core/commands/XmlSymmetryFormat.js';
+import { Properties } from './ts/java/util/Properties.js';
 import { GitHubShare } from './ts/com/vzome/core/exporters/GitHubShare.js';
 import { SideEffects } from './ts/com/vzome/core/editor/api/SideEffects.js';
 import { editClasses, commandClasses, editorClasses } from './registry.js';
@@ -665,7 +666,7 @@ export const loadAndInjectResource = async ( path, url ) =>
     }
 
     const format = namespace && XmlSymmetryFormat.getFormat( namespace )
-    format && format.initialize( legacyField, orbitSetField, 0, "vZome Online", new util.Properties() )
+    format && format.initialize( legacyField, orbitSetField, 0, "vZome Online", new Properties() )
 
     const toolFactories = new util.HashMap()
     for ( const symmetrySystem of Object.values( symmetrySystems ) ) {

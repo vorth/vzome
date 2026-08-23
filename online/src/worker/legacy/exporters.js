@@ -1,4 +1,4 @@
-import { java } from "./candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { StringWriter } from './ts/java/io/StringWriter.js';
 
 import { Color } from './ts/com/vzome/core/construction/Color.js';
 import { Lights } from './ts/com/vzome/core/viewing/Lights.js';
@@ -157,7 +157,7 @@ export const export2d = ( scene, configuration ) =>
   const lights = createLights( lighting );
   const snapshot = snapshotter .render2d( renderedModel, viewTransform, projection, lights, height, width, !useShapes, useLighting );
   const exporter = new exporters2d[ format ]();
-  const out = new java.io.StringWriter();
+  const out = new StringWriter();
   exporter .export( snapshot, out, drawOutlines, monochrome, showBackground );
   return out.toString();
 }
@@ -167,7 +167,7 @@ export const export3d = ( scene, configuration ) =>
     const { format, height, width } = configuration;
     const { renderedModel } = scene;
     const exporter = new exporters3d[ format ]();
-    const out = new java.io.StringWriter();
+    const out = new StringWriter();
     exporter .exportGeometry( renderedModel, null, out, height, width );
     return out.toString();
   }
@@ -176,7 +176,7 @@ export const export3dDocument = ( legacyDesign, camera, lighting, configuration 
   {
     const { format, height, width } = configuration;
     const exporter = new exporters3d[ format ]();
-    const out = new java.io.StringWriter();
+    const out = new StringWriter();
     // Satisfy the DocumentIntf contract required by DocumentExporter
     const document = createDocument( legacyDesign, camera, lighting );
     exporter .exportDocument( document, null, out, height, width );
