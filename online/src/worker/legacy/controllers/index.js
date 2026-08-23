@@ -1,5 +1,5 @@
 
-import { RealVector } from '../ts/com/vzome/core/math/RealVector.js';
+import { RealVector } from '../from-java/com/vzome/core/math/RealVector.js';
 import { initialize } from '../core.js';
 import { Interpreter, RenderHistory, Step } from '../interpreter.js';
 import { ControllerWrapper } from './wrapper.js';

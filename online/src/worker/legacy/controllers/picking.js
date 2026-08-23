@@ -1,4 +1,4 @@
-import { DefaultController } from '../ts/com/vzome/desktop/controller/DefaultController.js';
+import { DefaultController } from '../from-java/com/vzome/desktop/controller/DefaultController.js';
 import { JsProperties } from '../jsweet2js.js';
 
 export class PickingController extends DefaultController {

@@ -1,4 +1,4 @@
-# `online/src/worker/legacy/ts/` — the transpiled core, now hand-maintained
+# `online/src/worker/legacy/from-java/` — the transpiled core, now hand-maintained
 
 These 433 modules were generated from Java by [JSweet](https://www.jsweet.org/), then
 converted from global namespaces to ES modules and adopted as **source**.  JSweet can no
@@ -15,7 +15,7 @@ consumes the `.ts` files directly, so there is no separate transpile step.
 desktop sources, and the paths correspond one-to-one:
 
     core/src/main/java/com/vzome/core/edits/Foo.java
-    online/src/worker/legacy/ts/com/vzome/core/edits/Foo.ts
+    online/src/worker/legacy/from-java/com/vzome/core/edits/Foo.ts
 
 Since nothing regenerates these, **a change to either side must be mirrored by hand in the
 other** — see the *Coding Conventions* section of the repository's `AGENTS.md`.  Of 581

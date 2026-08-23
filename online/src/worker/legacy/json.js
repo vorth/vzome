@@ -1,5 +1,5 @@
 
-import { Manifestations } from "./ts/com/vzome/core/editor/api/Manifestations.js";
+import { Manifestations } from "./from-java/com/vzome/core/editor/api/Manifestations.js";
 import { toWebColor } from "./scenes.js";
 
 class VertexSet

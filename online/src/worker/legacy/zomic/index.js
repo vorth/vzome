@@ -7,17 +7,17 @@ import ZomicParserListener from './ZomicParserListener.js';
 //  These were reached through a `vzomePkg` namespace object passed in from
 //  core.js.  Importing them directly lets esbuild bundle only the zomic classes
 //  this module actually uses.
-import { ZomicVirtualMachine } from '../ts/com/vzome/core/commands/ZomicVirtualMachine.js';
-import { Interpreter } from '../ts/com/vzome/core/zomic/Interpreter.js';
-import { ZomicCompilerState } from '../ts/com/vzome/core/zomic/ZomicCompilerState.js';
-import { ZomicNamingConvention } from '../ts/com/vzome/core/zomic/ZomicNamingConvention.js';
-import { ZomicEventHandler } from '../ts/com/vzome/core/render/ZomicEventHandler.js';
-import { Build } from '../ts/com/vzome/core/zomic/program/Build.js';
-import { Label } from '../ts/com/vzome/core/zomic/program/Label.js';
-import { Repeat } from '../ts/com/vzome/core/zomic/program/Repeat.js';
-import { Save } from '../ts/com/vzome/core/zomic/program/Save.js';
-import { Symmetry } from '../ts/com/vzome/core/zomic/program/Symmetry.js';
-import { Walk } from '../ts/com/vzome/core/zomic/program/Walk.js';
+import { ZomicVirtualMachine } from '../from-java/com/vzome/core/commands/ZomicVirtualMachine.js';
+import { Interpreter } from '../from-java/com/vzome/core/zomic/Interpreter.js';
+import { ZomicCompilerState } from '../from-java/com/vzome/core/zomic/ZomicCompilerState.js';
+import { ZomicNamingConvention } from '../from-java/com/vzome/core/zomic/ZomicNamingConvention.js';
+import { ZomicEventHandler } from '../from-java/com/vzome/core/render/ZomicEventHandler.js';
+import { Build } from '../from-java/com/vzome/core/zomic/program/Build.js';
+import { Label } from '../from-java/com/vzome/core/zomic/program/Label.js';
+import { Repeat } from '../from-java/com/vzome/core/zomic/program/Repeat.js';
+import { Save } from '../from-java/com/vzome/core/zomic/program/Save.js';
+import { Symmetry } from '../from-java/com/vzome/core/zomic/program/Symmetry.js';
+import { Walk } from '../from-java/com/vzome/core/zomic/program/Walk.js';
 
 
 export const interpretScript = ( script, language, offset, symmetry, effects ) =>

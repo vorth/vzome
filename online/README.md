@@ -94,7 +94,7 @@ The `vZome online: Clean` task removes all temporary files and build artifacts.
 
 ## Legacy Code
 
-The `online/src/worker/legacy/ts/` folder holds 433 TypeScript modules that were
+The `online/src/worker/legacy/from-java/` folder holds 433 TypeScript modules that were
 originally transpiled from this repository's Java `core` (and parts of `desktop`) with
 [JSweet](https://www.jsweet.org/).
 
@@ -107,13 +107,13 @@ workflow any more: `cicd/online.bash dev` is the whole story, and esbuild consum
 The important consequence is that nothing keeps the two languages in agreement:
 
     core/src/main/java/com/vzome/core/edits/Foo.java     drives desktop vZome
-    online/src/worker/legacy/ts/com/vzome/core/edits/Foo.ts    drives online vZome
+    online/src/worker/legacy/from-java/com/vzome/core/edits/Foo.ts    drives online vZome
 
 **A change to either must be mirrored by hand in the other.**  A missed mirror passes both
 `./gradlew core:test` and `yarn typecheck` — each tree still compiles — and the two
 versions of vZome simply behave differently.
 
-See [`src/worker/legacy/ts/README.md`](./src/worker/legacy/ts/README.md) for what to know
+See [`src/worker/legacy/from-java/README.md`](./src/worker/legacy/from-java/README.md) for what to know
 before editing that tree, and the *Coding Conventions* section of the repository's
 `AGENTS.md` for the mirroring rule in full.
 

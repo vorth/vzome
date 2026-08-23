@@ -6,7 +6,7 @@
 
 ## Phase 1 — the legacy code (done)
 
-The generated TypeScript under `online/src/worker/legacy/ts/` is now the source of truth
+The generated TypeScript under `online/src/worker/legacy/from-java/` is now the source of truth
 for online vZome, edited directly.  JSweet, the monolithic bundles, and the Java build for
 `online/` have all been removed.
 
@@ -70,7 +70,7 @@ Each was invisible while everything shared one global scope:
 
 ### Where to look now
 
-- `online/src/worker/legacy/ts/README.md` — what to know before editing the tree
+- `online/src/worker/legacy/from-java/README.md` — what to know before editing the tree
 - `AGENTS.md`, *Coding Conventions* — the Java ↔ TypeScript mirroring rule, which is now
   the load-bearing process constraint
 - `online/developer-docs/povray-export-defects.md` — an open defect caused by one of the
@@ -108,7 +108,7 @@ This was verified, not assumed:
 
 Two gaps to close before starting, both one-liners in `online/tsconfig.json`:
 
-1. `include` currently covers only `src/worker/legacy/ts/**`.  New `.ts` outside that tree
+1. `include` currently covers only `src/worker/legacy/from-java/**`.  New `.ts` outside that tree
    would compile via esbuild but never be typechecked — the worst of both worlds.  Add the
    rest of `src/`.
 2. `jsx` is not set.  SolidJS needs `"jsx": "preserve"` with `"jsxImportSource": "solid-js"`
@@ -226,7 +226,7 @@ Good early win: high leverage, low risk, no UI involvement.
 
 ### What to leave alone
 
-- **`worker/legacy/ts/**`** — already TypeScript; do not tighten it (see above).
+- **`worker/legacy/from-java/**`** — already TypeScript; do not tighten it (see above).
 - **Generated and vendored files** — the ANTLR Zomic parser, `VRMLLoader.js`, the j4ts
   bundle, generated CSS.  Converting generated output is pure cost.
 - **`jsweet2js.js` and `core.js`** — the hand-written bridge into the transpiled world.

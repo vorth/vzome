@@ -1,5 +1,5 @@
 
-import { AlgebraicVectors } from './ts/com/vzome/core/algebra/AlgebraicVectors.js'
+import { AlgebraicVectors } from './from-java/com/vzome/core/algebra/AlgebraicVectors.js'
 
 const getCentroid = AlgebraicVectors.getCentroid;
 

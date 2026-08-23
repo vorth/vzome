@@ -1,27 +1,27 @@
-import { StringWriter } from './ts/java/io/StringWriter.js';
+import { StringWriter } from './from-java/java/io/StringWriter.js';
 
-import { Color } from './ts/com/vzome/core/construction/Color.js';
-import { Lights } from './ts/com/vzome/core/viewing/Lights.js';
-import { RealVector } from './ts/com/vzome/core/math/RealVector.js';
-import { RealMatrix4 } from './ts/com/vzome/core/math/RealMatrix4.js';
+import { Color } from './from-java/com/vzome/core/construction/Color.js';
+import { Lights } from './from-java/com/vzome/core/viewing/Lights.js';
+import { RealVector } from './from-java/com/vzome/core/math/RealVector.js';
+import { RealMatrix4 } from './from-java/com/vzome/core/math/RealMatrix4.js';
 
-import { Java2dExporter } from './ts/com/vzome/core/exporters2d/Java2dExporter.js';
-import { PDFExporter } from './ts/com/vzome/core/exporters2d/PDFExporter.js';
-import { PostScriptExporter } from './ts/com/vzome/core/exporters2d/PostScriptExporter.js';
-import { SVGExporter } from './ts/com/vzome/core/exporters2d/SVGExporter.js';
+import { Java2dExporter } from './from-java/com/vzome/core/exporters2d/Java2dExporter.js';
+import { PDFExporter } from './from-java/com/vzome/core/exporters2d/PDFExporter.js';
+import { PostScriptExporter } from './from-java/com/vzome/core/exporters2d/PostScriptExporter.js';
+import { SVGExporter } from './from-java/com/vzome/core/exporters2d/SVGExporter.js';
 
-import { StlExporter } from './ts/com/vzome/core/exporters/StlExporter.js';
-import { STEPExporter } from './ts/com/vzome/core/exporters/STEPExporter.js';
-import { OpenScadMeshExporter } from './ts/com/vzome/core/exporters/OpenScadMeshExporter.js';
-import { PythonBuild123dExporter } from './ts/com/vzome/core/exporters/PythonBuild123dExporter.js';
-import { DxfExporter } from './ts/com/vzome/core/exporters/DxfExporter.js';
-import { OffExporter } from './ts/com/vzome/core/exporters/OffExporter.js';
-import { PlyExporter } from './ts/com/vzome/core/exporters/PlyExporter.js';
-import { VRMLExporter } from './ts/com/vzome/core/exporters/VRMLExporter.js';
-import { POVRayExporter } from './ts/com/vzome/core/exporters/POVRayExporter.js';
-import { PartGeometryExporter } from './ts/com/vzome/core/exporters/PartGeometryExporter.js';
-import { OpenScadExporter } from './ts/com/vzome/core/exporters/OpenScadExporter.js';
-import { MathTableExporter } from './ts/com/vzome/core/exporters/MathTableExporter.js';
+import { StlExporter } from './from-java/com/vzome/core/exporters/StlExporter.js';
+import { STEPExporter } from './from-java/com/vzome/core/exporters/STEPExporter.js';
+import { OpenScadMeshExporter } from './from-java/com/vzome/core/exporters/OpenScadMeshExporter.js';
+import { PythonBuild123dExporter } from './from-java/com/vzome/core/exporters/PythonBuild123dExporter.js';
+import { DxfExporter } from './from-java/com/vzome/core/exporters/DxfExporter.js';
+import { OffExporter } from './from-java/com/vzome/core/exporters/OffExporter.js';
+import { PlyExporter } from './from-java/com/vzome/core/exporters/PlyExporter.js';
+import { VRMLExporter } from './from-java/com/vzome/core/exporters/VRMLExporter.js';
+import { POVRayExporter } from './from-java/com/vzome/core/exporters/POVRayExporter.js';
+import { PartGeometryExporter } from './from-java/com/vzome/core/exporters/PartGeometryExporter.js';
+import { OpenScadExporter } from './from-java/com/vzome/core/exporters/OpenScadExporter.js';
+import { MathTableExporter } from './from-java/com/vzome/core/exporters/MathTableExporter.js';
 
 //  Mapping the format name straight to the class lets esbuild see which
 //  exporters are reachable.  The old form indexed the `com.vzome.core.exporters`

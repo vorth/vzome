@@ -1,5 +1,5 @@
-import { AlgebraicVectors } from '../ts/com/vzome/core/algebra/AlgebraicVectors.js';
-import { DefaultController } from '../ts/com/vzome/desktop/controller/DefaultController.js';
+import { AlgebraicVectors } from '../from-java/com/vzome/core/algebra/AlgebraicVectors.js';
+import { DefaultController } from '../from-java/com/vzome/desktop/controller/DefaultController.js';
 import { java } from '../candies/j4ts-2.1.0-SNAPSHOT/bundle.js';
 import { JsProperties } from '../jsweet2js.js';
 import { normalizeRenderedManifestation } from '../scenes.js';

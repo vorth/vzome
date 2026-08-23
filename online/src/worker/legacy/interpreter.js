@@ -1,5 +1,5 @@
 
-import { Branch } from './ts/com/vzome/core/editor/Branch.js';
+import { Branch } from './from-java/com/vzome/core/editor/Branch.js';
 import { realizeShape, normalizeRenderedManifestation } from './scenes.js';
 
 //  Right now this is duplicated!
