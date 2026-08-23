@@ -1,18 +1,15 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace java.util {
-    export class Properties {
-        public getProperty(key: string): string {
-            return "";
-        }
+import { java, javaemul } from "../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
 
-        public load(inStream: java.io.InputStream) {
-        }
-
-        public isEmpty(): boolean {
-            return true;
-        }
+export class Properties {
+    public getProperty(key: string): string {
+        return "";
     }
-    Properties["__class"] = "java.util.Properties";
 
+    public load(inStream: java.io.InputStream) {
+    }
+
+    public isEmpty(): boolean {
+        return true;
+    }
 }
-
+Properties["__class"] = "java.util.Properties";

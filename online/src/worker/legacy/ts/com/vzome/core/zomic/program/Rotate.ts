@@ -1,27 +1,26 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.zomic.program {
-    export class Rotate extends com.vzome.core.zomic.program.Permute {
-        /*private*/ steps: number;
+import { Axis } from "../../math/symmetry/Axis.js";
+import { Permute } from "./Permute.js";
+import { Visitor } from "./Visitor.js";
 
-        /**
-         * 
-         * @param {*} visitor
-         */
-        public accept(visitor: com.vzome.core.zomic.program.Visitor) {
-            visitor.visitRotate(this.getAxis(), this.steps);
-        }
+export class Rotate extends Permute {
+    /*private*/ steps: number;
 
-        public constructor(axis: com.vzome.core.math.symmetry.Axis, steps: number) {
-            super(axis);
-            if (this.steps === undefined) { this.steps = 0; }
-            this.steps = steps;
-        }
-
-        public setSteps(steps: number) {
-            this.steps = steps;
-        }
+    /**
+     * 
+     * @param {*} visitor
+     */
+    public accept(visitor: Visitor) {
+        visitor.visitRotate(this.getAxis(), this.steps);
     }
-    Rotate["__class"] = "com.vzome.core.zomic.program.Rotate";
 
+    public constructor(axis: Axis, steps: number) {
+        super(axis);
+        if (this.steps === undefined) { this.steps = 0; }
+        this.steps = steps;
+    }
+
+    public setSteps(steps: number) {
+        this.steps = steps;
+    }
 }
-
+Rotate["__class"] = "com.vzome.core.zomic.program.Rotate";

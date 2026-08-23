@@ -1,25 +1,51 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.edits {
-    export class StrutCreation extends com.vzome.core.editor.api.ChangeManifestations {
-        mAnchor: com.vzome.core.construction.Point;
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { AlgebraicNumber } from "../algebra/AlgebraicNumber.js";
+import { AttributeMap } from "../commands/AttributeMap.js";
+import { XmlSaveFormat } from "../commands/XmlSaveFormat.js";
+import { XmlSymmetryFormat } from "../commands/XmlSymmetryFormat.js";
+import { AnchoredSegment } from "../construction/AnchoredSegment.js";
+import { Point } from "../construction/Point.js";
+import { Segment } from "../construction/Segment.js";
+import { SegmentEndPoint } from "../construction/SegmentEndPoint.js";
+import { ChangeManifestations } from "../editor/api/ChangeManifestations.js";
+import { Axis } from "../math/symmetry/Axis.js";
+import { Element } from "../../../../org/w3c/dom/Element.js";
 
-        /*private*/ mAxis: com.vzome.core.math.symmetry.Axis;
+export class StrutCreation extends ChangeManifestations {
+    mAnchor: Point;
 
-        /*private*/ mLength: com.vzome.core.algebra.AlgebraicNumber;
+    /*private*/ mAxis: Axis;
 
-        /**
-         * 
-         * @param {*} params
-         */
-        public configure(params: java.util.Map<string, any>) {
-            this.mAnchor = <com.vzome.core.construction.Point>params.get("anchor");
-            this.mAxis = <com.vzome.core.math.symmetry.Axis>params.get("zone");
-            this.mLength = <com.vzome.core.algebra.AlgebraicNumber><any>params.get("length");
-        }
+    /*private*/ mLength: AlgebraicNumber;
 
-        public constructor(anchor?: any, axis?: any, len?: any, editor?: any) {
-            if (((anchor != null && anchor instanceof <any>com.vzome.core.construction.Point) || anchor === null) && ((axis != null && axis instanceof <any>com.vzome.core.math.symmetry.Axis) || axis === null) && ((len != null && (len.constructor != null && len.constructor["__interfaces"] != null && len.constructor["__interfaces"].indexOf("com.vzome.core.algebra.AlgebraicNumber") >= 0)) || len === null) && ((editor != null && (editor.constructor != null && editor.constructor["__interfaces"] != null && editor.constructor["__interfaces"].indexOf("com.vzome.core.editor.api.EditorModel") >= 0)) || editor === null)) {
+    /**
+     * 
+     * @param {*} params
+     */
+    public configure(params: java.util.Map<string, any>) {
+        this.mAnchor = <Point>params.get("anchor");
+        this.mAxis = <Axis>params.get("zone");
+        this.mLength = <AlgebraicNumber><any>params.get("length");
+    }
+
+    public constructor(anchor?: any, axis?: any, len?: any, editor?: any) {
+        if (((anchor != null && anchor instanceof <any>Point) || anchor === null) && ((axis != null && axis instanceof <any>Axis) || axis === null) && ((len != null && (len.constructor != null && len.constructor["__interfaces"] != null && len.constructor["__interfaces"].indexOf("com.vzome.core.algebra.AlgebraicNumber") >= 0)) || len === null) && ((editor != null && (editor.constructor != null && editor.constructor["__interfaces"] != null && editor.constructor["__interfaces"].indexOf("com.vzome.core.editor.api.EditorModel") >= 0)) || editor === null)) {
+            let __args = arguments;
+            super(editor);
+            if (this.mAnchor === undefined) { this.mAnchor = null; } 
+            if (this.mAxis === undefined) { this.mAxis = null; } 
+            if (this.mLength === undefined) { this.mLength = null; } 
+            this.mAnchor = anchor;
+            this.mAxis = axis;
+            this.mLength = len;
+        } else if (((anchor != null && (anchor.constructor != null && anchor.constructor["__interfaces"] != null && anchor.constructor["__interfaces"].indexOf("com.vzome.core.editor.api.EditorModel") >= 0)) || anchor === null) && axis === undefined && len === undefined && editor === undefined) {
+            let __args = arguments;
+            let editor: any = __args[0];
+            {
                 let __args = arguments;
+                let anchor: any = null;
+                let axis: any = null;
+                let len: any = null;
                 super(editor);
                 if (this.mAnchor === undefined) { this.mAnchor = null; } 
                 if (this.mAxis === undefined) { this.mAxis = null; } 
@@ -27,73 +53,55 @@ namespace com.vzome.core.edits {
                 this.mAnchor = anchor;
                 this.mAxis = axis;
                 this.mLength = len;
-            } else if (((anchor != null && (anchor.constructor != null && anchor.constructor["__interfaces"] != null && anchor.constructor["__interfaces"].indexOf("com.vzome.core.editor.api.EditorModel") >= 0)) || anchor === null) && axis === undefined && len === undefined && editor === undefined) {
-                let __args = arguments;
-                let editor: any = __args[0];
-                {
-                    let __args = arguments;
-                    let anchor: any = null;
-                    let axis: any = null;
-                    let len: any = null;
-                    super(editor);
-                    if (this.mAnchor === undefined) { this.mAnchor = null; } 
-                    if (this.mAxis === undefined) { this.mAxis = null; } 
-                    if (this.mLength === undefined) { this.mLength = null; } 
-                    this.mAnchor = anchor;
-                    this.mAxis = axis;
-                    this.mLength = len;
-                }
-            } else throw new Error('invalid overload');
-        }
-
-        /**
-         * 
-         */
-        public perform() {
-            const segment: com.vzome.core.construction.Segment = new com.vzome.core.construction.AnchoredSegment(this.mAxis, this.mLength, this.mAnchor);
-            this.manifestConstruction(segment);
-            const point: com.vzome.core.construction.Point = new com.vzome.core.construction.SegmentEndPoint(segment);
-            this.manifestConstruction(point);
-            this.redo();
-        }
-
-        /**
-         * 
-         * @param {*} xml
-         */
-        getXmlAttributes(xml: org.w3c.dom.Element) {
-            com.vzome.core.commands.XmlSaveFormat.serializePoint(xml, "anchor", this.mAnchor);
-            com.vzome.core.commands.XmlSymmetryFormat.serializeAxis(xml, "symm", "dir", "index", "sense", this.mAxis);
-            com.vzome.core.commands.XmlSaveFormat.serializeNumber(xml, "len", this.mLength);
-        }
-
-        /**
-         * 
-         * @param {*} xml
-         * @param {com.vzome.core.commands.XmlSaveFormat} format
-         */
-        public setXmlAttributes(xml: org.w3c.dom.Element, format: com.vzome.core.commands.XmlSaveFormat) {
-            if (format.rationalVectors()){
-                this.mAnchor = format.parsePoint$org_w3c_dom_Element$java_lang_String(xml, "anchor");
-                this.mAxis = (<com.vzome.core.commands.XmlSymmetryFormat>format).parseAxis(xml, "symm", "dir", "index", "sense");
-                this.mLength = format.parseNumber(xml, "len");
-            } else {
-                const attrs: com.vzome.core.commands.AttributeMap = format.loadCommandAttributes$org_w3c_dom_Element$boolean(xml, true);
-                this.mAnchor = <com.vzome.core.construction.Point>attrs.get("anchor");
-                this.mAxis = <com.vzome.core.math.symmetry.Axis>attrs.get("axis");
-                this.mLength = <com.vzome.core.algebra.AlgebraicNumber><any>attrs.get("len");
             }
-        }
+        } else throw new Error('invalid overload');
+    }
 
-        /**
-         * 
-         * @return {string}
-         */
-        getXmlElementName(): string {
-            return "StrutCreation";
+    /**
+     * 
+     */
+    public perform() {
+        const segment: Segment = new AnchoredSegment(this.mAxis, this.mLength, this.mAnchor);
+        this.manifestConstruction(segment);
+        const point: Point = new SegmentEndPoint(segment);
+        this.manifestConstruction(point);
+        this.redo();
+    }
+
+    /**
+     * 
+     * @param {*} xml
+     */
+    getXmlAttributes(xml: Element) {
+        XmlSaveFormat.serializePoint(xml, "anchor", this.mAnchor);
+        XmlSymmetryFormat.serializeAxis(xml, "symm", "dir", "index", "sense", this.mAxis);
+        XmlSaveFormat.serializeNumber(xml, "len", this.mLength);
+    }
+
+    /**
+     * 
+     * @param {*} xml
+     * @param {XmlSaveFormat} format
+     */
+    public setXmlAttributes(xml: Element, format: XmlSaveFormat) {
+        if (format.rationalVectors()){
+            this.mAnchor = format.parsePoint$org_w3c_dom_Element$java_lang_String(xml, "anchor");
+            this.mAxis = (<XmlSymmetryFormat>format).parseAxis(xml, "symm", "dir", "index", "sense");
+            this.mLength = format.parseNumber(xml, "len");
+        } else {
+            const attrs: AttributeMap = format.loadCommandAttributes$org_w3c_dom_Element$boolean(xml, true);
+            this.mAnchor = <Point>attrs.get("anchor");
+            this.mAxis = <Axis>attrs.get("axis");
+            this.mLength = <AlgebraicNumber><any>attrs.get("len");
         }
     }
-    StrutCreation["__class"] = "com.vzome.core.edits.StrutCreation";
 
+    /**
+     * 
+     * @return {string}
+     */
+    getXmlElementName(): string {
+        return "StrutCreation";
+    }
 }
-
+StrutCreation["__class"] = "com.vzome.core.edits.StrutCreation";

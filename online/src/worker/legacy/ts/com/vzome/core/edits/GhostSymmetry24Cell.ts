@@ -1,85 +1,96 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.edits {
-    export class GhostSymmetry24Cell extends com.vzome.core.editor.api.ChangeManifestations {
-        /*private*/ field: com.vzome.core.algebra.AlgebraicField;
+import { AlgebraicField } from "../algebra/AlgebraicField.js";
+import { AlgebraicVector } from "../algebra/AlgebraicVector.js";
+import { XmlSaveFormat } from "../commands/XmlSaveFormat.js";
+import { FreePoint } from "../construction/FreePoint.js";
+import { Point } from "../construction/Point.js";
+import { Segment } from "../construction/Segment.js";
+import { ChangeManifestations } from "../editor/api/ChangeManifestations.js";
+import { EditorModel } from "../editor/api/EditorModel.js";
+import { ImplicitSymmetryParameters } from "../editor/api/ImplicitSymmetryParameters.js";
+import { SymmetryAware } from "../editor/api/SymmetryAware.js";
+import { Projection } from "../math/Projection.js";
+import { QuaternionProjection } from "../math/QuaternionProjection.js";
+import { Direction } from "../math/symmetry/Direction.js";
+import { Symmetry } from "../math/symmetry/Symmetry.js";
+import { Element } from "../../../../org/w3c/dom/Element.js";
 
-        /*private*/ proj: com.vzome.core.math.Projection;
+export class GhostSymmetry24Cell extends ChangeManifestations {
+    /*private*/ field: AlgebraicField;
 
-        /*private*/ symmAxis: com.vzome.core.construction.Segment;
+    /*private*/ proj: Projection;
 
-        /*private*/ symm: com.vzome.core.math.symmetry.Symmetry;
+    /*private*/ symmAxis: Segment;
 
-        public constructor(editor: com.vzome.core.editor.api.EditorModel) {
-            super(editor);
-            if (this.field === undefined) { this.field = null; }
-            if (this.proj === undefined) { this.proj = null; }
-            if (this.symmAxis === undefined) { this.symmAxis = null; }
-            if (this.symm === undefined) { this.symm = null; }
-            this.symm = (<com.vzome.core.editor.api.SymmetryAware><any>editor)['getSymmetrySystem$']().getSymmetry();
-            this.field = this.symm.getField();
-            this.symmAxis = (<com.vzome.core.editor.api.ImplicitSymmetryParameters><any>editor).getSymmetrySegment();
-        }
+    /*private*/ symm: Symmetry;
 
-        /**
-         * 
-         * @return {string}
-         */
-        getXmlElementName(): string {
-            return "GhostSymmetry24Cell";
-        }
-
-        /**
-         * 
-         * @param {*} result
-         */
-        public getXmlAttributes(result: org.w3c.dom.Element) {
-            if (this.symmAxis != null)com.vzome.core.commands.XmlSaveFormat.serializeSegment(result, "start", "end", this.symmAxis);
-        }
-
-        /**
-         * 
-         * @param {*} xml
-         * @param {com.vzome.core.commands.XmlSaveFormat} format
-         */
-        public setXmlAttributes(xml: org.w3c.dom.Element, format: com.vzome.core.commands.XmlSaveFormat) {
-            this.symmAxis = format.parseSegment$org_w3c_dom_Element$java_lang_String$java_lang_String(xml, "start", "end");
-        }
-
-        /**
-         * 
-         */
-        public perform() {
-            if (this.symmAxis == null)this.proj = new com.vzome.core.math.Projection.Default(this.field); else this.proj = new com.vzome.core.math.QuaternionProjection(this.field, null, this.symmAxis.getOffset().scale(this.field['createPower$int'](-5)));
-            const blue: com.vzome.core.math.symmetry.Direction = this.symm.getDirection("blue");
-            const green: com.vzome.core.math.symmetry.Direction = this.symm.getDirection("green");
-            for(let k: number = 0; k < 12; k++) {{
-                const A1: com.vzome.core.algebra.AlgebraicVector = blue.getAxis$int$int(com.vzome.core.math.symmetry.Symmetry.PLUS, (k + 2) % 12).normal();
-                const A2: com.vzome.core.algebra.AlgebraicVector = green.getAxis$int$int(com.vzome.core.math.symmetry.Symmetry.PLUS, (5 * k + 2) % 12).normal();
-                const B1: com.vzome.core.algebra.AlgebraicVector = green.getAxis$int$int(com.vzome.core.math.symmetry.Symmetry.PLUS, (k + 2) % 12).normal();
-                const B2: com.vzome.core.algebra.AlgebraicVector = blue.getAxis$int$int(com.vzome.core.math.symmetry.Symmetry.PLUS, (5 * k + 5) % 12).normal();
-                let projected: com.vzome.core.algebra.AlgebraicVector = this.symm.getField().origin(4);
-                projected.setComponent(0, A2.getComponent(0));
-                projected.setComponent(1, A2.getComponent(1));
-                projected.setComponent(2, A1.getComponent(0));
-                projected.setComponent(3, A1.getComponent(1));
-                if (this.proj != null)projected = this.proj.projectImage(projected, true);
-                let p: com.vzome.core.construction.Point = new com.vzome.core.construction.FreePoint(projected.scale(this.field['createPower$int'](5)));
-                p.setIndex(k);
-                this.manifestConstruction(p);
-                projected = this.symm.getField().origin(4);
-                projected.setComponent(0, B2.getComponent(0));
-                projected.setComponent(1, B2.getComponent(1));
-                projected.setComponent(2, B1.getComponent(0));
-                projected.setComponent(3, B1.getComponent(1));
-                if (this.proj != null)projected = this.proj.projectImage(projected, true);
-                p = new com.vzome.core.construction.FreePoint(projected.scale(this.field['createPower$int'](5)));
-                p.setIndex(12 + k);
-                this.manifestConstruction(p);
-            };}
-            this.redo();
-        }
+    public constructor(editor: EditorModel) {
+        super(editor);
+        if (this.field === undefined) { this.field = null; }
+        if (this.proj === undefined) { this.proj = null; }
+        if (this.symmAxis === undefined) { this.symmAxis = null; }
+        if (this.symm === undefined) { this.symm = null; }
+        this.symm = (<SymmetryAware><any>editor)['getSymmetrySystem$']().getSymmetry();
+        this.field = this.symm.getField();
+        this.symmAxis = (<ImplicitSymmetryParameters><any>editor).getSymmetrySegment();
     }
-    GhostSymmetry24Cell["__class"] = "com.vzome.core.edits.GhostSymmetry24Cell";
 
+    /**
+     * 
+     * @return {string}
+     */
+    getXmlElementName(): string {
+        return "GhostSymmetry24Cell";
+    }
+
+    /**
+     * 
+     * @param {*} result
+     */
+    public getXmlAttributes(result: Element) {
+        if (this.symmAxis != null)XmlSaveFormat.serializeSegment(result, "start", "end", this.symmAxis);
+    }
+
+    /**
+     * 
+     * @param {*} xml
+     * @param {XmlSaveFormat} format
+     */
+    public setXmlAttributes(xml: Element, format: XmlSaveFormat) {
+        this.symmAxis = format.parseSegment$org_w3c_dom_Element$java_lang_String$java_lang_String(xml, "start", "end");
+    }
+
+    /**
+     * 
+     */
+    public perform() {
+        if (this.symmAxis == null)this.proj = new Projection.Default(this.field); else this.proj = new QuaternionProjection(this.field, null, this.symmAxis.getOffset().scale(this.field['createPower$int'](-5)));
+        const blue: Direction = this.symm.getDirection("blue");
+        const green: Direction = this.symm.getDirection("green");
+        for(let k: number = 0; k < 12; k++) {{
+            const A1: AlgebraicVector = blue.getAxis$int$int(Symmetry.PLUS, (k + 2) % 12).normal();
+            const A2: AlgebraicVector = green.getAxis$int$int(Symmetry.PLUS, (5 * k + 2) % 12).normal();
+            const B1: AlgebraicVector = green.getAxis$int$int(Symmetry.PLUS, (k + 2) % 12).normal();
+            const B2: AlgebraicVector = blue.getAxis$int$int(Symmetry.PLUS, (5 * k + 5) % 12).normal();
+            let projected: AlgebraicVector = this.symm.getField().origin(4);
+            projected.setComponent(0, A2.getComponent(0));
+            projected.setComponent(1, A2.getComponent(1));
+            projected.setComponent(2, A1.getComponent(0));
+            projected.setComponent(3, A1.getComponent(1));
+            if (this.proj != null)projected = this.proj.projectImage(projected, true);
+            let p: Point = new FreePoint(projected.scale(this.field['createPower$int'](5)));
+            p.setIndex(k);
+            this.manifestConstruction(p);
+            projected = this.symm.getField().origin(4);
+            projected.setComponent(0, B2.getComponent(0));
+            projected.setComponent(1, B2.getComponent(1));
+            projected.setComponent(2, B1.getComponent(0));
+            projected.setComponent(3, B1.getComponent(1));
+            if (this.proj != null)projected = this.proj.projectImage(projected, true);
+            p = new FreePoint(projected.scale(this.field['createPower$int'](5)));
+            p.setIndex(12 + k);
+            this.manifestConstruction(p);
+        };}
+        this.redo();
+    }
 }
-
+GhostSymmetry24Cell["__class"] = "com.vzome.core.edits.GhostSymmetry24Cell";

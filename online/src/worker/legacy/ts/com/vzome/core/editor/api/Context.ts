@@ -1,13 +1,14 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.editor.api {
-    export interface Context {
-        createEdit(xml: org.w3c.dom.Element): com.vzome.core.editor.api.UndoableEdit;
+import { java, javaemul } from "../../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { Command } from "../../commands/Command.js";
+import { UndoableEdit } from "./UndoableEdit.js";
+import { Element } from "../../../../../org/w3c/dom/Element.js";
 
-        createLegacyCommand(cmdName: string): com.vzome.core.commands.Command;
+export interface Context {
+    createEdit(xml: Element): UndoableEdit;
 
-        performAndRecord(edit: com.vzome.core.editor.api.UndoableEdit);
+    createLegacyCommand(cmdName: string): Command;
 
-        doEdit(action: string, props: java.util.Map<string, any>): boolean;
-    }
+    performAndRecord(edit: UndoableEdit);
+
+    doEdit(action: string, props: java.util.Map<string, any>): boolean;
 }
-

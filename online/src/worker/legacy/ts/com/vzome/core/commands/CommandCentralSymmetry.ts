@@ -1,48 +1,52 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.commands {
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { AttributeMap } from "./AttributeMap.js";
+import { CommandTransform } from "./CommandTransform.js";
+import { Construction } from "../construction/Construction.js";
+import { ConstructionChanges } from "../construction/ConstructionChanges.js";
+import { ConstructionList } from "../construction/ConstructionList.js";
+import { Point } from "../construction/Point.js";
+import { PointReflection } from "../construction/PointReflection.js";
+import { Transformation } from "../construction/Transformation.js";
+
+/**
+ * @author Scott Vorthmann
+ * @class
+ * @extends CommandTransform
+ */
+export class CommandCentralSymmetry extends CommandTransform {
     /**
-     * @author Scott Vorthmann
-     * @class
-     * @extends com.vzome.core.commands.CommandTransform
+     * 
+     * @return {java.lang.Object[][]}
      */
-    export class CommandCentralSymmetry extends com.vzome.core.commands.CommandTransform {
-        /**
-         * 
-         * @return {java.lang.Object[][]}
-         */
-        public getAttributeSignature(): any[][] {
-            return com.vzome.core.commands.CommandTransform.ATTR_SIGNATURE_$LI$();
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.construction.ConstructionList} parameters
-         * @param {com.vzome.core.commands.AttributeMap} attributes
-         * @param {*} effects
-         * @return {com.vzome.core.construction.ConstructionList}
-         */
-        public apply(parameters: com.vzome.core.construction.ConstructionList, attributes: com.vzome.core.commands.AttributeMap, effects: com.vzome.core.construction.ConstructionChanges): com.vzome.core.construction.ConstructionList {
-            const output: com.vzome.core.construction.ConstructionList = new com.vzome.core.construction.ConstructionList();
-            const center: com.vzome.core.construction.Point = <com.vzome.core.construction.Point>attributes.get(com.vzome.core.commands.CommandTransform.SYMMETRY_CENTER_ATTR_NAME);
-            const params: com.vzome.core.construction.Construction[] = parameters.getConstructions();
-            for(let index = 0; index < params.length; index++) {
-                let param = params[index];
-                {
-                    output.addConstruction(param);
-                }
-            }
-            const transform: com.vzome.core.construction.Transformation = new com.vzome.core.construction.PointReflection(center);
-            effects['constructionAdded$com_vzome_core_construction_Construction'](transform);
-            return this.transform(params, transform, effects);
-        }
-
-        constructor() {
-            super();
-        }
+    public getAttributeSignature(): any[][] {
+        return CommandTransform.ATTR_SIGNATURE_$LI$();
     }
-    CommandCentralSymmetry["__class"] = "com.vzome.core.commands.CommandCentralSymmetry";
-    CommandCentralSymmetry["__interfaces"] = ["com.vzome.core.commands.Command"];
 
+    /**
+     * 
+     * @param {ConstructionList} parameters
+     * @param {AttributeMap} attributes
+     * @param {*} effects
+     * @return {ConstructionList}
+     */
+    public apply(parameters: ConstructionList, attributes: AttributeMap, effects: ConstructionChanges): ConstructionList {
+        const output: ConstructionList = new ConstructionList();
+        const center: Point = <Point>attributes.get(CommandTransform.SYMMETRY_CENTER_ATTR_NAME);
+        const params: Construction[] = parameters.getConstructions();
+        for(let index = 0; index < params.length; index++) {
+            let param = params[index];
+            {
+                output.addConstruction(param);
+            }
+        }
+        const transform: Transformation = new PointReflection(center);
+        effects['constructionAdded$com_vzome_core_construction_Construction'](transform);
+        return this.transform(params, transform, effects);
+    }
 
+    constructor() {
+        super();
+    }
 }
-
+CommandCentralSymmetry["__class"] = "com.vzome.core.commands.CommandCentralSymmetry";
+CommandCentralSymmetry["__interfaces"] = ["com.vzome.core.commands.Command"];

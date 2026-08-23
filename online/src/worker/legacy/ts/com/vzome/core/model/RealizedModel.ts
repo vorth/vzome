@@ -1,33 +1,35 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.model {
-    export interface RealizedModel extends java.lang.Iterable<com.vzome.core.model.Manifestation> {
-        getField(): com.vzome.core.algebra.AlgebraicField;
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { AlgebraicField } from "../algebra/AlgebraicField.js";
+import { Color } from "../construction/Color.js";
+import { Construction } from "../construction/Construction.js";
+import { Manifestation } from "./Manifestation.js";
 
-        findConstruction(c: com.vzome.core.construction.Construction): com.vzome.core.model.Manifestation;
+export interface RealizedModel extends java.lang.Iterable<Manifestation> {
+    getField(): AlgebraicField;
 
-        removeConstruction(c: com.vzome.core.construction.Construction): com.vzome.core.model.Manifestation;
+    findConstruction(c: Construction): Manifestation;
 
-        getManifestation(c: com.vzome.core.construction.Construction): com.vzome.core.model.Manifestation;
+    removeConstruction(c: Construction): Manifestation;
 
-        size(): number;
+    getManifestation(c: Construction): Manifestation;
 
-        show(mManifestation: com.vzome.core.model.Manifestation);
+    size(): number;
 
-        hide(mManifestation: com.vzome.core.model.Manifestation);
+    show(mManifestation: Manifestation);
 
-        add(m: com.vzome.core.model.Manifestation);
+    hide(mManifestation: Manifestation);
 
-        remove(mManifestation: com.vzome.core.model.Manifestation);
+    add(m: Manifestation);
 
-        setColor(manifestation: com.vzome.core.model.Manifestation, color: com.vzome.core.construction.Color);
+    remove(mManifestation: Manifestation);
 
-        setLabel(m: com.vzome.core.model.Manifestation, label: string);
+    setColor(manifestation: Manifestation, color: Color);
 
-        findPerEditManifestation(signature: string): com.vzome.core.model.Manifestation;
+    setLabel(m: Manifestation, label: string);
 
-        addPerEditManifestation(signature: string, m: com.vzome.core.model.Manifestation);
+    findPerEditManifestation(signature: string): Manifestation;
 
-        clearPerEditManifestations();
-    }
+    addPerEditManifestation(signature: string, m: Manifestation);
+
+    clearPerEditManifestations();
 }
-

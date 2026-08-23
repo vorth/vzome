@@ -1,13 +1,12 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.model {
-    export interface ManifestationChanges {
-        manifestationAdded(m: com.vzome.core.model.Manifestation);
+import { Color } from "../construction/Color.js";
+import { Manifestation } from "./Manifestation.js";
 
-        manifestationRemoved(m: com.vzome.core.model.Manifestation);
+export interface ManifestationChanges {
+    manifestationAdded(m: Manifestation);
 
-        manifestationColored(m: com.vzome.core.model.Manifestation, color: com.vzome.core.construction.Color);
+    manifestationRemoved(m: Manifestation);
 
-        manifestationLabeled(m: com.vzome.core.model.Manifestation, label: string);
-    }
+    manifestationColored(m: Manifestation, color: Color);
+
+    manifestationLabeled(m: Manifestation, label: string);
 }
-

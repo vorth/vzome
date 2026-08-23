@@ -1,64 +1,65 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.editor.api {
-    export abstract class UndoableEdit {
-        public abstract configure(props: java.util.Map<string, any>);
+import { java, javaemul } from "../../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { XmlSaveFormat } from "../../commands/XmlSaveFormat.js";
+import { Context } from "./Context.js";
+import { Document } from "../../../../../org/w3c/dom/Document.js";
+import { Element } from "../../../../../org/w3c/dom/Element.js";
 
-        public abstract perform();
+export abstract class UndoableEdit {
+    public abstract configure(props: java.util.Map<string, any>);
 
-        public abstract undo();
+    public abstract perform();
 
-        public abstract redo();
+    public abstract undo();
 
-        public abstract isNoOp(): boolean;
+    public abstract redo();
 
-        public abstract isVisible(): boolean;
+    public abstract isNoOp(): boolean;
 
-        public abstract getXml(doc: org.w3c.dom.Document): org.w3c.dom.Element;
+    public abstract isVisible(): boolean;
 
-        public abstract loadAndPerform(xml: org.w3c.dom.Element, format: com.vzome.core.commands.XmlSaveFormat, context: com.vzome.core.editor.api.Context);
+    public abstract getXml(doc: Document): Element;
 
-        /**
-         * True when this edit must cause a persistent history branch.
-         * @return
-         * @return {boolean}
-         */
-        public abstract isSticky(): boolean;
+    public abstract loadAndPerform(xml: Element, format: XmlSaveFormat, context: Context);
 
-        /**
-         * True when this edit invalidates redoable edits.
-         * @return
-         * @return {boolean}
-         */
-        public abstract isDestructive(): boolean;
+    /**
+     * True when this edit must cause a persistent history branch.
+     * @return
+     * @return {boolean}
+     */
+    public abstract isSticky(): boolean;
 
-        public abstract getDetailXml(doc: org.w3c.dom.Document): org.w3c.dom.Element;
+    /**
+     * True when this edit invalidates redoable edits.
+     * @return
+     * @return {boolean}
+     */
+    public abstract isDestructive(): boolean;
 
-        /*private*/ __com_vzome_core_editor_EditHistory_DeferredEdit_hasBreakpoint: boolean;
+    public abstract getDetailXml(doc: Document): Element;
 
-        /*private*/ lineNumber: number;
+    /*private*/ __com_vzome_core_editor_EditHistory_DeferredEdit_hasBreakpoint: boolean;
 
-        public hasBreakpoint(): boolean {
-            return this.__com_vzome_core_editor_EditHistory_DeferredEdit_hasBreakpoint;
-        }
+    /*private*/ lineNumber: number;
 
-        public setBreakpoint(value: boolean) {
-            this.__com_vzome_core_editor_EditHistory_DeferredEdit_hasBreakpoint = value;
-        }
-
-        public getLineNumber(): number {
-            return this.lineNumber;
-        }
-
-        public setLineNumber(lineNumber: number) {
-            this.lineNumber = lineNumber;
-        }
-
-        constructor() {
-            this.__com_vzome_core_editor_EditHistory_DeferredEdit_hasBreakpoint = false;
-            this.lineNumber = -1;
-        }
+    public hasBreakpoint(): boolean {
+        return this.__com_vzome_core_editor_EditHistory_DeferredEdit_hasBreakpoint;
     }
-    UndoableEdit["__class"] = "com.vzome.core.editor.api.UndoableEdit";
 
+    public setBreakpoint(value: boolean) {
+        this.__com_vzome_core_editor_EditHistory_DeferredEdit_hasBreakpoint = value;
+    }
+
+    public getLineNumber(): number {
+        return this.lineNumber;
+    }
+
+    public setLineNumber(lineNumber: number) {
+        this.lineNumber = lineNumber;
+    }
+
+    constructor() {
+        this.__com_vzome_core_editor_EditHistory_DeferredEdit_hasBreakpoint = false;
+        this.lineNumber = -1;
+    }
 }
-
+UndoableEdit["__class"] = "com.vzome.core.editor.api.UndoableEdit";

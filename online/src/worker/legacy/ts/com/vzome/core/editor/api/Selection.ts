@@ -1,48 +1,47 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.editor.api {
-    export interface Selection extends java.lang.Iterable<com.vzome.core.model.Manifestation> {
-        clear();
+import { java, javaemul } from "../../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { Group } from "../../model/Group.js";
+import { Manifestation } from "../../model/Manifestation.js";
 
-        manifestationSelected(man: com.vzome.core.model.Manifestation): boolean;
+export interface Selection extends java.lang.Iterable<Manifestation> {
+    clear();
 
-        selectWithGrouping(mMan: com.vzome.core.model.Manifestation);
+    manifestationSelected(man: Manifestation): boolean;
 
-        unselectWithGrouping(mMan: com.vzome.core.model.Manifestation);
+    selectWithGrouping(mMan: Manifestation);
 
-        select(mMan: com.vzome.core.model.Manifestation);
+    unselectWithGrouping(mMan: Manifestation);
 
-        unselect(mMan: com.vzome.core.model.Manifestation);
+    select(mMan: Manifestation);
 
-        getSingleSelection(kind: any): com.vzome.core.model.Manifestation;
+    unselect(mMan: Manifestation);
 
-        gatherGroup();
+    getSingleSelection(kind: any): Manifestation;
 
-        gatherGroup211();
+    gatherGroup();
 
-        scatterGroup();
+    gatherGroup211();
 
-        scatterGroup211();
+    scatterGroup();
 
-        isSelectionAGroup(): boolean;
+    scatterGroup211();
 
-        size(): number;
+    isSelectionAGroup(): boolean;
 
-        copy(bookmarkedSelection: java.util.List<com.vzome.core.model.Manifestation>);
-    }
+    size(): number;
 
-    export namespace Selection {
-
-        export function biggestGroup(m: com.vzome.core.model.Manifestation): com.vzome.core.model.Group {
-            let parent: com.vzome.core.model.Group = m.getContainer();
-            let group: com.vzome.core.model.Group = parent;
-            while((parent != null)) {{
-                parent = group.getContainer();
-                if (parent == null)break;
-                group = parent;
-            }};
-            return group;
-        }
-    }
-
+    copy(bookmarkedSelection: java.util.List<Manifestation>);
 }
 
+export namespace Selection {
+
+    export function biggestGroup(m: Manifestation): Group {
+        let parent: Group = m.getContainer();
+        let group: Group = parent;
+        while((parent != null)) {{
+            parent = group.getContainer();
+            if (parent == null)break;
+            group = parent;
+        }};
+        return group;
+    }
+}

@@ -1,44 +1,46 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.commands {
-    export class CommandObliquePentagon extends com.vzome.core.commands.AbstractCommand {
-        static PARAM_SIGNATURE: any[][]; public static PARAM_SIGNATURE_$LI$(): any[][] { if (CommandObliquePentagon.PARAM_SIGNATURE == null) { CommandObliquePentagon.PARAM_SIGNATURE = [["segment1", com.vzome.core.construction.Segment], ["segment2", com.vzome.core.construction.Segment]]; }  return CommandObliquePentagon.PARAM_SIGNATURE; }
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { AbstractCommand } from "./AbstractCommand.js";
+import { AttributeMap } from "./AttributeMap.js";
+import { Command } from "./Command.js";
+import { ConstructionChanges } from "../construction/ConstructionChanges.js";
+import { ConstructionList } from "../construction/ConstructionList.js";
+import { Segment } from "../construction/Segment.js";
 
-        static ATTR_SIGNATURE: any[][]; public static ATTR_SIGNATURE_$LI$(): any[][] { if (CommandObliquePentagon.ATTR_SIGNATURE == null) { CommandObliquePentagon.ATTR_SIGNATURE = []; }  return CommandObliquePentagon.ATTR_SIGNATURE; }
+export class CommandObliquePentagon extends AbstractCommand {
+    static PARAM_SIGNATURE: any[][]; public static PARAM_SIGNATURE_$LI$(): any[][] { if (CommandObliquePentagon.PARAM_SIGNATURE == null) { CommandObliquePentagon.PARAM_SIGNATURE = [["segment1", Segment], ["segment2", Segment]]; }  return CommandObliquePentagon.PARAM_SIGNATURE; }
 
-        /**
-         * 
-         * @return {java.lang.Object[][]}
-         */
-        public getParameterSignature(): any[][] {
-            return CommandObliquePentagon.PARAM_SIGNATURE_$LI$();
-        }
+    static ATTR_SIGNATURE: any[][]; public static ATTR_SIGNATURE_$LI$(): any[][] { if (CommandObliquePentagon.ATTR_SIGNATURE == null) { CommandObliquePentagon.ATTR_SIGNATURE = []; }  return CommandObliquePentagon.ATTR_SIGNATURE; }
 
-        /**
-         * 
-         * @return {java.lang.Object[][]}
-         */
-        public getAttributeSignature(): any[][] {
-            return CommandObliquePentagon.ATTR_SIGNATURE_$LI$();
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.construction.ConstructionList} parameters
-         * @param {com.vzome.core.commands.AttributeMap} attributes
-         * @param {*} effects
-         * @return {com.vzome.core.construction.ConstructionList}
-         */
-        public apply(parameters: com.vzome.core.construction.ConstructionList, attributes: com.vzome.core.commands.AttributeMap, effects: com.vzome.core.construction.ConstructionChanges): com.vzome.core.construction.ConstructionList {
-            throw new Command.Failure("Oblique pentagon should never be called.");
-        }
-
-        constructor() {
-            super();
-        }
+    /**
+     * 
+     * @return {java.lang.Object[][]}
+     */
+    public getParameterSignature(): any[][] {
+        return CommandObliquePentagon.PARAM_SIGNATURE_$LI$();
     }
-    CommandObliquePentagon["__class"] = "com.vzome.core.commands.CommandObliquePentagon";
-    CommandObliquePentagon["__interfaces"] = ["com.vzome.core.commands.Command"];
 
+    /**
+     * 
+     * @return {java.lang.Object[][]}
+     */
+    public getAttributeSignature(): any[][] {
+        return CommandObliquePentagon.ATTR_SIGNATURE_$LI$();
+    }
 
+    /**
+     * 
+     * @param {ConstructionList} parameters
+     * @param {AttributeMap} attributes
+     * @param {*} effects
+     * @return {ConstructionList}
+     */
+    public apply(parameters: ConstructionList, attributes: AttributeMap, effects: ConstructionChanges): ConstructionList {
+        throw new Command.Failure("Oblique pentagon should never be called.");
+    }
+
+    constructor() {
+        super();
+    }
 }
-
+CommandObliquePentagon["__class"] = "com.vzome.core.commands.CommandObliquePentagon";
+CommandObliquePentagon["__interfaces"] = ["com.vzome.core.commands.Command"];

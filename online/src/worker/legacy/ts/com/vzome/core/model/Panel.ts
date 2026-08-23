@@ -1,23 +1,24 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.model {
-    export interface Panel extends com.vzome.core.model.Manifestation, java.lang.Iterable<com.vzome.core.algebra.AlgebraicVector> {
-        getZoneVector(): com.vzome.core.algebra.AlgebraicVector;
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { AlgebraicNumber } from "../algebra/AlgebraicNumber.js";
+import { AlgebraicVector } from "../algebra/AlgebraicVector.js";
+import { Manifestation } from "./Manifestation.js";
 
-        setZoneVector(vector: com.vzome.core.algebra.AlgebraicVector);
+export interface Panel extends Manifestation, java.lang.Iterable<AlgebraicVector> {
+    getZoneVector(): AlgebraicVector;
 
-        getFirstVertex(): com.vzome.core.algebra.AlgebraicVector;
+    setZoneVector(vector: AlgebraicVector);
 
-        /**
-         * 
-         * @return {*}
-         */
-        iterator(): java.util.Iterator<com.vzome.core.algebra.AlgebraicVector>;
+    getFirstVertex(): AlgebraicVector;
 
-        getVertexCount(): number;
+    /**
+     * 
+     * @return {*}
+     */
+    iterator(): java.util.Iterator<AlgebraicVector>;
 
-        getNormal(embedding?: any): any;
+    getVertexCount(): number;
 
-        getQuadrea(): com.vzome.core.algebra.AlgebraicNumber;
-    }
+    getNormal(embedding?: any): any;
+
+    getQuadrea(): AlgebraicNumber;
 }
-

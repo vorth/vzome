@@ -1,19 +1,19 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace org.w3c.dom {
-    export interface Element extends org.w3c.dom.Node {
-        getOwnerDocument(): org.w3c.dom.Document;
+import { Document } from "./Document.js";
+import { Node } from "./Node.js";
+import { NodeList } from "./NodeList.js";
 
-        setAttribute(name: string, value: string);
+export interface Element extends Node {
+    getOwnerDocument(): Document;
 
-        getElementsByTagName(name: string): org.w3c.dom.NodeList;
+    setAttribute(name: string, value: string);
 
-        setAttributeNS(namespaceURI: string, qualifiedName: string, value: string);
+    getElementsByTagName(name: string): NodeList;
 
-        getAttribute(name: string): string;
+    setAttributeNS(namespaceURI: string, qualifiedName: string, value: string);
 
-        setTextContent(text: string);
+    getAttribute(name: string): string;
 
-        getUserData(key: string): any;
-    }
+    setTextContent(text: string);
+
+    getUserData(key: string): any;
 }
-

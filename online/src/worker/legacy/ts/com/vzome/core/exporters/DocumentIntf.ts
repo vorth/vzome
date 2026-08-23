@@ -1,17 +1,21 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.exporters {
-    export interface DocumentIntf {
-        getCameraModel(): com.vzome.core.viewing.CameraIntf;
+import { ToolsModel } from "../editor/ToolsModel.js";
+import { EditorModel } from "../editor/api/EditorModel.js";
+import { RenderedModel } from "../render/RenderedModel.js";
+import { CameraIntf } from "../viewing/CameraIntf.js";
+import { Lights } from "../viewing/Lights.js";
+import { Document } from "../../../../org/w3c/dom/Document.js";
+import { Element } from "../../../../org/w3c/dom/Element.js";
 
-        getSceneLighting(): com.vzome.core.viewing.Lights;
+export interface DocumentIntf {
+    getCameraModel(): CameraIntf;
 
-        getRenderedModel(): com.vzome.core.render.RenderedModel;
+    getSceneLighting(): Lights;
 
-        getToolsModel(): com.vzome.core.editor.ToolsModel;
+    getRenderedModel(): RenderedModel;
 
-        getDetailsXml(dom: org.w3c.dom.Document, b: boolean): org.w3c.dom.Element;
+    getToolsModel(): ToolsModel;
 
-        getEditorModel(): com.vzome.core.editor.api.EditorModel;
-    }
+    getDetailsXml(dom: Document, b: boolean): Element;
+
+    getEditorModel(): EditorModel;
 }
-

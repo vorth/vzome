@@ -1,15 +1,16 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.editor.api {
-    export interface ImplicitSymmetryParameters extends com.vzome.core.editor.api.EditorModel {
-        getCenterPoint(): com.vzome.core.construction.Point;
+import { Construction } from "../../construction/Construction.js";
+import { Point } from "../../construction/Point.js";
+import { Segment } from "../../construction/Segment.js";
+import { EditorModel } from "./EditorModel.js";
 
-        setCenterPoint(point: com.vzome.core.construction.Construction);
+export interface ImplicitSymmetryParameters extends EditorModel {
+    getCenterPoint(): Point;
 
-        getSymmetrySegment(): com.vzome.core.construction.Segment;
+    setCenterPoint(point: Construction);
 
-        setSymmetrySegment(segment: com.vzome.core.construction.Segment);
+    getSymmetrySegment(): Segment;
 
-        getSelectedConstruction(kind: any): com.vzome.core.construction.Construction;
-    }
+    setSymmetrySegment(segment: Segment);
+
+    getSelectedConstruction(kind: any): Construction;
 }
-

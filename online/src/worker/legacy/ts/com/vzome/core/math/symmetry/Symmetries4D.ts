@@ -1,9 +1,9 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.math.symmetry {
-    export interface Symmetries4D {
-        constructPolytope(groupName: string, index: number, edgesToRender: number, edgeScales: com.vzome.core.algebra.AlgebraicNumber[], listener: com.vzome.core.math.symmetry.WythoffConstruction.Listener);
+import { AlgebraicNumber } from "../../algebra/AlgebraicNumber.js";
+import { QuaternionicSymmetry } from "./QuaternionicSymmetry.js";
+import { WythoffConstruction } from "./WythoffConstruction.js";
 
-        getQuaternionSymmetry(name: string): com.vzome.core.math.symmetry.QuaternionicSymmetry;
-    }
+export interface Symmetries4D {
+    constructPolytope(groupName: string, index: number, edgesToRender: number, edgeScales: AlgebraicNumber[], listener: WythoffConstruction.Listener);
+
+    getQuaternionSymmetry(name: string): QuaternionicSymmetry;
 }
-

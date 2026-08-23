@@ -1,19 +1,18 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.math.symmetry {
-    export interface CoxeterGroup {
-        getOrder(): number;
+import { AlgebraicField } from "../../algebra/AlgebraicField.js";
+import { AlgebraicVector } from "../../algebra/AlgebraicVector.js";
 
-        getField(): com.vzome.core.algebra.AlgebraicField;
+export interface CoxeterGroup {
+    getOrder(): number;
 
-        groupAction(model: com.vzome.core.algebra.AlgebraicVector, element: number): com.vzome.core.algebra.AlgebraicVector;
+    getField(): AlgebraicField;
 
-        getOrigin(): com.vzome.core.algebra.AlgebraicVector;
+    groupAction(model: AlgebraicVector, element: number): AlgebraicVector;
 
-        getWeight(i: number): com.vzome.core.algebra.AlgebraicVector;
+    getOrigin(): AlgebraicVector;
 
-        getSimpleRoot(i: number): com.vzome.core.algebra.AlgebraicVector;
+    getWeight(i: number): AlgebraicVector;
 
-        chiralSubgroupAction(model: com.vzome.core.algebra.AlgebraicVector, i: number): com.vzome.core.algebra.AlgebraicVector;
-    }
+    getSimpleRoot(i: number): AlgebraicVector;
+
+    chiralSubgroupAction(model: AlgebraicVector, i: number): AlgebraicVector;
 }
-

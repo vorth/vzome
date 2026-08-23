@@ -1,46 +1,51 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.edits {
-    export class DodecagonSymmetry extends com.vzome.core.editor.api.ChangeManifestations {
-        /*private*/ center: com.vzome.core.construction.Point;
+import { Construction } from "../construction/Construction.js";
+import { Point } from "../construction/Point.js";
+import { SymmetryTransformation } from "../construction/SymmetryTransformation.js";
+import { Transformation } from "../construction/Transformation.js";
+import { ChangeManifestations } from "../editor/api/ChangeManifestations.js";
+import { EditorModel } from "../editor/api/EditorModel.js";
+import { ImplicitSymmetryParameters } from "../editor/api/ImplicitSymmetryParameters.js";
+import { SymmetryAware } from "../editor/api/SymmetryAware.js";
+import { Symmetry } from "../math/symmetry/Symmetry.js";
 
-        /*private*/ symmetry: com.vzome.core.math.symmetry.Symmetry;
+export class DodecagonSymmetry extends ChangeManifestations {
+    /*private*/ center: Point;
 
-        public constructor(editor: com.vzome.core.editor.api.EditorModel) {
-            super(editor);
-            if (this.center === undefined) { this.center = null; }
-            if (this.symmetry === undefined) { this.symmetry = null; }
-            this.center = (<com.vzome.core.editor.api.ImplicitSymmetryParameters><any>editor).getCenterPoint();
-            this.symmetry = (<com.vzome.core.editor.api.SymmetryAware><any>editor)['getSymmetrySystem$']().getSymmetry();
-        }
+    /*private*/ symmetry: Symmetry;
 
-        /**
-         * 
-         */
-        public perform() {
-            const transform: com.vzome.core.construction.Transformation = new com.vzome.core.construction.SymmetryTransformation(this.symmetry, 1, this.center);
-            for(let index=this.mSelection.iterator();index.hasNext();) {
-                let man = index.next();
-                {
-                    let c: com.vzome.core.construction.Construction = man.getFirstConstruction();
-                    for(let i: number = 0; i < 11; i++) {{
-                        c = transform.transform$com_vzome_core_construction_Construction(c);
-                        if (c == null)continue;
-                        this.select$com_vzome_core_model_Manifestation(this.manifestConstruction(c));
-                    };}
-                }
-            }
-            this.redo();
-        }
-
-        /**
-         * 
-         * @return {string}
-         */
-        getXmlElementName(): string {
-            return "DodecagonSymmetry";
-        }
+    public constructor(editor: EditorModel) {
+        super(editor);
+        if (this.center === undefined) { this.center = null; }
+        if (this.symmetry === undefined) { this.symmetry = null; }
+        this.center = (<ImplicitSymmetryParameters><any>editor).getCenterPoint();
+        this.symmetry = (<SymmetryAware><any>editor)['getSymmetrySystem$']().getSymmetry();
     }
-    DodecagonSymmetry["__class"] = "com.vzome.core.edits.DodecagonSymmetry";
 
+    /**
+     * 
+     */
+    public perform() {
+        const transform: Transformation = new SymmetryTransformation(this.symmetry, 1, this.center);
+        for(let index=this.mSelection.iterator();index.hasNext();) {
+            let man = index.next();
+            {
+                let c: Construction = man.getFirstConstruction();
+                for(let i: number = 0; i < 11; i++) {{
+                    c = transform.transform$com_vzome_core_construction_Construction(c);
+                    if (c == null)continue;
+                    this.select$com_vzome_core_model_Manifestation(this.manifestConstruction(c));
+                };}
+            }
+        }
+        this.redo();
+    }
+
+    /**
+     * 
+     * @return {string}
+     */
+    getXmlElementName(): string {
+        return "DodecagonSymmetry";
+    }
 }
-
+DodecagonSymmetry["__class"] = "com.vzome.core.edits.DodecagonSymmetry";

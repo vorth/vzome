@@ -1,13 +1,11 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace org.w3c.dom {
-    export interface Node {
-        appendChild(newChild: Node): Node;
+import { NodeList } from "./NodeList.js";
 
-        getChildNodes(): org.w3c.dom.NodeList;
+export interface Node {
+    appendChild(newChild: Node): Node;
 
-        getTextContent(): string;
+    getChildNodes(): NodeList;
 
-        getLocalName(): string;
-    }
+    getTextContent(): string;
+
+    getLocalName(): string;
 }
-

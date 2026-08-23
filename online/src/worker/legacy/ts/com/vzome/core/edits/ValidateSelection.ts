@@ -1,26 +1,25 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.edits {
-    export class ValidateSelection extends com.vzome.core.editor.api.ChangeSelection {
-        /**
-         * 
-         */
-        public perform() {
-            if (this.mSelection.size() === 0)throw new com.vzome.core.commands.Command.Failure("selection is empty");
-        }
+import { Command } from "../commands/Command.js";
+import { ChangeSelection } from "../editor/api/ChangeSelection.js";
+import { EditorModel } from "../editor/api/EditorModel.js";
 
-        public constructor(editor: com.vzome.core.editor.api.EditorModel) {
-            super(editor.getSelection());
-        }
-
-        /**
-         * 
-         * @return {string}
-         */
-        getXmlElementName(): string {
-            return "ValidateSelection";
-        }
+export class ValidateSelection extends ChangeSelection {
+    /**
+     * 
+     */
+    public perform() {
+        if (this.mSelection.size() === 0)throw new Command.Failure("selection is empty");
     }
-    ValidateSelection["__class"] = "com.vzome.core.edits.ValidateSelection";
 
+    public constructor(editor: EditorModel) {
+        super(editor.getSelection());
+    }
+
+    /**
+     * 
+     * @return {string}
+     */
+    getXmlElementName(): string {
+        return "ValidateSelection";
+    }
 }
-
+ValidateSelection["__class"] = "com.vzome.core.edits.ValidateSelection";

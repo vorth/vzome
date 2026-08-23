@@ -1,93 +1,104 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.construction {
-    /**
-     * @param prototype
-     * @param {com.vzome.core.construction.Plane} projectionPlane
-     * @param {com.vzome.core.construction.Point} perspectivePoint
-     * @class
-     * @extends com.vzome.core.construction.Transformation
-     * @author Scott Vorthmann
-     */
-    export class PerspectiveProjection extends com.vzome.core.construction.Transformation {
-        /*private*/ projectionPlane: com.vzome.core.construction.Plane;
+import { AlgebraicVector } from "../algebra/AlgebraicVector.js";
+import { Construction } from "./Construction.js";
+import { FreePoint } from "./FreePoint.js";
+import { Line } from "./Line.js";
+import { LineExtensionOfSegment } from "./LineExtensionOfSegment.js";
+import { LinePlaneIntersectionPoint } from "./LinePlaneIntersectionPoint.js";
+import { Plane } from "./Plane.js";
+import { Point } from "./Point.js";
+import { Polygon } from "./Polygon.js";
+import { Segment } from "./Segment.js";
+import { SegmentJoiningPoints } from "./SegmentJoiningPoints.js";
+import { Transformation } from "./Transformation.js";
+import { TransformedPoint } from "./TransformedPoint.js";
+import { TransformedPolygon } from "./TransformedPolygon.js";
+import { TransformedSegment } from "./TransformedSegment.js";
 
-        /*private*/ perspectivePoint: com.vzome.core.construction.Point;
+/**
+ * @param prototype
+ * @param {Plane} projectionPlane
+ * @param {Point} perspectivePoint
+ * @class
+ * @extends Transformation
+ * @author Scott Vorthmann
+ */
+export class PerspectiveProjection extends Transformation {
+    /*private*/ projectionPlane: Plane;
 
-        public constructor(projectionPlane: com.vzome.core.construction.Plane, perspectivePoint: com.vzome.core.construction.Point) {
-            super(projectionPlane.field);
-            if (this.projectionPlane === undefined) { this.projectionPlane = null; }
-            if (this.perspectivePoint === undefined) { this.perspectivePoint = null; }
-            this.projectionPlane = projectionPlane;
-            this.perspectivePoint = perspectivePoint;
-            this.mapParamsToState();
-        }
+    /*private*/ perspectivePoint: Point;
 
-        /**
-         * 
-         * @return {boolean}
-         */
-        mapParamsToState(): boolean {
-            if (this.projectionPlane.isImpossible())this.setStateVariables(null, null, true);
-            const loc: com.vzome.core.algebra.AlgebraicVector = this.getField().origin(3);
-            return this.setStateVariables(null, loc, false);
-        }
-
-        public transform$com_vzome_core_algebra_AlgebraicVector(arg: com.vzome.core.algebra.AlgebraicVector): com.vzome.core.algebra.AlgebraicVector {
-            const segment: com.vzome.core.construction.Segment = new com.vzome.core.construction.SegmentJoiningPoints(this.perspectivePoint, new com.vzome.core.construction.FreePoint(arg));
-            if (segment.getOffset().isOrigin())return null;
-            const line: com.vzome.core.construction.Line = new com.vzome.core.construction.LineExtensionOfSegment(segment);
-            const point: com.vzome.core.construction.Point = new com.vzome.core.construction.LinePlaneIntersectionPoint(this.projectionPlane, line);
-            return point.getLocation();
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.algebra.AlgebraicVector} arg
-         * @return {com.vzome.core.algebra.AlgebraicVector}
-         */
-        public transform(arg?: any): any {
-            if (((arg != null && arg instanceof <any>com.vzome.core.algebra.AlgebraicVector) || arg === null)) {
-                return <any>this.transform$com_vzome_core_algebra_AlgebraicVector(arg);
-            } else if (((arg != null && arg instanceof <any>com.vzome.core.construction.Construction) || arg === null)) {
-                return <any>this.transform$com_vzome_core_construction_Construction(arg);
-            } else throw new Error('invalid overload');
-        }
-
-        public transform$com_vzome_core_construction_Construction(c: com.vzome.core.construction.Construction): com.vzome.core.construction.Construction {
-            if (c != null && c instanceof <any>com.vzome.core.construction.Point){
-                const result: com.vzome.core.construction.Point = new com.vzome.core.construction.TransformedPoint(this, <com.vzome.core.construction.Point>c);
-                if (result.isImpossible())return null;
-                return result;
-            } else if (c != null && c instanceof <any>com.vzome.core.construction.Segment){
-                const result: com.vzome.core.construction.Segment = new com.vzome.core.construction.TransformedSegment(this, <com.vzome.core.construction.Segment>c);
-                if (result.isImpossible() || result.getOffset().isOrigin()){
-                    return new com.vzome.core.construction.FreePoint((<com.vzome.core.construction.Segment>c).getStart());
-                }
-                return result;
-            } else if (c != null && c instanceof <any>com.vzome.core.construction.Polygon){
-                const p: com.vzome.core.construction.Polygon = new com.vzome.core.construction.TransformedPolygon(this, <com.vzome.core.construction.Polygon>c);
-                if (p.getNormal().isOrigin()){
-                    let min: com.vzome.core.algebra.AlgebraicVector = p.getVertex(0);
-                    let max: com.vzome.core.algebra.AlgebraicVector = min;
-                    for(let i: number = 1; i < p.getVertexCount(); i++) {{
-                        const v: com.vzome.core.algebra.AlgebraicVector = p.getVertex(i);
-                        if (v.compareTo(min) === -1){
-                            min = v;
-                        }
-                        if (v.compareTo(max) === 1){
-                            max = v;
-                        }
-                    };}
-                    const p1: com.vzome.core.construction.Point = new com.vzome.core.construction.FreePoint(min);
-                    const p2: com.vzome.core.construction.Point = new com.vzome.core.construction.FreePoint(max);
-                    return new com.vzome.core.construction.SegmentJoiningPoints(p1, p2);
-                }
-                return p;
-            }
-            return super.transform$com_vzome_core_construction_Construction(c);
-        }
+    public constructor(projectionPlane: Plane, perspectivePoint: Point) {
+        super(projectionPlane.field);
+        if (this.projectionPlane === undefined) { this.projectionPlane = null; }
+        if (this.perspectivePoint === undefined) { this.perspectivePoint = null; }
+        this.projectionPlane = projectionPlane;
+        this.perspectivePoint = perspectivePoint;
+        this.mapParamsToState();
     }
-    PerspectiveProjection["__class"] = "com.vzome.core.construction.PerspectiveProjection";
 
+    /**
+     * 
+     * @return {boolean}
+     */
+    mapParamsToState(): boolean {
+        if (this.projectionPlane.isImpossible())this.setStateVariables(null, null, true);
+        const loc: AlgebraicVector = this.getField().origin(3);
+        return this.setStateVariables(null, loc, false);
+    }
+
+    public transform$com_vzome_core_algebra_AlgebraicVector(arg: AlgebraicVector): AlgebraicVector {
+        const segment: Segment = new SegmentJoiningPoints(this.perspectivePoint, new FreePoint(arg));
+        if (segment.getOffset().isOrigin())return null;
+        const line: Line = new LineExtensionOfSegment(segment);
+        const point: Point = new LinePlaneIntersectionPoint(this.projectionPlane, line);
+        return point.getLocation();
+    }
+
+    /**
+     * 
+     * @param {AlgebraicVector} arg
+     * @return {AlgebraicVector}
+     */
+    public transform(arg?: any): any {
+        if (((arg != null && arg instanceof <any>AlgebraicVector) || arg === null)) {
+            return <any>this.transform$com_vzome_core_algebra_AlgebraicVector(arg);
+        } else if (((arg != null && arg instanceof <any>Construction) || arg === null)) {
+            return <any>this.transform$com_vzome_core_construction_Construction(arg);
+        } else throw new Error('invalid overload');
+    }
+
+    public transform$com_vzome_core_construction_Construction(c: Construction): Construction {
+        if (c != null && c instanceof <any>Point){
+            const result: Point = new TransformedPoint(this, <Point>c);
+            if (result.isImpossible())return null;
+            return result;
+        } else if (c != null && c instanceof <any>Segment){
+            const result: Segment = new TransformedSegment(this, <Segment>c);
+            if (result.isImpossible() || result.getOffset().isOrigin()){
+                return new FreePoint((<Segment>c).getStart());
+            }
+            return result;
+        } else if (c != null && c instanceof <any>Polygon){
+            const p: Polygon = new TransformedPolygon(this, <Polygon>c);
+            if (p.getNormal().isOrigin()){
+                let min: AlgebraicVector = p.getVertex(0);
+                let max: AlgebraicVector = min;
+                for(let i: number = 1; i < p.getVertexCount(); i++) {{
+                    const v: AlgebraicVector = p.getVertex(i);
+                    if (v.compareTo(min) === -1){
+                        min = v;
+                    }
+                    if (v.compareTo(max) === 1){
+                        max = v;
+                    }
+                };}
+                const p1: Point = new FreePoint(min);
+                const p2: Point = new FreePoint(max);
+                return new SegmentJoiningPoints(p1, p2);
+            }
+            return p;
+        }
+        return super.transform$com_vzome_core_construction_Construction(c);
+    }
 }
-
+PerspectiveProjection["__class"] = "com.vzome.core.construction.PerspectiveProjection";

@@ -1,15 +1,15 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.model {
-    export interface RenderedObject {
-        getShape(): com.vzome.core.math.Polyhedron;
+import { AlgebraicMatrix } from "../algebra/AlgebraicMatrix.js";
+import { AlgebraicVector } from "../algebra/AlgebraicVector.js";
+import { Polyhedron } from "../math/Polyhedron.js";
 
-        getOrientation(): com.vzome.core.algebra.AlgebraicMatrix;
+export interface RenderedObject {
+    getShape(): Polyhedron;
 
-        getLocationAV(): com.vzome.core.algebra.AlgebraicVector;
+    getOrientation(): AlgebraicMatrix;
 
-        getSymmetryShapes(): string;
+    getLocationAV(): AlgebraicVector;
 
-        resetAttributes(oneSidedPanels: boolean, colorPanels: boolean);
-    }
+    getSymmetryShapes(): string;
+
+    resetAttributes(oneSidedPanels: boolean, colorPanels: boolean);
 }
-

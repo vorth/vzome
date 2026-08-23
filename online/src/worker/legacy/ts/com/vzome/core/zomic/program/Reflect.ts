@@ -1,27 +1,26 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.zomic.program {
-    export class Reflect extends com.vzome.core.zomic.program.Permute {
-        /**
-         * 
-         * @param {*} visitor
-         */
-        public accept(visitor: com.vzome.core.zomic.program.Visitor) {
-            visitor.visitReflect(this.getAxis());
-        }
+import { Axis } from "../../math/symmetry/Axis.js";
+import { Permute } from "./Permute.js";
+import { Visitor } from "./Visitor.js";
 
-        public constructor() {
-            super(null);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.math.symmetry.Axis} axis
-         */
-        public setAxis(axis: com.vzome.core.math.symmetry.Axis) {
-            super.setAxis(axis);
-        }
+export class Reflect extends Permute {
+    /**
+     * 
+     * @param {*} visitor
+     */
+    public accept(visitor: Visitor) {
+        visitor.visitReflect(this.getAxis());
     }
-    Reflect["__class"] = "com.vzome.core.zomic.program.Reflect";
 
+    public constructor() {
+        super(null);
+    }
+
+    /**
+     * 
+     * @param {Axis} axis
+     */
+    public setAxis(axis: Axis) {
+        super.setAxis(axis);
+    }
 }
-
+Reflect["__class"] = "com.vzome.core.zomic.program.Reflect";

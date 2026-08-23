@@ -1,11 +1,11 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace org.w3c.dom {
-    export interface Document {
-        createElement(name: string): org.w3c.dom.Element;
+import { Element } from "./Element.js";
+import { Node } from "./Node.js";
+import { Text } from "./Text.js";
 
-        createTextNode(data: string): org.w3c.dom.Text;
+export interface Document {
+    createElement(name: string): Element;
 
-        importNode(importedNode: org.w3c.dom.Node, deep: boolean): org.w3c.dom.Node;
-    }
+    createTextNode(data: string): Text;
+
+    importNode(importedNode: Node, deep: boolean): Node;
 }
-

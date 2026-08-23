@@ -1,25 +1,30 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.editor.api {
-    export interface Shapes {
-        getName(): string;
+import { java, javaemul } from "../../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { AlgebraicNumber } from "../../algebra/AlgebraicNumber.js";
+import { AlgebraicVector } from "../../algebra/AlgebraicVector.js";
+import { Color } from "../../construction/Color.js";
+import { Polyhedron } from "../../math/Polyhedron.js";
+import { Axis } from "../../math/symmetry/Axis.js";
+import { Direction } from "../../math/symmetry/Direction.js";
+import { Symmetry } from "../../math/symmetry/Symmetry.js";
 
-        getAlias(): string;
+export interface Shapes {
+    getName(): string;
 
-        getConnectorShape(): com.vzome.core.math.Polyhedron;
+    getAlias(): string;
 
-        getStrutShape(dir: com.vzome.core.math.symmetry.Direction, length: com.vzome.core.algebra.AlgebraicNumber): com.vzome.core.math.Polyhedron;
+    getConnectorShape(): Polyhedron;
 
-        getPanelShape(vertexCount: number, quadrea: com.vzome.core.algebra.AlgebraicNumber, zone: com.vzome.core.math.symmetry.Axis, vertices: java.lang.Iterable<com.vzome.core.algebra.AlgebraicVector>, oneSidedPanels: boolean): com.vzome.core.math.Polyhedron;
+    getStrutShape(dir: Direction, length: AlgebraicNumber): Polyhedron;
 
-        getSymmetry(): com.vzome.core.math.symmetry.Symmetry;
+    getPanelShape(vertexCount: number, quadrea: AlgebraicNumber, zone: Axis, vertices: java.lang.Iterable<AlgebraicVector>, oneSidedPanels: boolean): Polyhedron;
 
-        getPackage(): string;
+    getSymmetry(): Symmetry;
 
-        getColor(dir: com.vzome.core.math.symmetry.Direction): com.vzome.core.construction.Color;
+    getPackage(): string;
 
-        hasColors(): boolean;
+    getColor(dir: Direction): Color;
 
-        getCmScaling(): number;
-    }
+    hasColors(): boolean;
+
+    getCmScaling(): number;
 }
-

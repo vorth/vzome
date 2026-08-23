@@ -1,107 +1,106 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.render {
-    export class TransparentRendering implements com.vzome.core.render.RenderingChanges {
-        /*private*/ mRealOne: com.vzome.core.render.RenderingChanges;
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { Shapes } from "../editor/api/Shapes.js";
+import { RenderedManifestation } from "./RenderedManifestation.js";
+import { RenderingChanges } from "./RenderingChanges.js";
 
-        public constructor(realOne: com.vzome.core.render.RenderingChanges) {
-            if (this.mRealOne === undefined) { this.mRealOne = null; }
-            this.mRealOne = realOne;
-        }
+export class TransparentRendering implements RenderingChanges {
+    /*private*/ mRealOne: RenderingChanges;
 
-        /**
-         * 
-         */
-        public reset() {
-            this.mRealOne.reset();
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.render.RenderedManifestation} manifestation
-         */
-        public manifestationAdded(manifestation: com.vzome.core.render.RenderedManifestation) {
-            manifestation.setTransparency(0.5);
-            manifestation.setPickable(false);
-            this.mRealOne.manifestationAdded(manifestation);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.render.RenderedManifestation} manifestation
-         */
-        public manifestationRemoved(manifestation: com.vzome.core.render.RenderedManifestation) {
-            this.mRealOne.manifestationRemoved(manifestation);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.render.RenderedManifestation} manifestation
-         */
-        public glowChanged(manifestation: com.vzome.core.render.RenderedManifestation) {
-            this.mRealOne.glowChanged(manifestation);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.render.RenderedManifestation} manifestation
-         */
-        public labelChanged(manifestation: com.vzome.core.render.RenderedManifestation) {
-            this.mRealOne.labelChanged(manifestation);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.render.RenderedManifestation} manifestation
-         */
-        public colorChanged(manifestation: com.vzome.core.render.RenderedManifestation) {
-            this.mRealOne.colorChanged(manifestation);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.render.RenderedManifestation} manifestation
-         */
-        public locationChanged(manifestation: com.vzome.core.render.RenderedManifestation) {
-            this.mRealOne.locationChanged(manifestation);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.render.RenderedManifestation} manifestation
-         */
-        public orientationChanged(manifestation: com.vzome.core.render.RenderedManifestation) {
-            this.mRealOne.orientationChanged(manifestation);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.render.RenderedManifestation} manifestation
-         */
-        public shapeChanged(manifestation: com.vzome.core.render.RenderedManifestation) {
-            this.mRealOne.shapeChanged(manifestation);
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.render.RenderedManifestation} from
-         * @param {com.vzome.core.render.RenderedManifestation} to
-         */
-        public manifestationSwitched(from: com.vzome.core.render.RenderedManifestation, to: com.vzome.core.render.RenderedManifestation) {
-            throw new java.lang.IllegalStateException();
-        }
-
-        /**
-         * 
-         * @param {*} shapes
-         * @return {boolean}
-         */
-        public shapesChanged(shapes: com.vzome.core.editor.api.Shapes): boolean {
-            return this.mRealOne.shapesChanged(shapes);
-        }
+    public constructor(realOne: RenderingChanges) {
+        if (this.mRealOne === undefined) { this.mRealOne = null; }
+        this.mRealOne = realOne;
     }
-    TransparentRendering["__class"] = "com.vzome.core.render.TransparentRendering";
-    TransparentRendering["__interfaces"] = ["com.vzome.core.render.RenderingChanges"];
 
+    /**
+     * 
+     */
+    public reset() {
+        this.mRealOne.reset();
+    }
 
+    /**
+     * 
+     * @param {RenderedManifestation} manifestation
+     */
+    public manifestationAdded(manifestation: RenderedManifestation) {
+        manifestation.setTransparency(0.5);
+        manifestation.setPickable(false);
+        this.mRealOne.manifestationAdded(manifestation);
+    }
+
+    /**
+     * 
+     * @param {RenderedManifestation} manifestation
+     */
+    public manifestationRemoved(manifestation: RenderedManifestation) {
+        this.mRealOne.manifestationRemoved(manifestation);
+    }
+
+    /**
+     * 
+     * @param {RenderedManifestation} manifestation
+     */
+    public glowChanged(manifestation: RenderedManifestation) {
+        this.mRealOne.glowChanged(manifestation);
+    }
+
+    /**
+     * 
+     * @param {RenderedManifestation} manifestation
+     */
+    public labelChanged(manifestation: RenderedManifestation) {
+        this.mRealOne.labelChanged(manifestation);
+    }
+
+    /**
+     * 
+     * @param {RenderedManifestation} manifestation
+     */
+    public colorChanged(manifestation: RenderedManifestation) {
+        this.mRealOne.colorChanged(manifestation);
+    }
+
+    /**
+     * 
+     * @param {RenderedManifestation} manifestation
+     */
+    public locationChanged(manifestation: RenderedManifestation) {
+        this.mRealOne.locationChanged(manifestation);
+    }
+
+    /**
+     * 
+     * @param {RenderedManifestation} manifestation
+     */
+    public orientationChanged(manifestation: RenderedManifestation) {
+        this.mRealOne.orientationChanged(manifestation);
+    }
+
+    /**
+     * 
+     * @param {RenderedManifestation} manifestation
+     */
+    public shapeChanged(manifestation: RenderedManifestation) {
+        this.mRealOne.shapeChanged(manifestation);
+    }
+
+    /**
+     * 
+     * @param {RenderedManifestation} from
+     * @param {RenderedManifestation} to
+     */
+    public manifestationSwitched(from: RenderedManifestation, to: RenderedManifestation) {
+        throw new java.lang.IllegalStateException();
+    }
+
+    /**
+     * 
+     * @param {*} shapes
+     * @return {boolean}
+     */
+    public shapesChanged(shapes: Shapes): boolean {
+        return this.mRealOne.shapesChanged(shapes);
+    }
 }
-
+TransparentRendering["__class"] = "com.vzome.core.render.TransparentRendering";
+TransparentRendering["__interfaces"] = ["com.vzome.core.render.RenderingChanges"];

@@ -1,26 +1,23 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.math {
-    export class Line {
-        /*private*/ origin: com.vzome.core.math.RealVector;
+import { RealVector } from "./RealVector.js";
 
-        /*private*/ direction: com.vzome.core.math.RealVector;
+export class Line {
+    /*private*/ origin: RealVector;
 
-        public constructor(origin: com.vzome.core.math.RealVector, direction: com.vzome.core.math.RealVector) {
-            if (this.origin === undefined) { this.origin = null; }
-            if (this.direction === undefined) { this.direction = null; }
-            this.direction = direction;
-            this.origin = origin;
-        }
+    /*private*/ direction: RealVector;
 
-        public getOrigin(): com.vzome.core.math.RealVector {
-            return this.origin;
-        }
-
-        public getDirection(): com.vzome.core.math.RealVector {
-            return this.direction;
-        }
+    public constructor(origin: RealVector, direction: RealVector) {
+        if (this.origin === undefined) { this.origin = null; }
+        if (this.direction === undefined) { this.direction = null; }
+        this.direction = direction;
+        this.origin = origin;
     }
-    Line["__class"] = "com.vzome.core.math.Line";
 
+    public getOrigin(): RealVector {
+        return this.origin;
+    }
+
+    public getDirection(): RealVector {
+        return this.direction;
+    }
 }
-
+Line["__class"] = "com.vzome.core.math.Line";

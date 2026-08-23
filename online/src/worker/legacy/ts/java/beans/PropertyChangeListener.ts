@@ -1,7 +1,6 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace java.beans {
-    export interface PropertyChangeListener extends java.util.EventListener {
-        propertyChange(evt: java.beans.PropertyChangeEvent);
-    }
-}
+import { java, javaemul } from "../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { PropertyChangeEvent } from "./PropertyChangeEvent.js";
 
+export interface PropertyChangeListener extends java.util.EventListener {
+    propertyChange(evt: PropertyChangeEvent);
+}

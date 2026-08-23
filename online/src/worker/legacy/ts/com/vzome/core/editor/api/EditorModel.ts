@@ -1,11 +1,12 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.editor.api {
-    export interface EditorModel extends com.vzome.core.editor.api.SymmetryAware {
-        getRealizedModel(): com.vzome.core.model.RealizedModel;
+import { SelectionSummary } from "../SelectionSummary.js";
+import { Selection } from "./Selection.js";
+import { SymmetryAware } from "./SymmetryAware.js";
+import { RealizedModel } from "../../model/RealizedModel.js";
 
-        getSelection(): com.vzome.core.editor.api.Selection;
+export interface EditorModel extends SymmetryAware {
+    getRealizedModel(): RealizedModel;
 
-        addSelectionSummaryListener(listener: com.vzome.core.editor.SelectionSummary.Listener);
-    }
+    getSelection(): Selection;
+
+    addSelectionSummaryListener(listener: SelectionSummary.Listener);
 }
-

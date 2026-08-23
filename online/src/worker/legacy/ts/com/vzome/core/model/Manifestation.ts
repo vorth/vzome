@@ -1,41 +1,47 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.model {
-    export interface Manifestation extends com.vzome.core.model.GroupElement {
-        getLocation(): com.vzome.core.algebra.AlgebraicVector;
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { AlgebraicVector } from "../algebra/AlgebraicVector.js";
+import { Color } from "../construction/Color.js";
+import { Construction } from "../construction/Construction.js";
+import { Group } from "./Group.js";
+import { GroupElement } from "./GroupElement.js";
+import { RenderedObject } from "./RenderedObject.js";
+import { Document } from "../../../../org/w3c/dom/Document.js";
+import { Element } from "../../../../org/w3c/dom/Element.js";
 
-        getConstructions(): java.util.Iterator<com.vzome.core.construction.Construction>;
+export interface Manifestation extends GroupElement {
+    getLocation(): AlgebraicVector;
 
-        getFirstConstruction(): com.vzome.core.construction.Construction;
+    getConstructions(): java.util.Iterator<Construction>;
 
-        getXml(doc: org.w3c.dom.Document): org.w3c.dom.Element;
+    getFirstConstruction(): Construction;
 
-        isHidden(): boolean;
+    getXml(doc: Document): Element;
 
-        isRendered(): boolean;
+    isHidden(): boolean;
 
-        toConstruction(): com.vzome.core.construction.Construction;
+    isRendered(): boolean;
 
-        getCentroid(): com.vzome.core.algebra.AlgebraicVector;
+    toConstruction(): Construction;
 
-        isUnnecessary(): boolean;
+    getCentroid(): AlgebraicVector;
 
-        addConstruction(mConstruction: com.vzome.core.construction.Construction);
+    isUnnecessary(): boolean;
 
-        removeConstruction(mConstruction: com.vzome.core.construction.Construction);
+    addConstruction(mConstruction: Construction);
 
-        setHidden(b: boolean);
+    removeConstruction(mConstruction: Construction);
 
-        getContainer(): com.vzome.core.model.Group;
+    setHidden(b: boolean);
 
-        getColor(): com.vzome.core.construction.Color;
+    getContainer(): Group;
 
-        setColor(color: com.vzome.core.construction.Color);
+    getColor(): Color;
 
-        setRenderedObject(renderedObject: com.vzome.core.model.RenderedObject);
+    setColor(color: Color);
 
-        setLabel(label: string);
+    setRenderedObject(renderedObject: RenderedObject);
 
-        getLabel(): string;
-    }
+    setLabel(label: string);
+
+    getLabel(): string;
 }
-

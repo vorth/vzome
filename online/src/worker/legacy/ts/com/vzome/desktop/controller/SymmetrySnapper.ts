@@ -1,45 +1,45 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.desktop.controller {
-    export class SymmetrySnapper implements com.vzome.desktop.controller.OrbitSnapper {
-        /*private*/ orbitSet: com.vzome.core.math.symmetry.OrbitSet;
+import { RealVector } from "../../core/math/RealVector.js";
+import { Axis } from "../../core/math/symmetry/Axis.js";
+import { Embedding } from "../../core/math/symmetry/Embedding.js";
+import { OrbitSet } from "../../core/math/symmetry/OrbitSet.js";
+import { OrbitSnapper } from "./OrbitSnapper.js";
 
-        /*private*/ embedding: com.vzome.core.math.symmetry.Embedding;
+export class SymmetrySnapper implements OrbitSnapper {
+    /*private*/ orbitSet: OrbitSet;
 
-        public constructor(orbitSet: com.vzome.core.math.symmetry.OrbitSet) {
-            if (this.orbitSet === undefined) { this.orbitSet = null; }
-            if (this.embedding === undefined) { this.embedding = null; }
-            this.orbitSet = orbitSet;
-            this.embedding = orbitSet.getSymmetry();
-        }
+    /*private*/ embedding: Embedding;
 
-        /**
-         * 
-         * @param {com.vzome.core.math.RealVector} zIn
-         * @return {com.vzome.core.math.RealVector}
-         */
-        public snapZ(zIn: com.vzome.core.math.RealVector): com.vzome.core.math.RealVector {
-            const lookZone: com.vzome.core.math.symmetry.Axis = this.orbitSet.getAxis(zIn);
-            if (lookZone == null)return zIn;
-            return this.embedding.embedInR3(lookZone.normal());
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.math.RealVector} zOut
-         * @param {com.vzome.core.math.RealVector} yIn
-         * @return {com.vzome.core.math.RealVector}
-         */
-        public snapY(zOut: com.vzome.core.math.RealVector, yIn: com.vzome.core.math.RealVector): com.vzome.core.math.RealVector {
-            const upZone: com.vzome.core.math.symmetry.Axis = this.orbitSet.getAxis(yIn);
-            if (upZone == null)return yIn;
-            yIn = this.embedding.embedInR3(upZone.normal());
-            const left: com.vzome.core.math.RealVector = zOut.cross(yIn);
-            return left.cross(zOut);
-        }
+    public constructor(orbitSet: OrbitSet) {
+        if (this.orbitSet === undefined) { this.orbitSet = null; }
+        if (this.embedding === undefined) { this.embedding = null; }
+        this.orbitSet = orbitSet;
+        this.embedding = orbitSet.getSymmetry();
     }
-    SymmetrySnapper["__class"] = "com.vzome.desktop.controller.SymmetrySnapper";
-    SymmetrySnapper["__interfaces"] = ["com.vzome.desktop.controller.OrbitSnapper"];
 
+    /**
+     * 
+     * @param {RealVector} zIn
+     * @return {RealVector}
+     */
+    public snapZ(zIn: RealVector): RealVector {
+        const lookZone: Axis = this.orbitSet.getAxis(zIn);
+        if (lookZone == null)return zIn;
+        return this.embedding.embedInR3(lookZone.normal());
+    }
 
+    /**
+     * 
+     * @param {RealVector} zOut
+     * @param {RealVector} yIn
+     * @return {RealVector}
+     */
+    public snapY(zOut: RealVector, yIn: RealVector): RealVector {
+        const upZone: Axis = this.orbitSet.getAxis(yIn);
+        if (upZone == null)return yIn;
+        yIn = this.embedding.embedInR3(upZone.normal());
+        const left: RealVector = zOut.cross(yIn);
+        return left.cross(zOut);
+    }
 }
-
+SymmetrySnapper["__class"] = "com.vzome.desktop.controller.SymmetrySnapper";
+SymmetrySnapper["__interfaces"] = ["com.vzome.desktop.controller.OrbitSnapper"];

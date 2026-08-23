@@ -1,11 +1,10 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.editor.api {
-    export interface SideEffect {
-        undo();
+import { Document } from "../../../../../org/w3c/dom/Document.js";
+import { Element } from "../../../../../org/w3c/dom/Element.js";
 
-        getXml(doc: org.w3c.dom.Document): org.w3c.dom.Element;
+export interface SideEffect {
+    undo();
 
-        redo();
-    }
+    getXml(doc: Document): Element;
+
+    redo();
 }
-

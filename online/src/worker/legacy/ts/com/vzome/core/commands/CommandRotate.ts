@@ -1,43 +1,51 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.commands {
+import { AlgebraicVector } from "../algebra/AlgebraicVector.js";
+import { AttributeMap } from "./AttributeMap.js";
+import { Command } from "./Command.js";
+import { CommandSymmetry } from "./CommandSymmetry.js";
+import { CommandTransform } from "./CommandTransform.js";
+import { Construction } from "../construction/Construction.js";
+import { ConstructionChanges } from "../construction/ConstructionChanges.js";
+import { ConstructionList } from "../construction/ConstructionList.js";
+import { Point } from "../construction/Point.js";
+import { Segment } from "../construction/Segment.js";
+import { SymmetryTransformation } from "../construction/SymmetryTransformation.js";
+import { Transformation } from "../construction/Transformation.js";
+import { Axis } from "../math/symmetry/Axis.js";
+
+/**
+ * @author Scott Vorthmann
+ * @class
+ * @extends CommandSymmetry
+ */
+export class CommandRotate extends CommandSymmetry {
     /**
-     * @author Scott Vorthmann
-     * @class
-     * @extends com.vzome.core.commands.CommandSymmetry
+     * 
+     * @param {ConstructionList} parameters
+     * @param {AttributeMap} attributes
+     * @param {*} effects
+     * @return {ConstructionList}
      */
-    export class CommandRotate extends com.vzome.core.commands.CommandSymmetry {
-        /**
-         * 
-         * @param {com.vzome.core.construction.ConstructionList} parameters
-         * @param {com.vzome.core.commands.AttributeMap} attributes
-         * @param {*} effects
-         * @return {com.vzome.core.construction.ConstructionList}
-         */
-        public apply(parameters: com.vzome.core.construction.ConstructionList, attributes: com.vzome.core.commands.AttributeMap, effects: com.vzome.core.construction.ConstructionChanges): com.vzome.core.construction.ConstructionList {
-            const center: com.vzome.core.construction.Point = this.setSymmetry(attributes);
-            const norm: com.vzome.core.construction.Segment = <com.vzome.core.construction.Segment>attributes.get(com.vzome.core.commands.CommandTransform.SYMMETRY_AXIS_ATTR_NAME);
-            if (norm == null){
-                throw new com.vzome.core.commands.Command.Failure("no symmetry axis provided");
-            }
-            const params: com.vzome.core.construction.Construction[] = parameters.getConstructions();
-            const output: com.vzome.core.construction.ConstructionList = new com.vzome.core.construction.ConstructionList();
-            let vector: com.vzome.core.algebra.AlgebraicVector = norm.getOffset();
-            vector = norm.getField().projectTo3d(vector, true);
-            const axis: com.vzome.core.math.symmetry.Axis = this.mSymmetry['getAxis$com_vzome_core_algebra_AlgebraicVector'](vector);
-            const rotation: number = axis.getRotation();
-            const transform: com.vzome.core.construction.Transformation = new com.vzome.core.construction.SymmetryTransformation(this.mSymmetry, rotation, center);
-            effects['constructionAdded$com_vzome_core_construction_Construction'](transform);
-            output.addAll(this.transform(params, transform, effects));
-            return output;
+    public apply(parameters: ConstructionList, attributes: AttributeMap, effects: ConstructionChanges): ConstructionList {
+        const center: Point = this.setSymmetry(attributes);
+        const norm: Segment = <Segment>attributes.get(CommandTransform.SYMMETRY_AXIS_ATTR_NAME);
+        if (norm == null){
+            throw new Command.Failure("no symmetry axis provided");
         }
-
-        constructor() {
-            super();
-        }
+        const params: Construction[] = parameters.getConstructions();
+        const output: ConstructionList = new ConstructionList();
+        let vector: AlgebraicVector = norm.getOffset();
+        vector = norm.getField().projectTo3d(vector, true);
+        const axis: Axis = this.mSymmetry['getAxis$com_vzome_core_algebra_AlgebraicVector'](vector);
+        const rotation: number = axis.getRotation();
+        const transform: Transformation = new SymmetryTransformation(this.mSymmetry, rotation, center);
+        effects['constructionAdded$com_vzome_core_construction_Construction'](transform);
+        output.addAll(this.transform(params, transform, effects));
+        return output;
     }
-    CommandRotate["__class"] = "com.vzome.core.commands.CommandRotate";
-    CommandRotate["__interfaces"] = ["com.vzome.core.commands.Command"];
 
-
+    constructor() {
+        super();
+    }
 }
-
+CommandRotate["__class"] = "com.vzome.core.commands.CommandRotate";
+CommandRotate["__interfaces"] = ["com.vzome.core.commands.Command"];

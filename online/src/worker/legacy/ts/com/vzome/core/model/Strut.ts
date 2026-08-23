@@ -1,24 +1,24 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.model {
-    export interface Strut extends com.vzome.core.model.Manifestation, java.lang.Comparable<Strut> {
-        getZoneVector(): com.vzome.core.algebra.AlgebraicVector;
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { AlgebraicVector } from "../algebra/AlgebraicVector.js";
+import { Manifestation } from "./Manifestation.js";
 
-        setZoneVector(vector: com.vzome.core.algebra.AlgebraicVector);
+export interface Strut extends Manifestation, java.lang.Comparable<Strut> {
+    getZoneVector(): AlgebraicVector;
 
-        /**
-         * 
-         * @param {*} other
-         * @return {number}
-         */
-        compareTo(other: Strut): number;
+    setZoneVector(vector: AlgebraicVector);
 
-        getCanonicalLesserEnd(): com.vzome.core.algebra.AlgebraicVector;
+    /**
+     * 
+     * @param {*} other
+     * @return {number}
+     */
+    compareTo(other: Strut): number;
 
-        getCanonicalGreaterEnd(): com.vzome.core.algebra.AlgebraicVector;
+    getCanonicalLesserEnd(): AlgebraicVector;
 
-        getEnd(): com.vzome.core.algebra.AlgebraicVector;
+    getCanonicalGreaterEnd(): AlgebraicVector;
 
-        getOffset(): com.vzome.core.algebra.AlgebraicVector;
-    }
+    getEnd(): AlgebraicVector;
+
+    getOffset(): AlgebraicVector;
 }
-

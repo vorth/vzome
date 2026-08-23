@@ -1,23 +1,22 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.zomic.program {
-    export class Scale extends com.vzome.core.zomic.program.ZomicStatement {
-        /*private*/ m_scale: com.vzome.core.algebra.AlgebraicNumber;
+import { AlgebraicNumber } from "../../algebra/AlgebraicNumber.js";
+import { Visitor } from "./Visitor.js";
+import { ZomicStatement } from "./ZomicStatement.js";
 
-        public constructor(size: com.vzome.core.algebra.AlgebraicNumber) {
-            super();
-            if (this.m_scale === undefined) { this.m_scale = null; }
-            this.m_scale = size;
-        }
+export class Scale extends ZomicStatement {
+    /*private*/ m_scale: AlgebraicNumber;
 
-        /**
-         * 
-         * @param {*} visitor
-         */
-        public accept(visitor: com.vzome.core.zomic.program.Visitor) {
-            visitor.visitScale(this.m_scale);
-        }
+    public constructor(size: AlgebraicNumber) {
+        super();
+        if (this.m_scale === undefined) { this.m_scale = null; }
+        this.m_scale = size;
     }
-    Scale["__class"] = "com.vzome.core.zomic.program.Scale";
 
+    /**
+     * 
+     * @param {*} visitor
+     */
+    public accept(visitor: Visitor) {
+        visitor.visitScale(this.m_scale);
+    }
 }
-
+Scale["__class"] = "com.vzome.core.zomic.program.Scale";

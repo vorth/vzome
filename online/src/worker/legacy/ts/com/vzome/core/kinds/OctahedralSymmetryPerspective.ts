@@ -1,99 +1,113 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.kinds {
-    export class OctahedralSymmetryPerspective extends com.vzome.core.kinds.AbstractSymmetryPerspective {
-        public constructor(field: com.vzome.core.algebra.AlgebraicField) {
-            super(new com.vzome.core.math.symmetry.OctahedralSymmetry(field));
-            this.modelResourcePath = "org/vorthmann/zome/app/octahedral-vef.vZome";
-            this.setDefaultGeometry(new com.vzome.core.viewing.OctahedralShapes("octahedral", "octahedra", this.symmetry));
-        }
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { Tool } from "../../api/Tool.js";
+import { AlgebraicField } from "../algebra/AlgebraicField.js";
+import { ToolsModel } from "../editor/ToolsModel.js";
+import { AbstractSymmetryPerspective } from "./AbstractSymmetryPerspective.js";
+import { OctahedralSymmetry } from "../math/symmetry/OctahedralSymmetry.js";
+import { AxialSymmetryToolFactory } from "../tools/AxialSymmetryToolFactory.js";
+import { InversionToolFactory } from "../tools/InversionToolFactory.js";
+import { LineReflectionToolFactory } from "../tools/LineReflectionToolFactory.js";
+import { LinearMapToolFactory } from "../tools/LinearMapToolFactory.js";
+import { MirrorToolFactory } from "../tools/MirrorToolFactory.js";
+import { OctahedralToolFactory } from "../tools/OctahedralToolFactory.js";
+import { PerspectiveProjectionToolFactory } from "../tools/PerspectiveProjectionToolFactory.js";
+import { ProjectionToolFactory } from "../tools/ProjectionToolFactory.js";
+import { RotationToolFactory } from "../tools/RotationToolFactory.js";
+import { ScalingToolFactory } from "../tools/ScalingToolFactory.js";
+import { TetrahedralToolFactory } from "../tools/TetrahedralToolFactory.js";
+import { TranslationToolFactory } from "../tools/TranslationToolFactory.js";
+import { OctahedralShapes } from "../viewing/OctahedralShapes.js";
 
-        /**
-         * 
-         * @return {com.vzome.core.math.symmetry.OctahedralSymmetry}
-         */
-        public getSymmetry(): com.vzome.core.math.symmetry.OctahedralSymmetry {
-            return <com.vzome.core.math.symmetry.OctahedralSymmetry><any>this.symmetry;
-        }
-
-        /**
-         * 
-         * @param {com.vzome.api.Tool.Kind} kind
-         * @param {com.vzome.core.editor.ToolsModel} tools
-         * @return {*}
-         */
-        public createToolFactories(kind: com.vzome.api.Tool.Kind, tools: com.vzome.core.editor.ToolsModel): java.util.List<com.vzome.api.Tool.Factory> {
-            const result: java.util.List<com.vzome.api.Tool.Factory> = <any>(new java.util.ArrayList<any>());
-            switch((kind)) {
-            case com.vzome.api.Tool.Kind.SYMMETRY:
-                result.add(new com.vzome.core.tools.OctahedralToolFactory(tools, this.symmetry));
-                result.add(new com.vzome.core.tools.TetrahedralToolFactory(tools, this.symmetry));
-                result.add(new com.vzome.core.tools.InversionToolFactory(tools));
-                result.add(new com.vzome.core.tools.LineReflectionToolFactory(tools));
-                result.add(new com.vzome.core.tools.MirrorToolFactory(tools));
-                result.add(new com.vzome.core.tools.AxialSymmetryToolFactory(tools, this.symmetry));
-                break;
-            case com.vzome.api.Tool.Kind.TRANSFORM:
-                result.add(new com.vzome.core.tools.ScalingToolFactory(tools, this.symmetry));
-                result.add(new com.vzome.core.tools.RotationToolFactory(tools, this.symmetry));
-                result.add(new com.vzome.core.tools.TranslationToolFactory(tools));
-                result.add(new com.vzome.core.tools.ProjectionToolFactory(tools));
-                result.add(new com.vzome.core.tools.PerspectiveProjectionToolFactory(tools));
-                break;
-            case com.vzome.api.Tool.Kind.LINEAR_MAP:
-                result.add(new com.vzome.core.tools.LinearMapToolFactory(tools, this.symmetry, false));
-                break;
-            default:
-                break;
-            }
-            return result;
-        }
-
-        /**
-         * 
-         * @param {com.vzome.api.Tool.Kind} kind
-         * @param {com.vzome.core.editor.ToolsModel} tools
-         * @return {*}
-         */
-        public predefineTools(kind: com.vzome.api.Tool.Kind, tools: com.vzome.core.editor.ToolsModel): java.util.List<com.vzome.api.Tool> {
-            const result: java.util.List<com.vzome.api.Tool> = <any>(new java.util.ArrayList<any>());
-            switch((kind)) {
-            case com.vzome.api.Tool.Kind.SYMMETRY:
-                result.add(new com.vzome.core.tools.OctahedralToolFactory(tools, this.symmetry).createPredefinedTool("octahedral around origin"));
-                result.add(new com.vzome.core.tools.TetrahedralToolFactory(tools, this.symmetry).createPredefinedTool("tetrahedral around origin"));
-                result.add(new com.vzome.core.tools.InversionToolFactory(tools).createPredefinedTool("reflection through origin"));
-                result.add(new com.vzome.core.tools.MirrorToolFactory(tools).createPredefinedTool("reflection through XY plane"));
-                result.add(new com.vzome.core.tools.MirrorToolFactory(tools).createPredefinedTool("reflection through X=Y green plane"));
-                result.add(new com.vzome.core.tools.AxialSymmetryToolFactory(tools, this.symmetry).createPredefinedTool("symmetry around green through origin"));
-                break;
-            case com.vzome.api.Tool.Kind.TRANSFORM:
-                result.add(new com.vzome.core.tools.ScalingToolFactory(tools, this.symmetry).createPredefinedTool("scale down"));
-                result.add(new com.vzome.core.tools.ScalingToolFactory(tools, this.symmetry).createPredefinedTool("scale up"));
-                result.add(new com.vzome.core.tools.RotationToolFactory(tools, this.symmetry, true).createPredefinedTool("rotate around green through origin"));
-                result.add(new com.vzome.core.tools.TranslationToolFactory(tools).createPredefinedTool("b1 move along +X"));
-                break;
-            default:
-                break;
-            }
-            return result;
-        }
-
-        /**
-         * 
-         * @return {string}
-         */
-        public getModelResourcePath(): string {
-            return this.modelResourcePath;
-        }
-
-        /*private*/ modelResourcePath: string;
-
-        public setModelResourcePath(resourcePath: string) {
-            this.modelResourcePath = resourcePath;
-        }
+export class OctahedralSymmetryPerspective extends AbstractSymmetryPerspective {
+    public constructor(field: AlgebraicField) {
+        super(new OctahedralSymmetry(field));
+        this.modelResourcePath = "org/vorthmann/zome/app/octahedral-vef.vZome";
+        this.setDefaultGeometry(new OctahedralShapes("octahedral", "octahedra", this.symmetry));
     }
-    OctahedralSymmetryPerspective["__class"] = "com.vzome.core.kinds.OctahedralSymmetryPerspective";
-    OctahedralSymmetryPerspective["__interfaces"] = ["com.vzome.core.editor.SymmetryPerspective"];
 
+    /**
+     * 
+     * @return {OctahedralSymmetry}
+     */
+    public getSymmetry(): OctahedralSymmetry {
+        return <OctahedralSymmetry><any>this.symmetry;
+    }
 
+    /**
+     * 
+     * @param {Tool.Kind} kind
+     * @param {ToolsModel} tools
+     * @return {*}
+     */
+    public createToolFactories(kind: Tool.Kind, tools: ToolsModel): java.util.List<Tool.Factory> {
+        const result: java.util.List<Tool.Factory> = <any>(new java.util.ArrayList<any>());
+        switch((kind)) {
+        case Tool.Kind.SYMMETRY:
+            result.add(new OctahedralToolFactory(tools, this.symmetry));
+            result.add(new TetrahedralToolFactory(tools, this.symmetry));
+            result.add(new InversionToolFactory(tools));
+            result.add(new LineReflectionToolFactory(tools));
+            result.add(new MirrorToolFactory(tools));
+            result.add(new AxialSymmetryToolFactory(tools, this.symmetry));
+            break;
+        case Tool.Kind.TRANSFORM:
+            result.add(new ScalingToolFactory(tools, this.symmetry));
+            result.add(new RotationToolFactory(tools, this.symmetry));
+            result.add(new TranslationToolFactory(tools));
+            result.add(new ProjectionToolFactory(tools));
+            result.add(new PerspectiveProjectionToolFactory(tools));
+            break;
+        case Tool.Kind.LINEAR_MAP:
+            result.add(new LinearMapToolFactory(tools, this.symmetry, false));
+            break;
+        default:
+            break;
+        }
+        return result;
+    }
+
+    /**
+     * 
+     * @param {Tool.Kind} kind
+     * @param {ToolsModel} tools
+     * @return {*}
+     */
+    public predefineTools(kind: Tool.Kind, tools: ToolsModel): java.util.List<Tool> {
+        const result: java.util.List<Tool> = <any>(new java.util.ArrayList<any>());
+        switch((kind)) {
+        case Tool.Kind.SYMMETRY:
+            result.add(new OctahedralToolFactory(tools, this.symmetry).createPredefinedTool("octahedral around origin"));
+            result.add(new TetrahedralToolFactory(tools, this.symmetry).createPredefinedTool("tetrahedral around origin"));
+            result.add(new InversionToolFactory(tools).createPredefinedTool("reflection through origin"));
+            result.add(new MirrorToolFactory(tools).createPredefinedTool("reflection through XY plane"));
+            result.add(new MirrorToolFactory(tools).createPredefinedTool("reflection through X=Y green plane"));
+            result.add(new AxialSymmetryToolFactory(tools, this.symmetry).createPredefinedTool("symmetry around green through origin"));
+            break;
+        case Tool.Kind.TRANSFORM:
+            result.add(new ScalingToolFactory(tools, this.symmetry).createPredefinedTool("scale down"));
+            result.add(new ScalingToolFactory(tools, this.symmetry).createPredefinedTool("scale up"));
+            result.add(new RotationToolFactory(tools, this.symmetry, true).createPredefinedTool("rotate around green through origin"));
+            result.add(new TranslationToolFactory(tools).createPredefinedTool("b1 move along +X"));
+            break;
+        default:
+            break;
+        }
+        return result;
+    }
+
+    /**
+     * 
+     * @return {string}
+     */
+    public getModelResourcePath(): string {
+        return this.modelResourcePath;
+    }
+
+    /*private*/ modelResourcePath: string;
+
+    public setModelResourcePath(resourcePath: string) {
+        this.modelResourcePath = resourcePath;
+    }
 }
-
+OctahedralSymmetryPerspective["__class"] = "com.vzome.core.kinds.OctahedralSymmetryPerspective";
+OctahedralSymmetryPerspective["__interfaces"] = ["com.vzome.core.editor.SymmetryPerspective"];

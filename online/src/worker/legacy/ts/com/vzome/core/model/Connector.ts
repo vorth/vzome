@@ -1,7 +1,6 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.model {
-    export interface Connector extends com.vzome.core.model.Manifestation, java.lang.Comparable<Connector> {
-        compareTo(other: Connector): number;
-    }
-}
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { Manifestation } from "./Manifestation.js";
 
+export interface Connector extends Manifestation, java.lang.Comparable<Connector> {
+    compareTo(other: Connector): number;
+}

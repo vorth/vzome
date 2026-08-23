@@ -6,7 +6,8 @@
     "build": "node scripts/prod-build.mjs",
     "nolegacy": "node scripts/test-app.mjs nolegacy",
     "dev": "node scripts/test-app.mjs",
-    "https": "node scripts/test-https.mjs"
+    "https": "node scripts/test-https.mjs",
+    "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@kobalte/core": "^0.13.3",
@@ -53,7 +54,8 @@
     "@babel/preset-typescript": "^7.21.4",
     "babel-preset-solid": "^1.7.3",
     "esbuild": "^0.25.0",
-    "eslint": "^8.5.0"
+    "eslint": "^8.5.0",
+    "typescript": "^5.9"
   },
   "packageManager": "yarn@1.22.19+sha1.4ba7fc5c6e704fce2066ecbfb0b0d8976fe62447"
 }

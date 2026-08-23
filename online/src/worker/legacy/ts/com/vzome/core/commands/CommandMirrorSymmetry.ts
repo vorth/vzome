@@ -1,38 +1,45 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.commands {
+import { AttributeMap } from "./AttributeMap.js";
+import { Command } from "./Command.js";
+import { CommandTransform } from "./CommandTransform.js";
+import { Construction } from "../construction/Construction.js";
+import { ConstructionChanges } from "../construction/ConstructionChanges.js";
+import { ConstructionList } from "../construction/ConstructionList.js";
+import { Plane } from "../construction/Plane.js";
+import { PlaneFromNormalSegment } from "../construction/PlaneFromNormalSegment.js";
+import { PlaneReflection } from "../construction/PlaneReflection.js";
+import { Point } from "../construction/Point.js";
+import { Segment } from "../construction/Segment.js";
+import { Transformation } from "../construction/Transformation.js";
+
+/**
+ * @author Scott Vorthmann
+ * @class
+ * @extends CommandTransform
+ */
+export class CommandMirrorSymmetry extends CommandTransform {
     /**
-     * @author Scott Vorthmann
-     * @class
-     * @extends com.vzome.core.commands.CommandTransform
+     * 
+     * @param {ConstructionList} parameters
+     * @param {AttributeMap} attributes
+     * @param {*} effects
+     * @return {ConstructionList}
      */
-    export class CommandMirrorSymmetry extends com.vzome.core.commands.CommandTransform {
-        /**
-         * 
-         * @param {com.vzome.core.construction.ConstructionList} parameters
-         * @param {com.vzome.core.commands.AttributeMap} attributes
-         * @param {*} effects
-         * @return {com.vzome.core.construction.ConstructionList}
-         */
-        public apply(parameters: com.vzome.core.construction.ConstructionList, attributes: com.vzome.core.commands.AttributeMap, effects: com.vzome.core.construction.ConstructionChanges): com.vzome.core.construction.ConstructionList {
-            const center: com.vzome.core.construction.Point = <com.vzome.core.construction.Point>attributes.get(com.vzome.core.commands.CommandTransform.SYMMETRY_CENTER_ATTR_NAME);
-            const norm: com.vzome.core.construction.Segment = <com.vzome.core.construction.Segment>attributes.get(com.vzome.core.commands.CommandTransform.SYMMETRY_AXIS_ATTR_NAME);
-            if (norm == null){
-                throw new com.vzome.core.commands.Command.Failure("no symmetry axis provided");
-            }
-            const params: com.vzome.core.construction.Construction[] = parameters.getConstructions();
-            const mirror: com.vzome.core.construction.Plane = new com.vzome.core.construction.PlaneFromNormalSegment(center, norm);
-            effects['constructionAdded$com_vzome_core_construction_Construction'](mirror);
-            const transform: com.vzome.core.construction.Transformation = new com.vzome.core.construction.PlaneReflection(mirror);
-            return this.transform(params, transform, effects);
+    public apply(parameters: ConstructionList, attributes: AttributeMap, effects: ConstructionChanges): ConstructionList {
+        const center: Point = <Point>attributes.get(CommandTransform.SYMMETRY_CENTER_ATTR_NAME);
+        const norm: Segment = <Segment>attributes.get(CommandTransform.SYMMETRY_AXIS_ATTR_NAME);
+        if (norm == null){
+            throw new Command.Failure("no symmetry axis provided");
         }
-
-        constructor() {
-            super();
-        }
+        const params: Construction[] = parameters.getConstructions();
+        const mirror: Plane = new PlaneFromNormalSegment(center, norm);
+        effects['constructionAdded$com_vzome_core_construction_Construction'](mirror);
+        const transform: Transformation = new PlaneReflection(mirror);
+        return this.transform(params, transform, effects);
     }
-    CommandMirrorSymmetry["__class"] = "com.vzome.core.commands.CommandMirrorSymmetry";
-    CommandMirrorSymmetry["__interfaces"] = ["com.vzome.core.commands.Command"];
 
-
+    constructor() {
+        super();
+    }
 }
-
+CommandMirrorSymmetry["__class"] = "com.vzome.core.commands.CommandMirrorSymmetry";
+CommandMirrorSymmetry["__interfaces"] = ["com.vzome.core.commands.Command"];

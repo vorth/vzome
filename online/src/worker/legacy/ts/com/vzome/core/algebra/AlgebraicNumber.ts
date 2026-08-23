@@ -1,191 +1,190 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.algebra {
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { AlgebraicField } from "./AlgebraicField.js";
+import { Fields } from "./Fields.js";
+
+/**
+ * 
+ * Immutable representation of an Algebraic Number
+ * @class
+ */
+export interface AlgebraicNumber extends Fields.Element<AlgebraicNumber>, java.lang.Comparable<AlgebraicNumber> {
+    greaterThan(other: AlgebraicNumber): boolean;
+
+    lessThan(other: AlgebraicNumber): boolean;
+
+    greaterThanOrEqualTo(other: AlgebraicNumber): boolean;
+
+    lessThanOrEqualTo(other: AlgebraicNumber): boolean;
+
+    getField(): AlgebraicField;
+
     /**
      * 
-     * Immutable representation of an Algebraic Number
-     * @class
+     * @param {number} n is the value to be added
+     * @return {*} this + n
      */
-    export interface AlgebraicNumber extends com.vzome.core.algebra.Fields.Element<AlgebraicNumber>, java.lang.Comparable<AlgebraicNumber> {
-        greaterThan(other: AlgebraicNumber): boolean;
+    plusInt(n: number): AlgebraicNumber;
 
-        lessThan(other: AlgebraicNumber): boolean;
+    /**
+     * 
+     * @param {number} num is the numerator of the rational value to be added
+     * @param {number} den is the denominator of the rational value to be added
+     * @return {*} this + (num / den)
+     */
+    plusRational(num: number, den: number): AlgebraicNumber;
 
-        greaterThanOrEqualTo(other: AlgebraicNumber): boolean;
+    /**
+     * 
+     * @param {*} that is the value to be added
+     * @return {*} this + n
+     */
+    plus(that?: any): any;
 
-        lessThanOrEqualTo(other: AlgebraicNumber): boolean;
+    /**
+     * 
+     * @param {number} n is the value to be multiplied
+     * @return {*} this * n
+     */
+    timesInt(n: number): AlgebraicNumber;
 
-        getField(): com.vzome.core.algebra.AlgebraicField;
+    /**
+     * 
+     * @param {number} num is the numerator of the rational value to be multiplied
+     * @param {number} den is the denominator of the rational value to be multiplied
+     * @return {*} this * (num / den)
+     */
+    timesRational(num: number, den: number): AlgebraicNumber;
 
-        /**
-         * 
-         * @param {number} n is the value to be added
-         * @return {*} this + n
-         */
-        plusInt(n: number): AlgebraicNumber;
+    /**
+     * 
+     * @param {*} that
+     * @return {*}
+     */
+    times(that?: any): any;
 
-        /**
-         * 
-         * @param {number} num is the numerator of the rational value to be added
-         * @param {number} den is the denominator of the rational value to be added
-         * @return {*} this + (num / den)
-         */
-        plusRational(num: number, den: number): AlgebraicNumber;
+    /**
+     * 
+     * @param {number} n is the value to be subtracted
+     * @return {*} this - n
+     */
+    minusInt(n: number): AlgebraicNumber;
 
-        /**
-         * 
-         * @param {*} that is the value to be added
-         * @return {*} this + n
-         */
-        plus(that?: any): any;
+    /**
+     * 
+     * @param {number} num is the numerator of the rational value to be subtracted
+     * @param {number} den is the denominator of the rational value to be subtracted
+     * @return {*} this - (num / den)
+     */
+    minusRational(num: number, den: number): AlgebraicNumber;
 
-        /**
-         * 
-         * @param {number} n is the value to be multiplied
-         * @return {*} this * n
-         */
-        timesInt(n: number): AlgebraicNumber;
+    /**
+     * 
+     * @param {*} that is the value to be subtracted
+     * @return {*} this - n
+     */
+    minus(that?: any): any;
 
-        /**
-         * 
-         * @param {number} num is the numerator of the rational value to be multiplied
-         * @param {number} den is the denominator of the rational value to be multiplied
-         * @return {*} this * (num / den)
-         */
-        timesRational(num: number, den: number): AlgebraicNumber;
+    /**
+     * 
+     * @param {number} divisor
+     * @return {*} this / divisor
+     */
+    dividedByInt(divisor: number): AlgebraicNumber;
 
-        /**
-         * 
-         * @param {*} that
-         * @return {*}
-         */
-        times(that?: any): any;
+    /**
+     * 
+     * @param {number} num is the numerator of the divisor
+     * @param {number} den is the denominator of the divisor
+     * @return {*} this / (num / den)
+     */
+    dividedByRational(num: number, den: number): AlgebraicNumber;
 
-        /**
-         * 
-         * @param {number} n is the value to be subtracted
-         * @return {*} this - n
-         */
-        minusInt(n: number): AlgebraicNumber;
+    dividedBy(that: AlgebraicNumber): AlgebraicNumber;
 
-        /**
-         * 
-         * @param {number} num is the numerator of the rational value to be subtracted
-         * @param {number} den is the denominator of the rational value to be subtracted
-         * @return {*} this - (num / den)
-         */
-        minusRational(num: number, den: number): AlgebraicNumber;
+    /**
+     * 
+     * @return {number}
+     */
+    evaluate(): number;
 
-        /**
-         * 
-         * @param {*} that is the value to be subtracted
-         * @return {*} this - n
-         */
-        minus(that?: any): any;
+    isRational(): boolean;
 
-        /**
-         * 
-         * @param {number} divisor
-         * @return {*} this / divisor
-         */
-        dividedByInt(divisor: number): AlgebraicNumber;
+    /**
+     * 
+     * @return {boolean}
+     */
+    isZero(): boolean;
 
-        /**
-         * 
-         * @param {number} num is the numerator of the divisor
-         * @param {number} den is the denominator of the divisor
-         * @return {*} this / (num / den)
-         */
-        dividedByRational(num: number, den: number): AlgebraicNumber;
+    /**
+     * 
+     * @return {boolean}
+     */
+    isOne(): boolean;
 
-        dividedBy(that: AlgebraicNumber): AlgebraicNumber;
+    signum(): number;
 
-        /**
-         * 
-         * @return {number}
-         */
-        evaluate(): number;
+    /**
+     * 
+     * @return {*}
+     */
+    negate(): AlgebraicNumber;
 
-        isRational(): boolean;
+    /**
+     * 
+     * @return {*}
+     */
+    reciprocal(): AlgebraicNumber;
 
-        /**
-         * 
-         * @return {boolean}
-         */
-        isZero(): boolean;
+    /**
+     * 
+     * @param {java.lang.StringBuffer} buf
+     * @param {number} format must be one of the following values.
+     * The result is formatted as follows:
+     * <br>
+     * {@code DEFAULT_FORMAT    // 4 + 3φ}<br>
+     * {@code EXPRESSION_FORMAT // 4 +3*phi}<br>
+     * {@code ZOMIC_FORMAT      // 4 3}<br>
+     * {@code VEF_FORMAT        // (3,4)}<br>
+     * {@code MATHML_FORMAT     // Use getMathML()}
+     * {@code MATH_FORMAT       // Originally used in JavaScript parts panel, not in Java}
+     */
+    getNumberExpression(buf: java.lang.StringBuffer, format: number);
 
-        /**
-         * 
-         * @return {boolean}
-         */
-        isOne(): boolean;
+    /**
+     * 
+     * @param {number} format must be one of the following values.
+     * The result is formatted as follows:
+     * <br>
+     * {@code DEFAULT_FORMAT    // 4 + 3φ}<br>
+     * {@code EXPRESSION_FORMAT // 4 +3*phi}<br>
+     * {@code ZOMIC_FORMAT      // 4 3}<br>
+     * {@code VEF_FORMAT        // (3,4)}
+     * {@code MATHML_FORMAT     // Use getMathML()}
+     * {@code MATH_FORMAT       // Originally used in JavaScript parts panel, not in Java}
+     * 
+     * @return {string}
+     */
+    toString(format: number): string;
 
-        signum(): number;
+    toTrailingDivisor(): string[];
+}
 
-        /**
-         * 
-         * @return {*}
-         */
-        negate(): AlgebraicNumber;
+export namespace AlgebraicNumber {
 
-        /**
-         * 
-         * @return {*}
-         */
-        reciprocal(): AlgebraicNumber;
-
-        /**
-         * 
-         * @param {java.lang.StringBuffer} buf
-         * @param {number} format must be one of the following values.
-         * The result is formatted as follows:
-         * <br>
-         * {@code DEFAULT_FORMAT    // 4 + 3φ}<br>
-         * {@code EXPRESSION_FORMAT // 4 +3*phi}<br>
-         * {@code ZOMIC_FORMAT      // 4 3}<br>
-         * {@code VEF_FORMAT        // (3,4)}<br>
-         * {@code MATHML_FORMAT     // Use getMathML()}
-         * {@code MATH_FORMAT       // Originally used in JavaScript parts panel, not in Java}
-         */
-        getNumberExpression(buf: java.lang.StringBuffer, format: number);
-
-        /**
-         * 
-         * @param {number} format must be one of the following values.
-         * The result is formatted as follows:
-         * <br>
-         * {@code DEFAULT_FORMAT    // 4 + 3φ}<br>
-         * {@code EXPRESSION_FORMAT // 4 +3*phi}<br>
-         * {@code ZOMIC_FORMAT      // 4 3}<br>
-         * {@code VEF_FORMAT        // (3,4)}
-         * {@code MATHML_FORMAT     // Use getMathML()}
-         * {@code MATH_FORMAT       // Originally used in JavaScript parts panel, not in Java}
-         * 
-         * @return {string}
-         */
-        toString(format: number): string;
-
-        toTrailingDivisor(): string[];
+    export class Views {
+        constructor() {
+        }
     }
-
-    export namespace AlgebraicNumber {
-
-        export class Views {
-            constructor() {
-            }
-        }
-        Views["__class"] = "com.vzome.core.algebra.AlgebraicNumber.Views";
+    Views["__class"] = "com.vzome.core.algebra.AlgebraicNumber.Views";
 
 
-        export namespace Views {
+    export namespace Views {
 
-            export interface TrailingDivisor {            }
+        export interface TrailingDivisor {            }
 
-            export interface Rational {            }
+        export interface Rational {            }
 
-            export interface Real {            }
-        }
-
+        export interface Real {            }
     }
 
 }
-

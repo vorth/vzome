@@ -1,46 +1,46 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.commands {
-    export class CommandSetColor extends com.vzome.core.commands.AbstractCommand {
-        public static MANIFESTATION_ATTR: string = "manifestation.context";
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { AbstractCommand } from "./AbstractCommand.js";
+import { AttributeMap } from "./AttributeMap.js";
+import { ConstructionChanges } from "../construction/ConstructionChanges.js";
+import { ConstructionList } from "../construction/ConstructionList.js";
 
-        public static COLOR_ATTR: string = "color";
+export class CommandSetColor extends AbstractCommand {
+    public static MANIFESTATION_ATTR: string = "manifestation.context";
 
-        static PARAM_SIGNATURE: any[][]; public static PARAM_SIGNATURE_$LI$(): any[][] { if (CommandSetColor.PARAM_SIGNATURE == null) { CommandSetColor.PARAM_SIGNATURE = []; }  return CommandSetColor.PARAM_SIGNATURE; }
+    public static COLOR_ATTR: string = "color";
 
-        /**
-         * 
-         * @return {java.lang.Object[][]}
-         */
-        public getParameterSignature(): any[][] {
-            return CommandSetColor.PARAM_SIGNATURE_$LI$();
-        }
+    static PARAM_SIGNATURE: any[][]; public static PARAM_SIGNATURE_$LI$(): any[][] { if (CommandSetColor.PARAM_SIGNATURE == null) { CommandSetColor.PARAM_SIGNATURE = []; }  return CommandSetColor.PARAM_SIGNATURE; }
 
-        /**
-         * 
-         * @return {java.lang.Object[][]}
-         */
-        public getAttributeSignature(): any[][] {
-            return null;
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.construction.ConstructionList} parameters
-         * @param {com.vzome.core.commands.AttributeMap} attributes
-         * @param {*} effects
-         * @return {com.vzome.core.construction.ConstructionList}
-         */
-        public apply(parameters: com.vzome.core.construction.ConstructionList, attributes: com.vzome.core.commands.AttributeMap, effects: com.vzome.core.construction.ConstructionChanges): com.vzome.core.construction.ConstructionList {
-            return parameters;
-        }
-
-        constructor() {
-            super();
-        }
+    /**
+     * 
+     * @return {java.lang.Object[][]}
+     */
+    public getParameterSignature(): any[][] {
+        return CommandSetColor.PARAM_SIGNATURE_$LI$();
     }
-    CommandSetColor["__class"] = "com.vzome.core.commands.CommandSetColor";
-    CommandSetColor["__interfaces"] = ["com.vzome.core.commands.Command"];
 
+    /**
+     * 
+     * @return {java.lang.Object[][]}
+     */
+    public getAttributeSignature(): any[][] {
+        return null;
+    }
 
+    /**
+     * 
+     * @param {ConstructionList} parameters
+     * @param {AttributeMap} attributes
+     * @param {*} effects
+     * @return {ConstructionList}
+     */
+    public apply(parameters: ConstructionList, attributes: AttributeMap, effects: ConstructionChanges): ConstructionList {
+        return parameters;
+    }
+
+    constructor() {
+        super();
+    }
 }
-
+CommandSetColor["__class"] = "com.vzome.core.commands.CommandSetColor";
+CommandSetColor["__interfaces"] = ["com.vzome.core.commands.Command"];

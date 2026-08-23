@@ -1,130 +1,133 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.tools {
-    export class BookmarkTool extends com.vzome.core.editor.Tool {
-        public static ID: string = "bookmark";
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { Construction } from "../construction/Construction.js";
+import { FreePoint } from "../construction/FreePoint.js";
+import { Duplicator } from "../editor/Duplicator.js";
+import { Tool } from "../editor/Tool.js";
+import { ToolsModel } from "../editor/ToolsModel.js";
+import { ChangeManifestations } from "../editor/api/ChangeManifestations.js";
+import { Manifestation } from "../model/Manifestation.js";
 
-        static LABEL: string = "Create a selection bookmark";
+export class BookmarkTool extends Tool {
+    public static ID: string = "bookmark";
 
-        static TOOLTIP: string = "<p>A selection bookmark lets you re-create<br>any selection at a later time.</p>";
+    static LABEL: string = "Create a selection bookmark";
 
-        /*private*/ bookmarkedConstructions: java.util.List<com.vzome.core.construction.Construction>;
+    static TOOLTIP: string = "<p>A selection bookmark lets you re-create<br>any selection at a later time.</p>";
 
-        public constructor(id: string, tools: com.vzome.core.editor.ToolsModel) {
-            super(id, tools);
-            this.bookmarkedConstructions = <any>(new java.util.ArrayList<any>());
-        }
+    /*private*/ bookmarkedConstructions: java.util.List<Construction>;
 
-        /**
-         * 
-         * @return {boolean}
-         */
-        public isSticky(): boolean {
-            return true;
-        }
-
-        /**
-         * 
-         */
-        public perform() {
-            const duper: com.vzome.core.editor.Duplicator = new com.vzome.core.editor.Duplicator(null, null);
-            if (this.mSelection.size() === 0)this.bookmarkedConstructions.add(new com.vzome.core.construction.FreePoint(this.mManifestations.getField().origin(3))); else for(let index=this.mSelection.iterator();index.hasNext();) {
-                let man = index.next();
-                {
-                    const result: com.vzome.core.construction.Construction = duper.duplicateConstruction(man);
-                    this.bookmarkedConstructions.add(result);
-                    this.addParameter(result);
-                }
-            }
-            super.perform();
-        }
-
-        /**
-         * 
-         * @return {boolean}
-         */
-        public needsInput(): boolean {
-            return false;
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.editor.api.ChangeManifestations} edit
-         */
-        public prepare(edit: com.vzome.core.editor.api.ChangeManifestations) {
-            if (this.bookmarkedConstructions.isEmpty()){
-                edit.manifestConstruction(new com.vzome.core.construction.FreePoint(this.mManifestations.getField().origin(3)));
-            } else for(let index=this.bookmarkedConstructions.iterator();index.hasNext();) {
-                let con = index.next();
-                {
-                    edit.manifestConstruction(con);
-                }
-            }
-            edit.redo();
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.editor.api.ChangeManifestations} applyTool
-         */
-        public complete(applyTool: com.vzome.core.editor.api.ChangeManifestations) {
-        }
-
-        /**
-         * 
-         * @param {com.vzome.core.construction.Construction} c
-         * @param {com.vzome.core.editor.api.ChangeManifestations} applyTool
-         */
-        public performEdit(c: com.vzome.core.construction.Construction, applyTool: com.vzome.core.editor.api.ChangeManifestations) {
-        }
-
-        /**
-         * 
-         * @param {*} man
-         * @param {com.vzome.core.editor.api.ChangeManifestations} applyTool
-         */
-        public performSelect(man: com.vzome.core.model.Manifestation, applyTool: com.vzome.core.editor.api.ChangeManifestations) {
-        }
-
-        /**
-         * 
-         */
-        public redo() {
-        }
-
-        /**
-         * 
-         */
-        public undo() {
-        }
-
-        /**
-         * 
-         * @return {string}
-         */
-        getXmlElementName(): string {
-            return "BookmarkTool";
-        }
-
-        /**
-         * 
-         * @return {string}
-         */
-        public getCategory(): string {
-            return BookmarkTool.ID;
-        }
-
-        /**
-         * 
-         * @param {boolean} prepareTool
-         * @return {string}
-         */
-        checkSelection(prepareTool: boolean): string {
-            return null;
-        }
+    public constructor(id: string, tools: ToolsModel) {
+        super(id, tools);
+        this.bookmarkedConstructions = <any>(new java.util.ArrayList<any>());
     }
-    BookmarkTool["__class"] = "com.vzome.core.tools.BookmarkTool";
-    BookmarkTool["__interfaces"] = ["com.vzome.api.Tool"];
 
+    /**
+     * 
+     * @return {boolean}
+     */
+    public isSticky(): boolean {
+        return true;
+    }
 
+    /**
+     * 
+     */
+    public perform() {
+        const duper: Duplicator = new Duplicator(null, null);
+        if (this.mSelection.size() === 0)this.bookmarkedConstructions.add(new FreePoint(this.mManifestations.getField().origin(3))); else for(let index=this.mSelection.iterator();index.hasNext();) {
+            let man = index.next();
+            {
+                const result: Construction = duper.duplicateConstruction(man);
+                this.bookmarkedConstructions.add(result);
+                this.addParameter(result);
+            }
+        }
+        super.perform();
+    }
+
+    /**
+     * 
+     * @return {boolean}
+     */
+    public needsInput(): boolean {
+        return false;
+    }
+
+    /**
+     * 
+     * @param {ChangeManifestations} edit
+     */
+    public prepare(edit: ChangeManifestations) {
+        if (this.bookmarkedConstructions.isEmpty()){
+            edit.manifestConstruction(new FreePoint(this.mManifestations.getField().origin(3)));
+        } else for(let index=this.bookmarkedConstructions.iterator();index.hasNext();) {
+            let con = index.next();
+            {
+                edit.manifestConstruction(con);
+            }
+        }
+        edit.redo();
+    }
+
+    /**
+     * 
+     * @param {ChangeManifestations} applyTool
+     */
+    public complete(applyTool: ChangeManifestations) {
+    }
+
+    /**
+     * 
+     * @param {Construction} c
+     * @param {ChangeManifestations} applyTool
+     */
+    public performEdit(c: Construction, applyTool: ChangeManifestations) {
+    }
+
+    /**
+     * 
+     * @param {*} man
+     * @param {ChangeManifestations} applyTool
+     */
+    public performSelect(man: Manifestation, applyTool: ChangeManifestations) {
+    }
+
+    /**
+     * 
+     */
+    public redo() {
+    }
+
+    /**
+     * 
+     */
+    public undo() {
+    }
+
+    /**
+     * 
+     * @return {string}
+     */
+    getXmlElementName(): string {
+        return "BookmarkTool";
+    }
+
+    /**
+     * 
+     * @return {string}
+     */
+    public getCategory(): string {
+        return BookmarkTool.ID;
+    }
+
+    /**
+     * 
+     * @param {boolean} prepareTool
+     * @return {string}
+     */
+    checkSelection(prepareTool: boolean): string {
+        return null;
+    }
 }
-
+BookmarkTool["__class"] = "com.vzome.core.tools.BookmarkTool";
+BookmarkTool["__interfaces"] = ["com.vzome.api.Tool"];

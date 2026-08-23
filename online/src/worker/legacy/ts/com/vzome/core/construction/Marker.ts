@@ -1,45 +1,44 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.construction {
-    export class Marker extends com.vzome.core.construction.Construction {
-        /*private*/ mTarget: com.vzome.core.construction.Construction;
+import { Construction } from "./Construction.js";
+import { Document } from "../../../../org/w3c/dom/Document.js";
+import { Element } from "../../../../org/w3c/dom/Element.js";
 
-        public constructor(target: com.vzome.core.construction.Construction) {
-            super(target.field);
-            if (this.mTarget === undefined) { this.mTarget = null; }
-            this.mTarget = target;
-        }
+export class Marker extends Construction {
+    /*private*/ mTarget: Construction;
 
-        public getTarget(): com.vzome.core.construction.Construction {
-            return this.mTarget;
-        }
-
-        /**
-         * 
-         * @return {boolean}
-         */
-        mapParamsToState(): boolean {
-            return false;
-        }
-
-        /**
-         * 
-         * @param {*} doc
-         * @return {*}
-         */
-        public getXml(doc: org.w3c.dom.Document): org.w3c.dom.Element {
-            const result: org.w3c.dom.Element = doc.createElement("marker");
-            return result;
-        }
-
-        /**
-         * 
-         * @return {boolean}
-         */
-        public is3d(): boolean {
-            return this.mTarget.is3d();
-        }
+    public constructor(target: Construction) {
+        super(target.field);
+        if (this.mTarget === undefined) { this.mTarget = null; }
+        this.mTarget = target;
     }
-    Marker["__class"] = "com.vzome.core.construction.Marker";
 
+    public getTarget(): Construction {
+        return this.mTarget;
+    }
+
+    /**
+     * 
+     * @return {boolean}
+     */
+    mapParamsToState(): boolean {
+        return false;
+    }
+
+    /**
+     * 
+     * @param {*} doc
+     * @return {*}
+     */
+    public getXml(doc: Document): Element {
+        const result: Element = doc.createElement("marker");
+        return result;
+    }
+
+    /**
+     * 
+     * @return {boolean}
+     */
+    public is3d(): boolean {
+        return this.mTarget.is3d();
+    }
 }
-
+Marker["__class"] = "com.vzome.core.construction.Marker";

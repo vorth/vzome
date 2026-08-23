@@ -1,36 +1,41 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.editor {
-    export interface SymmetryPerspective {
-        getGeometries(): java.util.List<com.vzome.core.editor.api.Shapes>;
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { Tool } from "../../api/Tool.js";
+import { AlgebraicNumber } from "../algebra/AlgebraicNumber.js";
+import { Command } from "../commands/Command.js";
+import { ToolsModel } from "./ToolsModel.js";
+import { Shapes } from "./api/Shapes.js";
+import { Direction } from "../math/symmetry/Direction.js";
+import { Symmetry } from "../math/symmetry/Symmetry.js";
 
-        getDefaultGeometry(): com.vzome.core.editor.api.Shapes;
+export interface SymmetryPerspective {
+    getGeometries(): java.util.List<Shapes>;
 
-        getName(): string;
+    getDefaultGeometry(): Shapes;
 
-        getSymmetry(): com.vzome.core.math.symmetry.Symmetry;
+    getName(): string;
 
-        createToolFactories(kind: com.vzome.api.Tool.Kind, model: com.vzome.core.editor.ToolsModel): java.util.List<com.vzome.api.Tool.Factory>;
+    getSymmetry(): Symmetry;
 
-        predefineTools(kind: com.vzome.api.Tool.Kind, model: com.vzome.core.editor.ToolsModel): java.util.List<com.vzome.api.Tool>;
+    createToolFactories(kind: Tool.Kind, model: ToolsModel): java.util.List<Tool.Factory>;
 
-        /**
-         * These commands should all be symmetry-DEPENDANT.
-         * Contrast with {@code FieldApplication.getLegacyCommand(action) }.
-         * @param {string} action
-         * @return
-         * @return {*}
-         */
-        getLegacyCommand(action: string): com.vzome.core.commands.Command;
+    predefineTools(kind: Tool.Kind, model: ToolsModel): java.util.List<Tool>;
 
-        getModelResourcePath(): string;
+    /**
+     * These commands should all be symmetry-DEPENDANT.
+     * Contrast with {@code FieldApplication.getLegacyCommand(action) }.
+     * @param {string} action
+     * @return
+     * @return {*}
+     */
+    getLegacyCommand(action: string): Command;
 
-        orbitIsStandard(orbit: com.vzome.core.math.symmetry.Direction): boolean;
+    getModelResourcePath(): string;
 
-        orbitIsBuildDefault(orbit: com.vzome.core.math.symmetry.Direction): boolean;
+    orbitIsStandard(orbit: Direction): boolean;
 
-        getOrbitUnitLength(orbit: com.vzome.core.math.symmetry.Direction): com.vzome.core.algebra.AlgebraicNumber;
+    orbitIsBuildDefault(orbit: Direction): boolean;
 
-        getLabel(): string;
-    }
+    getOrbitUnitLength(orbit: Direction): AlgebraicNumber;
+
+    getLabel(): string;
 }
-

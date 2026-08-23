@@ -1,72 +1,70 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.desktop.api {
-    /**
-     * Controller portion of model-view-controller architecture.
-     * 
-     * MVC principles in vZome:
-     * 
-     * - UI code can know other UI classes, preferably top-down only (no knowledge of parent context)
-     * - UI code only knows this generic Controller interface
-     * - UI code gets Controllers using Controller .getSubController()
-     * - UI code cannot know of any specific Controller subclasses or any model classes
-     * - Controller code cannot know any UI classes; ActionListeners let the controller trigger UI effects
-     * - Controller code can know other Controller subclasses, and Model classes
-     * - Model classes can only know other Model classes, preferably top-down only (no knowledge of parent context)
-     * - Model classes can trigger PropertyChangeEvents, but usually the Controllers do it
-     * 
-     * @author vorth
-     * @class
-     */
-    export interface Controller {
-        setErrorChannel(errors: Controller.ErrorChannel);
+import { PropertyChangeListener } from "../../../../java/beans/PropertyChangeListener.js";
+import { File } from "../../../../java/io/File.js";
 
-        getCommandList(listName: string): string[];
+/**
+ * Controller portion of model-view-controller architecture.
+ * 
+ * MVC principles in vZome:
+ * 
+ * - UI code can know other UI classes, preferably top-down only (no knowledge of parent context)
+ * - UI code only knows this generic Controller interface
+ * - UI code gets Controllers using Controller .getSubController()
+ * - UI code cannot know of any specific Controller subclasses or any model classes
+ * - Controller code cannot know any UI classes; ActionListeners let the controller trigger UI effects
+ * - Controller code can know other Controller subclasses, and Model classes
+ * - Model classes can only know other Model classes, preferably top-down only (no knowledge of parent context)
+ * - Model classes can trigger PropertyChangeEvents, but usually the Controllers do it
+ * 
+ * @author vorth
+ * @class
+ */
+export interface Controller {
+    setErrorChannel(errors: Controller.ErrorChannel);
 
-        actionPerformed(source: any, action: string);
+    getCommandList(listName: string): string[];
 
-        getCommandListDefaultStates(string: string): boolean[];
+    actionPerformed(source: any, action: string);
 
-        doFileAction(command: string, file: java.io.File);
+    getCommandListDefaultStates(string: string): boolean[];
 
-        doScriptAction(command: string, script: string);
+    doFileAction(command: string, file: File);
 
-        getProperty(string: string): string;
+    doScriptAction(command: string, script: string);
 
-        setProperty(cmd: string, value: any);
+    getProperty(string: string): string;
 
-        propertyIsTrue(propName: string): boolean;
+    setProperty(cmd: string, value: any);
 
-        userHasEntitlement(propName: string): boolean;
+    propertyIsTrue(propName: string): boolean;
 
-        addPropertyListener(listener: java.beans.PropertyChangeListener);
+    userHasEntitlement(propName: string): boolean;
 
-        removePropertyListener(listener: java.beans.PropertyChangeListener);
+    addPropertyListener(listener: PropertyChangeListener);
 
-        getSubController(string: string): Controller;
+    removePropertyListener(listener: PropertyChangeListener);
 
-        addSubController(name: string, sub: Controller);
-    }
+    getSubController(string: string): Controller;
 
-    export namespace Controller {
-
-        export const USER_ERROR_CODE: string = "user.command.error";
-
-        export const UNKNOWN_ERROR_CODE: string = "unknown.exception";
-
-        export const UNKNOWN_ACTION: string = "unknown.action";
-
-        export const UNKNOWN_PROPERTY: string = "unknown.property";
-    }
-
-
-    export namespace Controller {
-
-        export interface ErrorChannel {
-            reportError(errorCode: string, args: any[]);
-
-            clearError();
-        }
-    }
-
+    addSubController(name: string, sub: Controller);
 }
 
+export namespace Controller {
+
+    export const USER_ERROR_CODE: string = "user.command.error";
+
+    export const UNKNOWN_ERROR_CODE: string = "unknown.exception";
+
+    export const UNKNOWN_ACTION: string = "unknown.action";
+
+    export const UNKNOWN_PROPERTY: string = "unknown.property";
+}
+
+
+export namespace Controller {
+
+    export interface ErrorChannel {
+        reportError(errorCode: string, args: any[]);
+
+        clearError();
+    }
+}

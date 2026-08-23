@@ -1,28 +1,32 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.editor {
-    export interface FieldApplication extends com.vzome.core.math.symmetry.Symmetries4D {
-        getField(): com.vzome.core.algebra.AlgebraicField;
+import { java, javaemul } from "../../../../../candies/j4ts-2.1.0-SNAPSHOT/bundle.js";
+import { Tool } from "../../api/Tool.js";
+import { AlgebraicField } from "../algebra/AlgebraicField.js";
+import { Command } from "../commands/Command.js";
+import { SymmetryPerspective } from "./SymmetryPerspective.js";
+import { ToolsModel } from "./ToolsModel.js";
+import { Symmetries4D } from "../math/symmetry/Symmetries4D.js";
 
-        getSymmetryPerspectives(): java.util.Collection<com.vzome.core.editor.SymmetryPerspective>;
+export interface FieldApplication extends Symmetries4D {
+    getField(): AlgebraicField;
 
-        getDefaultSymmetryPerspective(): com.vzome.core.editor.SymmetryPerspective;
+    getSymmetryPerspectives(): java.util.Collection<SymmetryPerspective>;
 
-        getSymmetryPerspective(name: string): com.vzome.core.editor.SymmetryPerspective;
+    getDefaultSymmetryPerspective(): SymmetryPerspective;
 
-        getName(): string;
+    getSymmetryPerspective(name: string): SymmetryPerspective;
 
-        getLabel(): string;
+    getName(): string;
 
-        registerToolFactories(toolFactories: java.util.Map<string, com.vzome.api.Tool.Factory>, tools: com.vzome.core.editor.ToolsModel);
+    getLabel(): string;
 
-        /**
-         * These commands should all be symmetry-INDEPENDANT.
-         * Contrast with {@code FieldApplication.SymmetryPerspective.getLegacyCommand(action) }.
-         * @param {string} action
-         * @return
-         * @return {*}
-         */
-        getLegacyCommand(action: string): com.vzome.core.commands.Command;
-    }
+    registerToolFactories(toolFactories: java.util.Map<string, Tool.Factory>, tools: ToolsModel);
+
+    /**
+     * These commands should all be symmetry-INDEPENDANT.
+     * Contrast with {@code FieldApplication.SymmetryPerspective.getLegacyCommand(action) }.
+     * @param {string} action
+     * @return
+     * @return {*}
+     */
+    getLegacyCommand(action: string): Command;
 }
-

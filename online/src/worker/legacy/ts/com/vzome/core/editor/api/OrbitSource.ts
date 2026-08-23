@@ -1,25 +1,29 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.editor.api {
-    export interface OrbitSource {
-        getSymmetry(): com.vzome.core.math.symmetry.Symmetry;
+import { AlgebraicVector } from "../../algebra/AlgebraicVector.js";
+import { Color } from "../../construction/Color.js";
+import { Shapes } from "./Shapes.js";
+import { Axis } from "../../math/symmetry/Axis.js";
+import { Direction } from "../../math/symmetry/Direction.js";
+import { OrbitSet } from "../../math/symmetry/OrbitSet.js";
+import { Symmetry } from "../../math/symmetry/Symmetry.js";
 
-        getAxis(vector: com.vzome.core.algebra.AlgebraicVector): com.vzome.core.math.symmetry.Axis;
+export interface OrbitSource {
+    getSymmetry(): Symmetry;
 
-        getColor(orbit: com.vzome.core.math.symmetry.Direction): com.vzome.core.construction.Color;
+    getAxis(vector: AlgebraicVector): Axis;
 
-        getVectorColor(vector: com.vzome.core.algebra.AlgebraicVector): com.vzome.core.construction.Color;
+    getColor(orbit: Direction): Color;
 
-        getOrbits(): com.vzome.core.math.symmetry.OrbitSet;
+    getVectorColor(vector: AlgebraicVector): Color;
 
-        getShapes(): com.vzome.core.editor.api.Shapes;
+    getOrbits(): OrbitSet;
 
-        getName(): string;
+    getShapes(): Shapes;
 
-        getZone(orbit: string, orientation: number): com.vzome.core.math.symmetry.Axis;
+    getName(): string;
 
-        getEmbedding(): number[];
+    getZone(orbit: string, orientation: number): Axis;
 
-        getOrientations(rowMajor?: any): number[][];
-    }
+    getEmbedding(): number[];
+
+    getOrientations(rowMajor?: any): number[][];
 }
-

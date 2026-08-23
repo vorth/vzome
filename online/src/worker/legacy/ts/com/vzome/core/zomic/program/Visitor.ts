@@ -1,148 +1,152 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.zomic.program {
-    export interface Visitor {
-        visitWalk(walk: com.vzome.core.zomic.program.Walk);
+import { AlgebraicNumber } from "../../algebra/AlgebraicNumber.js";
+import { Axis } from "../../math/symmetry/Axis.js";
+import { Nested } from "./Nested.js";
+import { Permute } from "./Permute.js";
+import { Repeat } from "./Repeat.js";
+import { Save } from "./Save.js";
+import { Symmetry } from "./Symmetry.js";
+import { Walk } from "./Walk.js";
 
-        visitLabel(id: string);
+export interface Visitor {
+    visitWalk(walk: Walk);
 
-        visitNested(compound: com.vzome.core.zomic.program.Nested);
+    visitLabel(id: string);
 
-        visitRepeat(repeated: com.vzome.core.zomic.program.Repeat, repetitions: number);
+    visitNested(compound: Nested);
 
-        visitRotate(axis: com.vzome.core.math.symmetry.Axis, steps: number);
+    visitRepeat(repeated: Repeat, repetitions: number);
 
-        visitReflect(blueAxis: com.vzome.core.math.symmetry.Axis);
+    visitRotate(axis: Axis, steps: number);
 
-        visitMove(axis: com.vzome.core.math.symmetry.Axis, length: com.vzome.core.algebra.AlgebraicNumber);
+    visitReflect(blueAxis: Axis);
 
-        visitSymmetry(model: com.vzome.core.zomic.program.Symmetry, permute: com.vzome.core.zomic.program.Permute);
+    visitMove(axis: Axis, length: AlgebraicNumber);
 
-        visitScale(size: com.vzome.core.algebra.AlgebraicNumber);
+    visitSymmetry(model: Symmetry, permute: Permute);
 
-        visitSave(body: com.vzome.core.zomic.program.Save, state: number);
+    visitScale(size: AlgebraicNumber);
 
-        visitBuild(build: boolean, destroy: boolean);
+    visitSave(body: Save, state: number);
 
-        /**
-         * @param untranslatable
-         * @param {string} message
-         */
-        visitUntranslatable(message: string);
-    }
+    visitBuild(build: boolean, destroy: boolean);
 
-    export namespace Visitor {
-
-        export class Default implements com.vzome.core.zomic.program.Visitor {
-            /**
-             * 
-             * @param {com.vzome.core.zomic.program.Walk} walk
-             */
-            public visitWalk(walk: com.vzome.core.zomic.program.Walk) {
-                for(let index=walk.iterator();index.hasNext();) {
-                    let stmt = index.next();
-                    {
-                        stmt.accept(this);
-                    }
-                }
-            }
-
-            /**
-             * 
-             * @param {string} id
-             */
-            public visitLabel(id: string) {
-            }
-
-            /**
-             * 
-             * @param {com.vzome.core.zomic.program.Nested} compound
-             */
-            public visitNested(compound: com.vzome.core.zomic.program.Nested) {
-                compound.getBody().accept(this);
-            }
-
-            /**
-             * 
-             * @param {com.vzome.core.zomic.program.Repeat} repeated
-             * @param {number} repetitions
-             */
-            public visitRepeat(repeated: com.vzome.core.zomic.program.Repeat, repetitions: number) {
-                for(let i: number = 0; i < repetitions; i++) {{
-                    this.visitNested(repeated);
-                };}
-            }
-
-            /**
-             * 
-             * @param {com.vzome.core.math.symmetry.Axis} axis
-             * @param {number} steps
-             */
-            public visitRotate(axis: com.vzome.core.math.symmetry.Axis, steps: number) {
-            }
-
-            /**
-             * 
-             * @param {com.vzome.core.math.symmetry.Axis} blueAxis
-             */
-            public visitReflect(blueAxis: com.vzome.core.math.symmetry.Axis) {
-            }
-
-            /**
-             * 
-             * @param {com.vzome.core.math.symmetry.Axis} axis
-             * @param {*} length
-             */
-            public visitMove(axis: com.vzome.core.math.symmetry.Axis, length: com.vzome.core.algebra.AlgebraicNumber) {
-            }
-
-            /**
-             * 
-             * @param {com.vzome.core.zomic.program.Symmetry} model
-             * @param {com.vzome.core.zomic.program.Permute} permute
-             */
-            public visitSymmetry(model: com.vzome.core.zomic.program.Symmetry, permute: com.vzome.core.zomic.program.Permute) {
-                this.visitNested(model);
-            }
-
-            /**
-             * 
-             * @param {com.vzome.core.zomic.program.Save} stmt
-             * @param {number} state
-             */
-            public visitSave(stmt: com.vzome.core.zomic.program.Save, state: number) {
-                this.visitNested(stmt);
-            }
-
-            /**
-             * 
-             * @param {*} size
-             */
-            public visitScale(size: com.vzome.core.algebra.AlgebraicNumber) {
-            }
-
-            /**
-             * 
-             * @param {boolean} build
-             * @param {boolean} destroy
-             */
-            public visitBuild(build: boolean, destroy: boolean) {
-            }
-
-            /**
-             * 
-             * @param {string} message
-             */
-            public visitUntranslatable(message: string) {
-            }
-
-            constructor() {
-            }
-        }
-        Default["__class"] = "com.vzome.core.zomic.program.Visitor.Default";
-        Default["__interfaces"] = ["com.vzome.core.zomic.program.Visitor"];
-
-
-    }
-
+    /**
+     * @param untranslatable
+     * @param {string} message
+     */
+    visitUntranslatable(message: string);
 }
 
+export namespace Visitor {
+
+    export class Default implements Visitor {
+        /**
+         * 
+         * @param {Walk} walk
+         */
+        public visitWalk(walk: Walk) {
+            for(let index=walk.iterator();index.hasNext();) {
+                let stmt = index.next();
+                {
+                    stmt.accept(this);
+                }
+            }
+        }
+
+        /**
+         * 
+         * @param {string} id
+         */
+        public visitLabel(id: string) {
+        }
+
+        /**
+         * 
+         * @param {Nested} compound
+         */
+        public visitNested(compound: Nested) {
+            compound.getBody().accept(this);
+        }
+
+        /**
+         * 
+         * @param {Repeat} repeated
+         * @param {number} repetitions
+         */
+        public visitRepeat(repeated: Repeat, repetitions: number) {
+            for(let i: number = 0; i < repetitions; i++) {{
+                this.visitNested(repeated);
+            };}
+        }
+
+        /**
+         * 
+         * @param {Axis} axis
+         * @param {number} steps
+         */
+        public visitRotate(axis: Axis, steps: number) {
+        }
+
+        /**
+         * 
+         * @param {Axis} blueAxis
+         */
+        public visitReflect(blueAxis: Axis) {
+        }
+
+        /**
+         * 
+         * @param {Axis} axis
+         * @param {*} length
+         */
+        public visitMove(axis: Axis, length: AlgebraicNumber) {
+        }
+
+        /**
+         * 
+         * @param {Symmetry} model
+         * @param {Permute} permute
+         */
+        public visitSymmetry(model: Symmetry, permute: Permute) {
+            this.visitNested(model);
+        }
+
+        /**
+         * 
+         * @param {Save} stmt
+         * @param {number} state
+         */
+        public visitSave(stmt: Save, state: number) {
+            this.visitNested(stmt);
+        }
+
+        /**
+         * 
+         * @param {*} size
+         */
+        public visitScale(size: AlgebraicNumber) {
+        }
+
+        /**
+         * 
+         * @param {boolean} build
+         * @param {boolean} destroy
+         */
+        public visitBuild(build: boolean, destroy: boolean) {
+        }
+
+        /**
+         * 
+         * @param {string} message
+         */
+        public visitUntranslatable(message: string) {
+        }
+
+        constructor() {
+        }
+    }
+    Default["__class"] = "com.vzome.core.zomic.program.Visitor.Default";
+    Default["__interfaces"] = ["com.vzome.core.zomic.program.Visitor"];
+
+
+}

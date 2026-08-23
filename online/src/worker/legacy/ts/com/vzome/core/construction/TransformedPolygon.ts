@@ -1,39 +1,38 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.construction {
-    /**
-     * @author Scott Vorthmann
-     * @param {com.vzome.core.construction.Transformation} transform
-     * @param {com.vzome.core.construction.Polygon} prototype
-     * @class
-     * @extends com.vzome.core.construction.Polygon
-     */
-    export class TransformedPolygon extends com.vzome.core.construction.Polygon {
-        /*private*/ mTransform: com.vzome.core.construction.Transformation;
+import { AlgebraicVector } from "../algebra/AlgebraicVector.js";
+import { Polygon } from "./Polygon.js";
+import { Transformation } from "./Transformation.js";
 
-        /*private*/ mPrototype: com.vzome.core.construction.Polygon;
+/**
+ * @author Scott Vorthmann
+ * @param {Transformation} transform
+ * @param {Polygon} prototype
+ * @class
+ * @extends Polygon
+ */
+export class TransformedPolygon extends Polygon {
+    /*private*/ mTransform: Transformation;
 
-        public constructor(transform: com.vzome.core.construction.Transformation, prototype: com.vzome.core.construction.Polygon) {
-            super(prototype.field);
-            if (this.mTransform === undefined) { this.mTransform = null; }
-            if (this.mPrototype === undefined) { this.mPrototype = null; }
-            this.mTransform = transform;
-            this.mPrototype = prototype;
-            this.mapParamsToState();
-        }
+    /*private*/ mPrototype: Polygon;
 
-        /**
-         * 
-         * @return {boolean}
-         */
-        mapParamsToState(): boolean {
-            const vertices: com.vzome.core.algebra.AlgebraicVector[] = (s => { let a=[]; while(s-->0) a.push(null); return a; })(this.mPrototype.getVertexCount());
-            for(let i: number = 0; i < vertices.length; i++) {{
-                vertices[i] = this.mTransform.transform$com_vzome_core_algebra_AlgebraicVector(this.mPrototype.getVertex(i));
-            };}
-            return this.setStateVariable(vertices, false);
-        }
+    public constructor(transform: Transformation, prototype: Polygon) {
+        super(prototype.field);
+        if (this.mTransform === undefined) { this.mTransform = null; }
+        if (this.mPrototype === undefined) { this.mPrototype = null; }
+        this.mTransform = transform;
+        this.mPrototype = prototype;
+        this.mapParamsToState();
     }
-    TransformedPolygon["__class"] = "com.vzome.core.construction.TransformedPolygon";
 
+    /**
+     * 
+     * @return {boolean}
+     */
+    mapParamsToState(): boolean {
+        const vertices: AlgebraicVector[] = (s => { let a=[]; while(s-->0) a.push(null); return a; })(this.mPrototype.getVertexCount());
+        for(let i: number = 0; i < vertices.length; i++) {{
+            vertices[i] = this.mTransform.transform$com_vzome_core_algebra_AlgebraicVector(this.mPrototype.getVertex(i));
+        };}
+        return this.setStateVariable(vertices, false);
+    }
 }
-
+TransformedPolygon["__class"] = "com.vzome.core.construction.TransformedPolygon";

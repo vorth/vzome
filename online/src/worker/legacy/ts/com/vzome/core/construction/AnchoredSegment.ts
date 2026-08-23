@@ -1,56 +1,57 @@
-/* Generated from Java with JSweet 3.2.0-SNAPSHOT - http://www.jsweet.org */
-namespace com.vzome.core.construction {
-    /**
-     * @param step
-     * @param {com.vzome.core.construction.Point} start
-     * @param {com.vzome.core.math.symmetry.Axis} axis
-     * @param {*} length
-     * @class
-     * @extends com.vzome.core.construction.Segment
-     * @author Scott Vorthmann
-     */
-    export class AnchoredSegment extends com.vzome.core.construction.Segment {
-        /*private*/ mAnchor: com.vzome.core.construction.Point;
+import { AlgebraicNumber } from "../algebra/AlgebraicNumber.js";
+import { AlgebraicVector } from "../algebra/AlgebraicVector.js";
+import { Point } from "./Point.js";
+import { Segment } from "./Segment.js";
+import { Axis } from "../math/symmetry/Axis.js";
 
-        public mAxis: com.vzome.core.math.symmetry.Axis;
+/**
+ * @param step
+ * @param {Point} start
+ * @param {Axis} axis
+ * @param {*} length
+ * @class
+ * @extends Segment
+ * @author Scott Vorthmann
+ */
+export class AnchoredSegment extends Segment {
+    /*private*/ mAnchor: Point;
 
-        public mLength: com.vzome.core.algebra.AlgebraicNumber;
+    public mAxis: Axis;
 
-        public constructor(axis: com.vzome.core.math.symmetry.Axis, length: com.vzome.core.algebra.AlgebraicNumber, start: com.vzome.core.construction.Point) {
-            super(start.field);
-            if (this.mAnchor === undefined) { this.mAnchor = null; }
-            if (this.mAxis === undefined) { this.mAxis = null; }
-            if (this.mLength === undefined) { this.mLength = null; }
-            this.mAnchor = start;
-            this.mAxis = axis;
-            this.mLength = length;
-            this.mapParamsToState();
-        }
+    public mLength: AlgebraicNumber;
 
-        /**
-         * 
-         * @return {boolean}
-         */
-        mapParamsToState(): boolean {
-            if (this.mAnchor.isImpossible() || this.mLength.isZero())return this.setStateVariables(null, null, true);
-            const gv: com.vzome.core.algebra.AlgebraicVector = this.mAnchor.getLocation().projectTo3d(true);
-            const offset: com.vzome.core.algebra.AlgebraicVector = this.mAxis.normal().scale(this.mLength);
-            return this.setStateVariables(gv, offset, false);
-        }
-
-        public getAxis(): com.vzome.core.math.symmetry.Axis {
-            return this.mAxis;
-        }
-
-        public getLength(): com.vzome.core.algebra.AlgebraicNumber {
-            return this.mLength;
-        }
-
-        public getUnitVector(): com.vzome.core.algebra.AlgebraicVector {
-            return this.mAxis.normal();
-        }
+    public constructor(axis: Axis, length: AlgebraicNumber, start: Point) {
+        super(start.field);
+        if (this.mAnchor === undefined) { this.mAnchor = null; }
+        if (this.mAxis === undefined) { this.mAxis = null; }
+        if (this.mLength === undefined) { this.mLength = null; }
+        this.mAnchor = start;
+        this.mAxis = axis;
+        this.mLength = length;
+        this.mapParamsToState();
     }
-    AnchoredSegment["__class"] = "com.vzome.core.construction.AnchoredSegment";
 
+    /**
+     * 
+     * @return {boolean}
+     */
+    mapParamsToState(): boolean {
+        if (this.mAnchor.isImpossible() || this.mLength.isZero())return this.setStateVariables(null, null, true);
+        const gv: AlgebraicVector = this.mAnchor.getLocation().projectTo3d(true);
+        const offset: AlgebraicVector = this.mAxis.normal().scale(this.mLength);
+        return this.setStateVariables(gv, offset, false);
+    }
+
+    public getAxis(): Axis {
+        return this.mAxis;
+    }
+
+    public getLength(): AlgebraicNumber {
+        return this.mLength;
+    }
+
+    public getUnitVector(): AlgebraicVector {
+        return this.mAxis.normal();
+    }
 }
-
+AnchoredSegment["__class"] = "com.vzome.core.construction.AnchoredSegment";
