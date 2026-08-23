@@ -224,6 +224,73 @@ JS ↔ transpiled-Java boundary.  Small, pure, heavily reused, and semantically 
 `number[]` versus `bigint[]` versus "pairs" is exactly the confusion a type catches.
 Good early win: high leverage, low risk, no UI involvement.
 
+#### 5. Narrowing helpers for the `__interfaces` type tests
+
+The transpiled code carries JSweet's runtime type-identity machinery: **467
+`__class` and 247 `__interfaces` declarations**, tested at **334 call sites**.
+Each test looks like this, open-coded:
+
+```js
+if ( man != null && man.constructor != null && man.constructor["__interfaces"] != null
+     && man.constructor["__interfaces"].indexOf("com.vzome.core.model.Panel") >= 0 ) { ... }
+```
+
+Those 333 sites cover only **22 distinct interfaces**, and just six of them —
+`Strut`, `Connector`, `Panel`, `Manifestation`, `AlgebraicNumber`,
+`org.w3c.dom.Element` — account for **247**.  That concentration is what makes
+this worth doing.
+
+Roughly 65 of those sites are not type checks at all: they are JSweet's *overload
+dispatch*, emulating Java method overloading with `foo( a?: any, b?: any )` plus
+a runtime branch.  Replacing those means giving each overload a real signature,
+which is a rewrite of the method rather than a swap of the check.  Leave them.
+
+The other ~219 are genuine domain questions ("is this Manifestation a Strut?"),
+and those have a clean idiomatic answer — a user-defined type predicate, which
+narrows properly and was verified to typecheck against the real interfaces:
+
+```ts
+export const isStrut = ( m: Manifestation ): m is Strut =>
+  typeof ( m as any ).getZoneVector === 'function';
+
+if ( isStrut( m ) ) return m.getEnd();   // narrowed to Strut, fully typed
+```
+
+**But `instanceof` is not available, and pure structural probing is unsafe.**
+Six hand-written JavaScript classes register themselves into the mechanism —
+`JavaAlgebraicNumber`, `JavaAlgebraicNumberFactory`, `JavaDomElement`,
+`JavaDomNodeList`, `JavaDomDocument`, and `OSField` in `core.js`.  None of them
+`extend` anything from `from-java`; they satisfy the interfaces by shape plus the
+tag, so `instanceof` returns false for all of them.
+
+Worse, the shapes are only *partial*.  `JavaAlgebraicNumber` implements 19
+methods against a 27-method interface — it has no `plus`, `minus`, `times`,
+`negate`, `isZero` — and works only because nothing calls those on that
+particular implementation.  A structural predicate probing the wrong method would
+silently misclassify it.
+
+So the tag is not merely a slow `instanceof`: it is a deliberate **nominal
+assertion** that a partially-conforming object counts as the interface.  That is
+real information TypeScript's structural typing cannot recover.
+
+**Recommended approach — a narrowing layer, not a migration:**
+
+1. Write predicates for the six hot interfaces, covering 247 of the 334 sites.
+2. Implement each one *over the existing tag* at first:
+   `m.constructor?.__interfaces?.includes( 'com.vzome.core.model.Strut' )`.
+   Identical runtime behaviour, but one audited chokepoint instead of 334
+   open-coded string comparisons, and callers get narrowing for free.
+3. Convert call sites opportunistically.  `json.js` and
+   `controllers/buildplane.js` are the natural first two: they are hand-written,
+   and they already broke once.
+4. **Leave the `__class` / `__interfaces` declarations in place permanently.**
+   They cost nothing, they are what the predicates read, and they remain the ABI
+   shared with hand-written JavaScript (see *What to leave alone*).
+
+Removing the tags themselves would mean auditing whether each of those six
+partial implementations genuinely satisfies its interface — much larger, much
+riskier, and with no user-visible gain.
+
 ### What to leave alone
 
 - **`worker/legacy/from-java/**`** — already TypeScript; do not tighten it (see above).
@@ -248,8 +315,11 @@ Good early win: high leverage, low risk, no UI involvement.
 4. **Scene record types** — instance, shape, orientation, plus branded `ShapeId` /
    `ShapeKey`.  A `.d.ts` is enough at first; `scenes.js` can adopt it later.
 5. `worker/fields/common.js` → `.ts`.  Small, pure, high-reuse.
-6. `@types/three`, then `viewer/context/worker.jsx` and the other context providers.
-7. Thereafter: opportunistic.  Convert a file when you are already editing it and the types
+6. Narrowing predicates for `Strut` / `Connector` / `Panel` / `Manifestation`,
+   implemented over the existing tag.  Pairs naturally with step 4, since they
+   are the same types the scene records describe.
+7. `@types/three`, then `viewer/context/worker.jsx` and the other context providers.
+8. Thereafter: opportunistic.  Convert a file when you are already editing it and the types
    would have helped.
 
 ### How to tell it is working
