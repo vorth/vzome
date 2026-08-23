@@ -141,12 +141,10 @@ The `core` Java code was originally transpiled to JavaScript using **JSweet** (a
 
 **The JSweet Artifactory server is permanently offline**, so that pipeline can no longer be run by new contributors.  Rather than stay frozen, the generated TypeScript has been adopted as real source:
 
-- `online/src/worker/legacy/ts/` holds **433 per-class ES modules** (`com/vzome/...`, plus a few `java/*`, `org/w3c/dom/*` classes vZome transpiles itself).  This is now **the source of truth for the online version** — edit it directly.
+- `online/src/worker/legacy/ts/` holds **433 per-class ES modules** (see its [README](online/src/worker/legacy/ts/README.md)) — `com/vzome/...`, plus the `java/*` and `org/w3c/dom/*` shims vZome transpiled for itself.  This is now **the source of truth for the online version** — edit it directly.
 - `yarn typecheck` (`online/tsconfig.json`) typechecks the whole tree and must stay green.  It is typecheck-only; **esbuild** consumes the `.ts` files directly and does the transpiling.
 - `online/src/worker/legacy/candies/j4ts-2.1.0-SNAPSHOT/` holds the j4ts runtime (`bundle.js`) and its types (`j4ts.d.ts`, `bundle.d.ts`).  `j4ts.d.ts` carries a local edit making `Iterable.forEach` / `Iterator.forEachRemaining` / `remove` optional, because JSweet never emits them — re-apply it if that file is ever refreshed.
 - `online/src/worker/legacy/ts/shims.d.ts` declares a few types j4ts lacks (`java.math`, `java.io.FileWriter`, `java.lang.Thread`) that exist only on unreachable paths.
-
-Two files are historical artifacts, **no longer used at runtime and safe to ignore**: the monolithic `ts/core-java.ts` and the generated `core-java.js`.  Nothing imports them.
 
 `online/scripts/ts-to-esm.mjs` is the one-time codemod that performed the namespace-to-ESM conversion.  It is kept as a record of how the conversion was done; it is **not** part of the build and is not idempotent (it keys on `namespace X {`, which the converted files no longer contain).
 
@@ -231,7 +229,7 @@ JSweet can no longer be run, so **nothing regenerates the TypeScript from the Ja
 
 Where a class exists on both sides, the paths correspond exactly: `com/vzome/core/edits/Foo.java` ↔ `ts/com/vzome/core/edits/Foo.ts`, and the TypeScript reads like the Java, so most edits translate almost literally.
 
-**Not every Java class has a counterpart.**  The original transpile had an explicit include/exclude list (still readable in `online/build.gradle`).  Of 581 Java classes in `core` + `desktop`, **406 have a TypeScript equivalent and 175 do not**.  Most of those 175 are desktop UI (`org.vorthmann.zome.ui`, `com.vzome.desktop.awt`) and are correctly desktop-only, but some sit in `core` packages — a number of `core.editor`, `core.exporters`, `core.algebra`, and `core.zomic` classes were deliberately excluded or reimplemented in hand-written JavaScript.  Conversely 27 TypeScript modules have no Java source: the `java/*` and `org/w3c/dom/*` shims vZome transpiles for itself, and the `com.vzome.jsweet.*` bridge classes.
+**Not every Java class has a counterpart.**  The original transpile had an explicit include/exclude list (recoverable from git history: `git show 51264def5:online/build.gradle`).  Of 581 Java classes in `core` + `desktop`, **406 have a TypeScript equivalent and 175 do not**.  Most of those 175 are desktop UI (`org.vorthmann.zome.ui`, `com.vzome.desktop.awt`) and are correctly desktop-only, but some sit in `core` packages — a number of `core.editor`, `core.exporters`, `core.algebra`, and `core.zomic` classes were deliberately excluded or reimplemented in hand-written JavaScript.  Conversely 27 TypeScript modules have no Java source: the `java/*` and `org/w3c/dom/*` shims vZome transpiles for itself, and the `com.vzome.jsweet.*` bridge classes.
 
 So before mirroring: **check whether the counterpart file exists.**  If it does, mirror the change.  If it does not, decide deliberately whether the online version needs that class at all, rather than assuming the absence is an oversight.
 
