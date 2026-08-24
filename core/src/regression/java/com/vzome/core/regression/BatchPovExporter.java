@@ -322,6 +322,10 @@ public class BatchPovExporter
                 designs .add( all .get( i ) );
 
         boolean comparing = this .goldenRoot != null;
+        // Machine-readable progress, for the parent process to aggregate across shards; see
+        // the batchPov task.  Printed even when running standalone -- it is easy to ignore.
+        System .out .println( "@total " + designs .size() );
+        System .out .flush();
         String label = this .split > 1 ? " (shard " + this .shard + " of " + this .split + ")" : "";
         System .out .println( ( comparing ? "Comparing " : "Exporting " ) + designs .size()
                 + " of " + all .size() + " designs" + label );
@@ -336,7 +340,6 @@ public class BatchPovExporter
         Files .createDirectories( this .outputRoot );
 
         List<Result> results = new ArrayList<>();
-        int total = designs .size();
         long started = System .currentTimeMillis();
 
         // One design at a time.  Loading cannot be parallelized inside a JVM (see the class
@@ -364,9 +367,9 @@ public class BatchPovExporter
                             cause .getClass() .getSimpleName()
                             + ( message == null ? "" : ": " + message ) ) );
                 }
-                int done = results .size();
-                if ( done % 25 == 0 || done == total )
-                    System .out .println( "  " + done + "/" + total );
+                Result latest = results .get( results .size() - 1 );
+                System .out .println( "@progress " + latest .status + " " + latest .relative );
+                System .out .flush();
             }
         } finally {
             watchdog .shutdownNow();

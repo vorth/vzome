@@ -372,25 +372,90 @@ task batchPov( dependsOn: compileRegressionJava ) {
         // Each worker is a separate JVM, so the static state that makes concurrent loading
         // unsafe is not shared.  Their stdout is captured and printed as each one finishes,
         // to keep the interleaved progress readable.
+        // Each worker's stdout is read live, rather than buffered to a temp file and printed
+        // when it exits -- otherwise a multi-hour run shows nothing at all until a whole shard
+        // finishes.  The workers emit "@total N" once and "@progress STATUS path" per design;
+        // everything else is their human-readable summary, kept for the end.
+        //
+        // The reader threads are not optional: with the child's output on a pipe, nobody
+        // draining it means the worker blocks forever once the OS pipe buffer fills.
+        def grandTotal = new java.util.concurrent.atomic.AtomicInteger( 0 )
+        def completed  = new java.util.concurrent.atomic.AtomicInteger( 0 )
+        def failedCount = new java.util.concurrent.atomic.AtomicInteger( 0 )
+        def differedCount = new java.util.concurrent.atomic.AtomicInteger( 0 )
+        def summaries = java.util.Collections.synchronizedList( [] )
+
         def procs = (0..<workers).collect { shard ->
             def args = [ 'java', "-Xmx${heap}" as String, '-cp', classpath,
                          'com.vzome.core.regression.BatchPovExporter' ] + commonArgs
             if ( workers > 1 )
                 args += [ '--shard', shard as String, '--split', workers as String ]
-            def log = File.createTempFile( "batchPov-${shard}-", '.log' )
-            [ shard: shard,
-              process: new ProcessBuilder( args ).redirectErrorStream( true )
-                          .redirectOutput( log ).start(),
-              log: log ]
+            def process = new ProcessBuilder( args ).redirectErrorStream( true ).start()
+            def buffered = new StringBuilder()
+            def reader = Thread.start {
+                process.inputStream.withReader( 'UTF-8' ) { r ->
+                    def line
+                    while ( ( line = r.readLine() ) != null ) {
+                        if ( line.startsWith( '@total ' ) )
+                            grandTotal.addAndGet( line.substring( 7 ).trim() as int )
+                        else if ( line.startsWith( '@progress ' ) ) {
+                            def status = line.substring( 10 ).tokenize( ' ' )[ 0 ]
+                            completed.incrementAndGet()
+                            if ( status == 'FAILED' ) failedCount.incrementAndGet()
+                            if ( status == 'DIFFERED' ) differedCount.incrementAndGet()
+                        }
+                        else
+                            buffered.append( line ).append( '\n' )
+                    }
+                }
+            }
+            [ shard: shard, process: process, reader: reader, buffered: buffered ]
+        }
+        procs.each { summaries << it.buffered }
+
+        // One combined progress line for the whole run, refreshed while the workers run.
+        def started = System.currentTimeMillis()
+        def interactive = ( System.console() != null )
+        def printer = Thread.start {
+            try {
+                while ( procs.any { it.process.isAlive() } ) {
+                    Thread.sleep( 2000 )
+                    def done = completed.get()
+                    def all = grandTotal.get()
+                    if ( all == 0 ) continue
+                    def elapsed = ( System.currentTimeMillis() - started ) / 1000.0
+                    def rate = done > 0 ? elapsed / done : 0
+                    def remain = ( ( all - done ) * rate ) as long
+                    def eta = done > 0 ? String.format( "  ~%d:%02d left", (long)(remain/60), (long)(remain%60) ) : ""
+                    def pct = all > 0 ? (int)( 100.0 * done / all ) : 0
+                    def bad = failedCount.get() + differedCount.get()
+                    def note = bad > 0 ? "  failures/diffs: ${bad}" : ""
+                    def text = "  ${done} / ${all}  (${pct}%)${eta}${note}"
+                    if ( interactive )
+                        print "\r${text}          "
+                    else
+                        println text
+                }
+            } catch ( InterruptedException ignored ) { }
         }
 
         def failed = 0
         procs.each { p ->
             def code = p.process.waitFor()
-            println p.log.text
-            p.log.delete()
+            p.reader.join()
             if ( code != 0 ) failed++
         }
+        printer.interrupt()
+        printer.join()
+        // One final line, so the count lands on the true total rather than wherever the
+        // printer happened to be when the last worker exited.
+        def finalBad = failedCount.get() + differedCount.get()
+        println "  ${completed.get()} / ${grandTotal.get()}  (100%)" +
+                ( finalBad > 0 ? "  failures/diffs: ${finalBad}" : "" ) +
+                "  in ${(long)((System.currentTimeMillis()-started)/1000)}s"
+
+        // Now the per-worker summaries, which are only meaningful once a worker has finished.
+        summaries.each { print it.toString() }
 
         // Merge the per-shard reports into one file per kind, so the result reads the same
         // whether the run used one worker or many.
