@@ -342,6 +342,7 @@ task batchPov( dependsOn: compileRegressionJava ) {
             -PpovInput=<dir-or-file>   (required) a .vZome file, or a folder to search
             -PpovOutput=<dir>          (required) root of the mirrored output tree
             -PpovGolden=<dir>          (optional) baseline to compare against; enables regression mode
+            -PpovGeometryOnly          (optional) ignore camera and lighting when comparing
             -PpovWorkers=6             (default shown) how many JVMs to run in parallel
             -PpovTimeout=60            (default shown) per-file timeout, in seconds
     """
@@ -359,6 +360,10 @@ task batchPov( dependsOn: compileRegressionJava ) {
                            '--timeout', timeout as String ]
         if ( project.hasProperty( 'povGolden' ) )
             commonArgs += [ '--compare', file( povGolden ).absolutePath ]
+        // Camera and lighting are viewing preferences, not edit-history output, and the
+        // Javascript exporter cannot reproduce light directions headlessly.
+        if ( project.hasProperty( 'povGeometryOnly' ) )
+            commonArgs += [ '--geometry-only' ]
 
         // Each worker is a separate JVM, so the static state that makes concurrent loading
         // unsafe is not shared.  Their stdout is captured and printed as each one finishes,

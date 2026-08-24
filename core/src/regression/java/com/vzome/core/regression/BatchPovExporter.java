@@ -100,6 +100,14 @@ public class BatchPovExporter
     /** This process handles the files whose position satisfies (i % split) == shard. */
     private final int shard, split, timeoutSeconds;
 
+    /**
+     * When set, comparison ignores the camera and lighting preamble, so a difference is only
+     * reported for the geometry -- which is what the edit history actually produces.  Camera
+     * and lighting are viewing preferences, and the Javascript exporter cannot reproduce the
+     * light directions headlessly, so comparing them is noise.
+     */
+    private boolean geometryOnly;
+
     BatchPovExporter( Path inputRoot, Path outputRoot, Path goldenRoot, int shard, int split, int timeoutSeconds )
     {
         this .inputRoot = inputRoot;
@@ -219,10 +227,39 @@ public class BatchPovExporter
             return new Result( relativePov, Status .MISSING_GOLDEN, golden .toString() );
 
         String expected = new String( Files .readAllBytes( golden ), StandardCharsets .UTF_8 );
-        if ( expected .equals( exported ) )
+        String left = this .geometryOnly ? geometryOf( expected ) : expected;
+        String right = this .geometryOnly ? geometryOf( exported ) : exported;
+        if ( left .equals( right ) )
             return new Result( relativePov, Status .MATCHED, null );
 
-        return new Result( relativePov, Status .DIFFERED, describeDifference( expected, exported ) );
+        return new Result( relativePov, Status .DIFFERED, describeDifference( left, right ) );
+    }
+
+    /**
+     * Everything the edit history produced, with the camera and lighting preamble removed.
+     * That preamble is the "#declare" view settings, the "light_source" lines, the ambient and
+     * background colors, and the boilerplate preamble between them -- none of which say
+     * anything about the model.  The geometry proper is the shape, transform and color
+     * declarations plus the "triangle" and "object" lines, which is what is kept here.
+     */
+    static String geometryOf( String pov )
+    {
+        StringBuilder kept = new StringBuilder();
+        for ( String line : pov .split( "\n", -1 ) ) {
+            String trimmed = line .trim();
+            if ( trimmed .isEmpty() )
+                continue;
+            boolean isGeometry = trimmed .startsWith( "object " ) || trimmed .startsWith( "object{" )
+                    || trimmed .startsWith( "triangle" )
+                    || trimmed .startsWith( "#declare S" )
+                    || trimmed .startsWith( "#declare trans" )
+                    || trimmed .startsWith( "#declare color" )
+                    || trimmed .startsWith( "#declare embedding" )
+                    || trimmed .startsWith( "mesh {" ) || trimmed .equals( "}" );
+            if ( isGeometry )
+                kept .append( line ) .append( '\n' );
+        }
+        return kept .toString();
     }
 
     /**
@@ -290,8 +327,11 @@ public class BatchPovExporter
                 + " of " + all .size() + " designs" + label );
         System .out .println( "  input:  " + this .inputRoot );
         System .out .println( "  output: " + this .outputRoot );
-        if ( comparing )
+        if ( comparing ) {
             System .out .println( "  golden: " + this .goldenRoot );
+            if ( this .geometryOnly )
+                System .out .println( "  comparing geometry only; camera and lighting ignored" );
+        }
 
         Files .createDirectories( this .outputRoot );
 
@@ -408,6 +448,7 @@ public class BatchPovExporter
         Path golden = null;
         int shard = 0, split = 1;
         int timeout = DEFAULT_TIMEOUT_SECONDS;
+        boolean geometryOnly = false;
         for ( int i = 0; i < args .length; i++ ) {
             switch ( args[ i ] ) {
             case "--compare":
@@ -419,6 +460,9 @@ public class BatchPovExporter
             case "--split":
                 split = Integer .parseInt( requireValue( args, ++i, "--split" ) );
                 break;
+            case "--geometry-only":
+                geometryOnly = true;
+                break;
             case "--timeout":
                 timeout = Integer .parseInt( requireValue( args, ++i, "--timeout" ) );
                 break;
@@ -428,7 +472,8 @@ public class BatchPovExporter
         }
         if ( positional .size() < 2 ) {
             System .err .println( "usage: BatchPovExporter <inputRoot> <outputRoot>"
-                    + " [--compare <goldenRoot>] [--shard N --split M] [--timeout seconds]" );
+                    + " [--compare <goldenRoot>] [--geometry-only]"
+                    + " [--shard N --split M] [--timeout seconds]" );
             System .exit( 2 );
         }
         if ( split < 1 || shard < 0 || shard >= split ) {
@@ -447,7 +492,9 @@ public class BatchPovExporter
             System .exit( 2 );
         }
 
-        int exitCode = new BatchPovExporter( input, output, golden, shard, split, timeout ) .run();
+        BatchPovExporter exporter = new BatchPovExporter( input, output, golden, shard, split, timeout );
+        exporter .geometryOnly = geometryOnly;
+        int exitCode = exporter .run();
         System .exit( exitCode );
     }
 

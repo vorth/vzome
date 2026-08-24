@@ -75,6 +75,25 @@ globalThis.fetch = async ( url ) => {
 const isDesign = name => name .toLowerCase() .endsWith( '.vzome' );
 
 /**
+ * Everything the edit history produced, with the camera and lighting preamble removed -- the
+ * view "#declare"s, the light_source lines, the ambient/background colors and the boilerplate
+ * preamble.  Those are viewing preferences, and light directions cannot be reproduced headlessly
+ * (worldDirection is computed from the live camera on the client), so comparing them is noise.
+ * Kept in step with BatchPovExporter.geometryOf on the Java side.
+ */
+const geometryOf = pov =>
+  pov .split( '\n' )
+      .map( line => [ line, line.trim() ] )
+      .filter( ( [ , t ] ) => t.length > 0 && (
+           t.startsWith( 'object ' ) || t.startsWith( 'object{' )
+        || t.startsWith( 'triangle' )
+        || t.startsWith( '#declare S' ) || t.startsWith( '#declare trans' )
+        || t.startsWith( '#declare color' ) || t.startsWith( '#declare embedding' )
+        || t.startsWith( 'mesh {' ) || t === '}' ) )
+      .map( ( [ line ] ) => line )
+      .join( '\n' ) + '\n';
+
+/**
  * Collects designs under a folder, honoring the "skipKnownFailures.testsuite" allow-list.
  */
 const collectDesigns = ( folder, into = [] ) =>
@@ -158,13 +177,15 @@ const main = async () =>
 {
   const args = process.argv .slice( 2 );
   let golden = null;
+  let geometryOnly = false;
   const positional = [];
   for ( let i = 0; i < args.length; i++ ) {
     if ( args[ i ] === '--compare' ) golden = path .resolve( args[ ++i ] );
+    else if ( args[ i ] === '--geometry-only' ) geometryOnly = true;
     else positional .push( args[ i ] );
   }
   if ( positional.length < 2 ) {
-    console .error( 'usage: batch-pov.mjs <inputRoot> <outputRoot> [--compare <goldenRoot>]' );
+    console .error( 'usage: batch-pov.mjs <inputRoot> <outputRoot> [--compare <goldenRoot>] [--geometry-only]' );
     process .exit( 2 );
   }
   const input = path .resolve( positional[ 0 ] );
@@ -185,6 +206,8 @@ const main = async () =>
   console .log( `  input:  ${input}` );
   console .log( `  output: ${output}` );
   if ( golden ) console .log( `  golden: ${golden}` );
+  if ( golden && geometryOnly )
+    console .log( '  comparing geometry only; camera and lighting ignored' );
 
   await Promise .all( resourceIndex .map( p => loadAndInjectResource( p, `/resources/${p}` ) ) );
   const core = await initialize();
@@ -208,8 +231,10 @@ const main = async () =>
           missing .push( { relative, detail: expected } );
         else {
           const want = fs .readFileSync( expected, 'utf-8' );
-          if ( want === text ) matched++;
-          else differed .push( { relative, detail: describeDifference( want, text ) } );
+          const left = geometryOnly ? geometryOf( want ) : want;
+          const right = geometryOnly ? geometryOf( text ) : text;
+          if ( left === right ) matched++;
+          else differed .push( { relative, detail: describeDifference( left, right ) } );
         }
       }
     } catch ( error ) {
