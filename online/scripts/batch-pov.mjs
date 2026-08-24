@@ -33,6 +33,31 @@ import { Interpreter, RenderHistory, Step } from '../src/worker/legacy/interpret
 import { export3dDocument } from '../src/worker/legacy/exporters.js';
 
 const SKIP_FILE = 'skipKnownFailures.testsuite';
+
+// Kept in step with defaultCamera() / defaultLighting() in online/src/viewer/context/camera.jsx.
+const INITIAL_DISTANCE = 108;
+
+const DEFAULT_CAMERA = {
+  distance: INITIAL_DISTANCE,
+  near: INITIAL_DISTANCE * ( 0.1 / INITIAL_DISTANCE ),
+  far: INITIAL_DISTANCE * 2.0,
+  width: INITIAL_DISTANCE * 0.45,
+  lookAt: [ 0, 0, 0 ],
+  up: [ 0, 1, 0 ],
+  lookDir: [ 0, 0, -1 ],
+  perspective: true,
+  default: true,
+};
+
+const DEFAULT_LIGHTING = {
+  backgroundColor: '#8CC2E7',
+  ambientColor: '#333333',
+  directionalLights: [
+    { direction: [  1, -1, -0.3 ], color: '#FDFDFD' },
+    { direction: [ -1,  0, -0.2 ], color: '#B5B5B5' },
+    { direction: [  0,  0, -1   ], color: '#303030' },
+  ],
+};
 // The runner passes the online/ folder, because after bundling this file no longer knows
 // where it lives on disk.
 const ONLINE_ROOT = process.env.VZOME_ONLINE_ROOT ?? path.resolve( '.' );
@@ -93,7 +118,11 @@ const exportDesign = ( core, xml ) =>
   new Interpreter( design, renderHistory ) .interpret( Step.DONE );
   design.history .goToEdit( design.targetEdit );
 
-  const { camera, lighting } = design;
+  // Older designs carry no saved camera or lighting, so fall back to the same defaults the
+  // viewer uses (see defaultCamera / defaultLighting in viewer/context/camera.jsx).  Without
+  // this, every design predating those being saved fails to export.
+  const camera = design.camera ?? DEFAULT_CAMERA;
+  const lighting = design.lighting ?? DEFAULT_LIGHTING;
   // NOTE: the editor's export path sets lighting.useWorldDirection = true (see
   // controllers/editor.js, case 'pov'), because POV-Ray wants light directions in world
   // coordinates.  We deliberately do NOT set it here: worldDirection is computed on the client

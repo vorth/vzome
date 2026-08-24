@@ -32,6 +32,12 @@ import com.vzome.xml.ResourceLoader;
 public class POVRayExporter extends DocumentExporter
 {
 	private static final NumberFormat FORMAT = NumberFormat .getNumberInstance( Locale .US );
+	static {
+		// POV-Ray is reading these numbers, so never group the integer part: the default
+		// grouping turned a view distance of 1901.96 into "1,901.96", which is not valid
+		// POV-Ray syntax (and did not match the Javascript exporter either).
+		FORMAT .setGroupingUsed( false );
+	}
 	
 	private static final String PREAMBLE_FILE = "com/vzome/core/exporters/povray/preamble.pov";
 
