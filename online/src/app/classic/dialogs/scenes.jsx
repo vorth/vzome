@@ -30,6 +30,7 @@ import { SceneCanvas } from "../../../viewer/scenecanvas.jsx";
 import { CameraProvider, copyOfCamera } from "../../../viewer/context/camera.jsx";
 import { SceneIndexingProvider, SceneProvider } from "../../../viewer/context/scene.jsx"
 import { useCamera } from "../../../viewer/context/camera.jsx"
+import { ImageCaptureProvider, GltfExportProvider } from "../../../viewer/context/export.jsx"
 
 export const copyScenes = (scenes) => scenes .map( scene => { const { ...all } = unwrap( scene ); return { ...all }; } );
 
@@ -272,11 +273,22 @@ const ScenesDialog = props =>
             <div class="scene-details">
               <div class='relative-h100'>
                 <div class='absolute-0'>
-                  <SceneProvider config={{ labels: props.config?.labels }}>
-                    <SceneIndexingProvider index={ sceneIndex() }>
-                      <SceneCanvas symmetryRenderer={true} height="100%" width="100%" />
-                    </SceneIndexingProvider>
-                  </SceneProvider>
+                  {/* Isolates this dialog's own canvas from the MAIN view's image capturer
+                      and glTF exporter, exactly as the sharing dialog's preview and the camera
+                      panel's trackball do. Its SceneCanvas mounts CanvasExportBindings (via
+                      whichever geometry component is active), which calls setCapturer/
+                      setExporter; without a provider of its own that would land in the
+                      top-level ones and hijack File > Export image / Export glTF and the
+                      GitHub sharing capture to point at this dialog's canvas. */}
+                  <ImageCaptureProvider>
+                  <GltfExportProvider>
+                    <SceneProvider config={{ labels: props.config?.labels }}>
+                      <SceneIndexingProvider index={ sceneIndex() }>
+                        <SceneCanvas symmetryRenderer={true} height="100%" width="100%" />
+                      </SceneIndexingProvider>
+                    </SceneProvider>
+                  </GltfExportProvider>
+                  </ImageCaptureProvider>
                   <Stack class='scene-actions'>
                     <SaveCameraButton/>
                     <AddSceneButton/>
