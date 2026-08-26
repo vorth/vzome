@@ -204,33 +204,55 @@ const InstancedShape = ( props ) =>
   )
 }
 
-export const ShapedGeometry = ( props ) =>
+// Wires the two "grab what's on the canvas" context APIs -- image capture (used by File >
+// Export image and by the GitHub sharing dialog) and glTF export (File > Export glTF) -- to
+// this canvas's live three.js context. Rendered as a null-returning behavioral component so
+// BOTH geometry paths can mount it: ShapedGeometry (WebGL fallback) and SymmetryGeometry (the
+// GPU symmetry renderer). It used to live inline in ShapedGeometry only, which meant that on
+// the symmetry-renderer path -- now the default everywhere WebGPURenderer initializes --
+// nothing ever called setCapturer/setExporter, and capturer() stayed the provider's initial
+// empty object, so sharing failed with "capturer(...).capture is not a function".
+//
+// Both capture and export read from the shared three.js scene (the renderer's GPU-instanced
+// meshes are parented into it just like ShapedGeometry's per-instance meshes), so neither
+// needs to know which geometry component mounted it.
+export const CanvasExportBindings = () =>
 {
   const { setExporter } = useGltfExporter();
-  const { scene, render, canvas, camera } = useThree();
+  const { setCapturer } = useImageCapture();
+  const three = useThree();
+
   const exportGltf = callback => {
     const exporter = new GLTFExporter();
     const onError = ( error ) => {
       console.error( 'An error happened during glTF export:', error );
     }
     // Parse the input and generate the glTF output
-    exporter.parse( scene, callback, onError, { onlyVisible: false, binary: true } );
+    exporter.parse( three.scene, callback, onError, { onlyVisible: false, binary: true } );
   };
   setExporter( { exportGltf } );
 
-  const { setCapturer } = useImageCapture();
   const capture = ( mimeType, saveBlob ) => {
     // See:
     //   https://github.com/pmndrs/react-three-fiber/discussions/2054
     //   https://stackoverflow.com/questions/12168909/blob-from-dataurl
-    render( scene, camera ); // The HTML canvas state is only guaranteed immediately after render
-    canvas .toBlob( blob => {
+    // The HTML canvas state is only guaranteed immediately after render. solid-three's
+    // render() ignores any arguments and always draws its own context.scene with
+    // context.camera, and both renderers we construct (WebGLRenderer, and WebGPURenderer with
+    // forceWebGL) are set up with preserveDrawingBuffer, so the buffer is still readable here.
+    three.render();
+    three.canvas .toBlob( blob => {
       console.log( `Captured ${mimeType} image of size ${blob.size} bytes` );
       saveBlob( blob );
     }, mimeType );
   }
   setCapturer( { capture } );
 
+  return null;
+}
+
+export const ShapedGeometry = ( props ) =>
+{
   let groupRef;
   createEffect( () => {
     if ( props.embedding && groupRef && groupRef.matrix ) {
@@ -245,11 +267,14 @@ export const ShapedGeometry = ( props ) =>
   })
   return (
     // <Show when={ () => props.shapes }>
-      <T.Group matrixAutoUpdate={false} ref={groupRef} >
-        <For each={Object.values( props.shapes || {} )}>{ shape =>
-          <InstancedShape shape={shape} />
-        }</For>
-      </T.Group>
+      <>
+        <CanvasExportBindings />
+        <T.Group matrixAutoUpdate={false} ref={groupRef} >
+          <For each={Object.values( props.shapes || {} )}>{ shape =>
+            <InstancedShape shape={shape} />
+          }</For>
+        </T.Group>
+      </>
     // </Show>
   )
 };
