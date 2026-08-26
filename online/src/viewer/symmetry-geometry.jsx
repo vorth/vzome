@@ -5,7 +5,7 @@ import { CSS2DObject } from "three-stdlib";
 import { useThree } from "solid-three";
 
 import { createSymmetryRenderer } from "./context/symmetry-renderer.js";
-import { buildShapeGeometry, buildOutlineGeometry } from "./geometry.jsx";
+import { buildShapeGeometry, buildOutlineGeometry, CanvasExportBindings } from "./geometry.jsx";
 import { useCamera } from "./context/camera.jsx";
 import { useWebXRClient } from "./context/webxr.jsx";
 import { useInteractionTool } from "./context/interaction.jsx";
@@ -571,5 +571,10 @@ const SymmetryGeometryImpl = ( props ) =>
     canvasEl.removeEventListener( 'contextmenu', onContextMenu );
   } );
 
-  return null;
+  // This component contributes no JSX scene content of its own -- the renderer's GPU-instanced
+  // meshes are parented imperatively under props.parent -- but it still must mount
+  // CanvasExportBindings, which is what supplies image capture (File > Export image, the
+  // GitHub sharing dialog) and glTF export for this canvas. ShapedGeometry mounts the same
+  // component; whichever geometry path is active wires up the export contexts.
+  return <CanvasExportBindings />;
 };
