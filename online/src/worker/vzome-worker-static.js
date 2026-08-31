@@ -391,6 +391,17 @@ const urlLoader = async ( report, payload ) =>
         // .shapes.json can hold two formats: legacy (the default) or online
         const { lighting, scenes, ...rendered } = ( preview.format === 'online' )? preview : normalizePreview( preview );
 
+        if ( Object.keys( rendered.shapes ) .length === 0 ) {
+          // No shape definitions at all, though the instances still name shape ids. (Two previews
+          //  in https://vorth.github.io/vzome-sharing/assets/oldsite/models/2007/04-Apr/5cell
+          //  are like this.)  Nothing could be rendered, and the id-less shape
+          //  entries would break the client store, so fall back on XML.
+          console.error( `No shapes in preview ${previewUrl}` );
+          console.log( 'Preview failed, falling back to vZome XML' );
+          openDesign( xmlLoading, name, report, debug, polygons, snapshot );
+          return;
+        }
+
         if ( ( showScenes !== 'none' || snapshot >= 0 ) && rendered.snapshots.length === 0 ) {
           // The client expects scenes, but this preview JSON predates the scenes export,
           //  so fall back on XML.
