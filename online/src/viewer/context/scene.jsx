@@ -24,13 +24,22 @@ const SceneProvider = ( props ) =>
   const [ scene, setScene ] = createStore( {} );
   const [ labels, setLabels ] = createSignal( showLabels );
 
-  const addShape = ( shape ) =>
+  // `id` defaults to shape.id, but updateShapes passes the MAP KEY it is iterating. Those are
+  // normally identical; keeping them separable means a shape that somehow arrives without an `id`
+  // can never be stored under the key `undefined` (where a second such shape would collide with
+  // the first, be judged "not new", and send updateShapes looking for a store entry under the real
+  // key that was never written -- throwing "Cannot read properties of undefined").
+  const addShape = ( shape, id = shape.id ) =>
   {
+    if ( ! id ) {
+      console.warn( 'Ignoring a shape with no id', shape );
+      return false;
+    }
     if ( ! scene .shapes ) {
       setScene( 'shapes', {} );
     }
-    if ( ! scene ?.shapes[ shape.id ] ) {
-      setScene( 'shapes', shape.id, shape );
+    if ( ! scene ?.shapes[ id ] ) {
+      setScene( 'shapes', id, { ...shape, id } );
       return true;
     }
     return false;
@@ -39,7 +48,9 @@ const SceneProvider = ( props ) =>
   const updateShapes = ( shapes ) =>
   {
     for (const [id, shape] of Object.entries(shapes)) {
-      if ( ! addShape( shape ) ) {
+      if ( ! addShape( shape, id ) ) {
+        if ( ! scene ?.shapes ?.[ id ] )
+          continue; // addShape declined it (no id); nothing to update
         // shape is not new, so just replace its instances
         setScene( 'shapes', id, 'instances', shape.instances );
       }
