@@ -893,8 +893,15 @@ export function createSymmetryRenderer(parent)
   }
 
   function normalizeOrientationIndex(group, orientationIndex) {
+    // Default to 0 (identity, by construction of every symmetry group's matrix list), NOT
+    // a random orientation. This used to pick at random, which is only ever sensible for
+    // the demo/stress-test harness that seeded instances without orientations; for real
+    // scene data a missing orientation means "unoriented" (balls, and panels whose
+    // vertices are already in absolute coordinates), and randomizing silently rotated and
+    // displaced them instead of failing visibly. Callers that genuinely want a random
+    // orientation should pass one explicitly.
     if (orientationIndex === undefined || orientationIndex === null) {
-      return Math.floor(Math.random() * group.orientations.length);
+      return 0;
     }
     if (!Number.isInteger(orientationIndex)) {
       throw new Error("orientationIndex must be an integer.");
@@ -906,11 +913,11 @@ export function createSymmetryRenderer(parent)
   }
 
   function normalizeColorIndex(colorIndex) {
-    // colorCount, not colorMatrices.length: the backing array is pre-sized to the fixed
-    // palette capacity (mostly unwritten black slots), so validity is bounded by how many
-    // colors have actually been registered, not by the array's fixed length.
+    // Default to the first registered color rather than a random one, for the same reason
+    // as normalizeOrientationIndex above: a missing index is missing data, and a random
+    // choice hides that behind plausible-looking output.
     if (colorIndex === undefined || colorIndex === null) {
-      return Math.floor(Math.random() * colorCount);
+      return 0;
     }
     if (!Number.isInteger(colorIndex)) {
       throw new Error("colorIndex must be an integer.");

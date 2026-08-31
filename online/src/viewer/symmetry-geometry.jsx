@@ -5,7 +5,7 @@ import { CSS2DObject } from "three-stdlib";
 import { useThree } from "solid-three";
 
 import { createSymmetryRenderer } from "./context/symmetry-renderer.js";
-import { buildShapeGeometry, buildOutlineGeometry } from "./geometry.jsx";
+import { buildShapeGeometry, buildOutlineGeometry, CanvasExportBindings } from "./geometry.jsx";
 import { useCamera } from "./context/camera.jsx";
 import { useWebXRClient } from "./context/webxr.jsx";
 import { useInteractionTool } from "./context/interaction.jsx";
@@ -51,6 +51,24 @@ const toMatrix4 = flat => new Matrix4().set( ...flat );
 // Instance positions arrive as [x, y, z] arrays (that's what T.Group position={...}
 // accepts directly in geometry.jsx's Instance), but the renderer reads position.x/y/z.
 const toVector3 = ( [ x, y, z ] ) => new Vector3( x, y, z );
+
+// "No orientation, use identity" reaches us two different ways, and BOTH must map to 0:
+//  - orientation === -1, how scene.jsx spells it (see its own `(orientation < 0) ? 0 :
+//    orientation` guard), and what RenderedManifestation.strutZone defaults to.
+//  - orientation absent entirely (undefined), how the .shapes.json exporter spells it for
+//    manifestations with no strut zone -- balls always, and panels, whose vertices are in
+//    absolute coordinates with position at the origin, so identity is mandatory for them.
+// The old ShapedGeometry path folded both into identity for free, because the worker
+// resolved the matrix itself as `orientations[ instance.orientation ] || IDENTITY_MATRIX`
+// (vzome-worker-static.js) and `orientations[undefined]` is just undefined. This
+// index-based path has no such fallback: a bare `orientation < 0` test is false for
+// undefined, which then reaches normalizeOrientationIndex() and draws a RANDOM
+// orientation -- rotating (and, about the origin, displacing) every panel in the design.
+// Test with a `!( x >= 0 )` sense, not `x < 0`, so undefined and NaN land on 0 too --
+// plus an explicit null check, since `null >= 0` is true in JS (null coerces to 0) and
+// would otherwise slip through to be used as a literal index.
+const orientationIndexOf = instance =>
+  ( instance.orientation === null || ! ( instance.orientation >= 0 ) ) ? 0 : instance.orientation;
 
 // Replacement for ShapedGeometry, built on createSymmetryRenderer's GPU-instanced meshes instead
 // of one Three.js object per ball/strut. Fully drives the classic editor (not viewer-only):
@@ -284,11 +302,9 @@ const SymmetryGeometryImpl = ( props ) =>
         const selected = untrack( () => !! instance.selected );
         return {
           position: toVector3( instance.position ),
-          // scene.jsx uses orientation === -1 to mean "no orientation, use identity"
-          // (see its own `(orientation < 0) ? 0 : orientation` guard), but
-          // normalizeOrientationIndex() in symmetry-renderer.js throws on negative
-          // indices instead of tolerating them, so clamp here to match.
-          orientationIndex: instance.orientation < 0 ? 0 : instance.orientation,
+          // Both spellings of "no orientation" must become identity here; see
+          // orientationIndexOf above for why a bare `< 0` test is not enough.
+          orientationIndex: orientationIndexOf( instance ),
           colorIndex: colorIndexFor( instance.color ),
           // Set the initial highlight directly (rather than relying on a later toggle to catch
           // up) so an already-selected instance never flashes unhighlighted for a frame right
@@ -317,7 +333,9 @@ const SymmetryGeometryImpl = ( props ) =>
           // vertex, but the same math applies) and the result is expressed in originGroup's
           // own local space, matching where instance positions are already expressed --
           // exactly the space CSS2DObjects parented directly to originGroup need.
-          const orientationIndex = instance.orientation < 0 ? 0 : instance.orientation;
+          // Must use the very same index the addInstance call above used -- otherwise the
+          // label is placed by a different transform than its own instance is drawn with.
+          const orientationIndex = orientationIndexOf( instance );
           const worldPos = new Vector3( centroid.x, centroid.y, centroid.z )
             .applyMatrix4( orientationMatrices[ orientationIndex ] )
             .add( toVector3( instance.position ) );
@@ -553,5 +571,10 @@ const SymmetryGeometryImpl = ( props ) =>
     canvasEl.removeEventListener( 'contextmenu', onContextMenu );
   } );
 
-  return null;
+  // This component contributes no JSX scene content of its own -- the renderer's GPU-instanced
+  // meshes are parented imperatively under props.parent -- but it still must mount
+  // CanvasExportBindings, which is what supplies image capture (File > Export image, the
+  // GitHub sharing dialog) and glTF export for this canvas. ShapedGeometry mounts the same
+  // component; whichever geometry path is active wires up the export contexts.
+  return <CanvasExportBindings />;
 };
