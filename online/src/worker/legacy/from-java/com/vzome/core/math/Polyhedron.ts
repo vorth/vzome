@@ -297,15 +297,26 @@ export class Polyhedron implements java.lang.Cloneable {
             let f = index.next();
             buf.append(f).append(';')
         }
-        const FNV_OFFSET: number = -3750763034362895579;
-        const FNV_PRIME: number = 1099511628211;
+        //  FNV-1a 64-bit, in BigInt.  The Java original is long arithmetic, but JSweet
+        //  maps long to a JS number (float64), so `hash *= FNV_PRIME` blows past 2^53 on
+        //  the first character and every input collapses to the same value -- every
+        //  content-hashed shape got the same key, so distinct panels shared one.  These
+        //  keys are also the web geometry cache and instancing keys, so unrelated shapes
+        //  were sharing cache entries; this is not only an export concern.
+        //
+        //  BigInt masked to 64 bits reproduces Java's wraparound exactly.  Verified
+        //  against the standard FNV-1a vectors and against this project's own Java, so
+        //  any worker still derives the same key as the desktop.
+        const FNV_OFFSET: bigint = 0xcbf29ce484222325n;
+        const FNV_PRIME: bigint = 0x100000001b3n;
+        const FNV_MASK: bigint = 0xffffffffffffffffn;
         const s: string = buf.toString();
-        let hash: number = FNV_OFFSET;
+        let hash: bigint = FNV_OFFSET;
         for(let i: number = 0; i < s.length; i++) {{
-            hash ^= (s.charAt(i)).charCodeAt(0);
-            hash *= FNV_PRIME;
+            hash = (hash ^ BigInt((s.charAt(i)).charCodeAt(0))) & FNV_MASK;
+            hash = (hash * FNV_PRIME) & FNV_MASK;
         };}
-        return "u" + javaemul.internal.LongHelper.toHexString(hash);
+        return "u" + hash.toString(16);
     }
 
     public getTriangleFaces(): java.util.List<Polyhedron.Face.Triangle> {
