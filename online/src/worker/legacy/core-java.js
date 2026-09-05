@@ -36405,11 +36405,12 @@ export var com;
                                 {
                                     const columnSelect = field.basisVector(3, i);
                                     const columnI = embedding.embedInR3(columnSelect);
-                                    this.output.print(columnI.x);
+                                    // Through FORMAT, matching the Java exporter; see the note there.
+                                    this.output.print(POVRayExporter.FORMAT_$LI$().format(columnI.x));
                                     this.output.print(", ");
-                                    this.output.print(columnI.y);
+                                    this.output.print(POVRayExporter.FORMAT_$LI$().format(columnI.y));
                                     this.output.print(", ");
-                                    this.output.print(columnI.z);
+                                    this.output.print(POVRayExporter.FORMAT_$LI$().format(columnI.z));
                                     this.output.print(", ");
                                 }
                                 ;

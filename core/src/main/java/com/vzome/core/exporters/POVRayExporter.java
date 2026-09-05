@@ -119,11 +119,15 @@ public class POVRayExporter extends DocumentExporter
             {
                 AlgebraicVector columnSelect = field .basisVector( 3, i );
                 RealVector columnI = embedding .embedInR3( columnSelect );
-                output .print( columnI .x );
+                // Through FORMAT, like every other number here: printing the raw float wrote
+                // Java's "1.0, 0.0, 0.04486483" where Javascript wrote the full double,
+                // "1, 0, 0.04486482962965965", so this one line differed on every embedded
+                // design even when the geometry was identical.
+                output .print( FORMAT .format( columnI .x ) );
                 output .print( ", " );
-                output .print( columnI .y );
+                output .print( FORMAT .format( columnI .y ) );
                 output .print( ", " );
-                output .print( columnI .z );
+                output .print( FORMAT .format( columnI .z ) );
                 output .print( ", " );
             }
             output .println( " 0, 0, 0 > }" );
