@@ -665,6 +665,18 @@ import { java, javaemul } from "./candies/j4ts-2.1.0-SNAPSHOT/bundle.js"
     var text;
     (function (text) {
         class NumberFormat {
+            // A minimal stand-in for java.text.NumberFormat.  The fraction-digit setters used to
+            // be empty stubs and format() was just string concatenation, so exporters that asked
+            // for a fixed number of digits (POV-Ray asks for 8) instead emitted the full float --
+            // "4.236067771911621" where Java writes "4.23606777".  That made every exported file
+            // differ from its Java counterpart.  These follow java.text.NumberFormat: round to at
+            // most maximumFractionDigits, pad to at least minimumFractionDigits, and drop any
+            // trailing zeros in between.  Grouping separators are never emitted, because every
+            // caller here is writing machine-readable geometry.
+            constructor() {
+                this.maximumFractionDigits = 3;   // java.text.NumberFormat's default
+                this.minimumFractionDigits = 0;
+            }
             static getNumberInstance(us) {
                 return new NumberFormat();
             }
@@ -672,11 +684,33 @@ import { java, javaemul } from "./candies/j4ts-2.1.0-SNAPSHOT/bundle.js"
                 return new NumberFormat();
             }
             setMaximumFractionDigits(i) {
+                this.maximumFractionDigits = Math.max( 0, i );
+                if ( this.minimumFractionDigits > this.maximumFractionDigits )
+                    this.minimumFractionDigits = this.maximumFractionDigits;
             }
             setMinimumFractionDigits(i) {
+                this.minimumFractionDigits = Math.max( 0, i );
+                if ( this.maximumFractionDigits < this.minimumFractionDigits )
+                    this.maximumFractionDigits = this.minimumFractionDigits;
             }
             format(x) {
-                return /* toString */ ('' + (x));
+                const value = Number( x );
+                if ( ! isFinite( value ) )
+                    return '' + x;
+                let text = value.toFixed( this.maximumFractionDigits );
+                if ( text.indexOf( '.' ) >= 0 ) {
+                    // Trim trailing zeros, but never below minimumFractionDigits.
+                    let end = text.length;
+                    const dot = text.indexOf( '.' );
+                    const floor = dot + ( this.minimumFractionDigits > 0 ? this.minimumFractionDigits + 1 : 0 );
+                    while ( end - 1 > floor && text.charAt( end - 1 ) === '0' )
+                        end--;
+                    if ( end - 1 === dot )
+                        end = dot;   // nothing left after the point
+                    text = text.substring( 0, end );
+                }
+                // toFixed can produce "-0"; Java's NumberFormat writes "-0" too, so leave it.
+                return text;
             }
             setGroupingUsed(newValue) {
             }
@@ -5583,18 +5617,27 @@ export var com;
                             let f = index.next();
                             buf.append(f).append(';');
                         }
-                        const FNV_OFFSET = -3750763034362895579;
-                        const FNV_PRIME = 1099511628211;
+                        // FNV-1a over 64 bits, using BigInt.  The transpiled version used plain
+                        // numbers, but a Javascript number is a double: "hash *= FNV_PRIME"
+                        // blew past 2^53 and lost all precision, while "hash ^= c" coerced to 32
+                        // bits, so every shape collapsed to the same value and toHexString
+                        // returned "" -- every content-hashed shape got the key "u".  Distinct
+                        // panel shapes therefore shared one key, which also defeats the web
+                        // geometry cache and instancing that key on it.  BigInt with an explicit
+                        // 64-bit mask reproduces Java's wraparound exactly.
+                        const FNV_MASK = 0xffffffffffffffffn;
+                        const FNV_PRIME = 0x100000001b3n;
                         const s = buf.toString();
-                        let hash = FNV_OFFSET;
+                        let hash = 0xcbf29ce484222325n;
                         for (let i = 0; i < s.length; i++) {
                             {
-                                hash ^= (s.charAt(i)).charCodeAt(0);
-                                hash *= FNV_PRIME;
+                                hash = (hash ^ BigInt(s.charCodeAt(i))) & FNV_MASK;
+                                hash = (hash * FNV_PRIME) & FNV_MASK;
                             }
                             ;
                         }
-                        return "u" + javaemul.internal.LongHelper.toHexString(hash);
+                        // Java's Long.toHexString prints the unsigned 64-bit value.
+                        return "u" + hash.toString(16);
                     }
                     getTriangleFaces() {
                         const result = (new java.util.ArrayList());
@@ -36254,6 +36297,36 @@ export var com;
                  * @extends com.vzome.core.exporters.DocumentExporter
                  */
                 class POVRayExporter extends com.vzome.core.exporters.DocumentExporter {
+                    /**
+                     * Orders RenderedManifestations by content, for reproducible export.  Every
+                     * component is derived from what the manifestation IS, never from its identity
+                     * (guid), so two runs -- or two platforms -- computing the same geometry produce
+                     * the same order.  Without this, the enclosing HashSet's iteration order varies,
+                     * which reorders the "object" lines AND changes the lazily generated
+                     * "trans0"/"trans1" names, so exporting one design twice produced two different
+                     * .pov files.  Keep in sync with the Java POVRayExporter.compareForExport.
+                     */
+                    static compareForExport(a, b) {
+                        const nullSafe = (x, y) => {
+                            if (x == null) return y == null ? 0 : -1;
+                            if (y == null) return 1;
+                            return x < y ? -1 : (x > y ? 1 : 0);
+                        };
+                        let comparison = nullSafe(a.getShapeKey(), b.getShapeKey());
+                        if (comparison !== 0) return comparison;
+                        const ao = a.getOrientation(), bo = b.getOrientation();
+                        comparison = nullSafe(ao == null ? null : ao.toString(), bo == null ? null : bo.toString());
+                        if (comparison !== 0) return comparison;
+                        const al = a.getLocationAV(), bl = b.getLocationAV();
+                        if (al != null && bl != null) {
+                            comparison = al.compareTo(bl);
+                            if (comparison !== 0) return comparison;
+                        } else if (al !== bl) {
+                            return al == null ? -1 : 1;
+                        }
+                        const ac = a.getColor(), bc = b.getColor();
+                        return nullSafe(ac == null ? null : ac.toString(), bc == null ? null : bc.toString());
+                    }
                     constructor() {
                         super();
                     }
@@ -36287,11 +36360,11 @@ export var com;
                         this.output.println$();
                         this.output.println$java_lang_Object("#declare             up_dir = " + this.printTuple3d(upDir) + ";");
                         this.output.println$();
-                        this.output.println$java_lang_Object("#declare viewpoint_distance = " + this.mScene.getViewDistance() + ";");
+                        this.output.println$java_lang_Object("#declare viewpoint_distance = " + POVRayExporter.FORMAT_$LI$().format(this.mScene.getViewDistance()) + ";");
                         this.output.println$();
                         this.output.println$java_lang_Object("#declare      look_at_point = " + this.printTuple3d(this.mScene.getLookAtPointRV()) + ";");
                         this.output.println$();
-                        this.output.println$java_lang_Object("#declare      field_of_view = " + this.mScene.getFieldOfView() + ";");
+                        this.output.println$java_lang_Object("#declare      field_of_view = " + POVRayExporter.FORMAT_$LI$().format(this.mScene.getFieldOfView()) + ";");
                         this.output.println$();
                         this.output.println$java_lang_Object("#declare      parallel_proj = " + (this.mScene.isPerspective() ? 0 : 1) + ";");
                         this.output.println$();
@@ -36332,11 +36405,12 @@ export var com;
                                 {
                                     const columnSelect = field.basisVector(3, i);
                                     const columnI = embedding.embedInR3(columnSelect);
-                                    this.output.print(columnI.x);
+                                    // Through FORMAT, matching the Java exporter; see the note there.
+                                    this.output.print(POVRayExporter.FORMAT_$LI$().format(columnI.x));
                                     this.output.print(", ");
-                                    this.output.print(columnI.y);
+                                    this.output.print(POVRayExporter.FORMAT_$LI$().format(columnI.y));
                                     this.output.print(", ");
-                                    this.output.print(columnI.z);
+                                    this.output.print(POVRayExporter.FORMAT_$LI$().format(columnI.z));
                                     this.output.print(", ");
                                 }
                                 ;
@@ -36348,8 +36422,12 @@ export var com;
                         const shapes = (new java.util.HashSet());
                         const transforms = (new java.util.HashMap());
                         const colors = (new java.util.HashMap());
+                        const sorted = [];
                         for (let index = this.mModel.iterator(); index.hasNext();) {
-                            let rm = index.next();
+                            sorted.push(index.next());
+                        }
+                        sorted.sort(POVRayExporter.compareForExport);
+                        for (const rm of sorted) {
                             {
                                 const shapeName = "S" + /* replaceAll */ rm.getShapeKey().replace(new RegExp("[^A-Za-z0-9_]", 'g'), "_");
                                 if (!shapes.contains(shapeName)) {
@@ -36357,19 +36435,27 @@ export var com;
                                     this.exportShape(shapeName, rm.getShape());
                                 }
                                 const transform = rm.getOrientation();
-                                let transformName = transforms.get(transform);
+                                // Key by content, not by object identity.  Java dedups these with
+                                // a HashMap keyed on AlgebraicMatrix, whose equals/hashCode compare
+                                // by value; the Javascript HashMap ends up comparing references, so
+                                // equal matrices (every identity orientation, for instance) each got
+                                // their own "transN" declaration.  That bloated the output and made
+                                // it differ from Java's.  The same applies to colors below.
+                                const transformKey = "" + transform;
+                                let transformName = transforms.get(transformKey);
                                 if (transformName == null) {
                                     transformName = "trans" + numTransforms++;
-                                    transforms.put(transform, transformName);
+                                    transforms.put(transformKey, transformName);
                                     this.exportTransform(transformName, transform);
                                 }
                                 let color = rm.getColor();
                                 if (color == null)
                                     color = com.vzome.core.construction.Color.WHITE_$LI$();
-                                let colorName = colors.get(color);
+                                const colorKey = "" + color;
+                                let colorName = colors.get(colorKey);
                                 if (colorName == null) {
                                     colorName = this.nameColor(color);
-                                    colors.put(color, colorName);
+                                    colors.put(colorKey, colorName);
                                     this.exportColor(colorName, color);
                                 }
                                 instances.append("object { " + shapeName + " transform " + transformName + " translate ");
@@ -36449,24 +36535,31 @@ export var com;
                         this.output.print("#declare " + shapeName + " = ");
                         const vertices = poly.getVertexList();
                         this.output.println$java_lang_Object("mesh {");
-                        poly.getTriangleFaces();
+                        // Emit the triangles in a stable order; see the Java POVRayExporter for
+                        // why (the faces live in a HashSet, which iterates differently here than
+                        // it does in Java).  Sorting the rendered text changes no geometry.
+                        const triangles = [];
                         for (let index = poly.getTriangleFaces().iterator(); index.hasNext();) {
                             let face = index.next();
                             {
-                                this.output.print("triangle {");
+                                const buf = new java.lang.StringBuffer();
+                                buf.append("triangle {");
                                 for (let loopIndex = 0; loopIndex < face.vertices.length; loopIndex++) {
                                     let index = face.vertices[loopIndex];
                                     {
                                         const loc = vertices.get(index);
-                                        const buf = new java.lang.StringBuffer();
                                         buf.append("<");
                                         this.appendVector(loc, buf);
                                         buf.append(">");
-                                        this.output.print(buf.toString());
                                     }
                                 }
-                                this.output.println$java_lang_Object("}");
+                                buf.append("}");
+                                triangles.push(buf.toString());
                             }
+                        }
+                        triangles.sort();
+                        for (const triangle of triangles) {
+                            this.output.println$java_lang_Object(triangle);
                         }
                         this.output.println$java_lang_Object("}");
                         this.output.flush();
