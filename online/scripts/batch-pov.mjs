@@ -24,6 +24,7 @@
  * The bundling is handled by run-batch-pov.mjs, which esbuilds this file and then runs it.
  */
 
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
@@ -73,6 +74,48 @@ globalThis.fetch = async ( url ) => {
 };
 
 const isDesign = name => name .toLowerCase() .endsWith( '.vzome' );
+
+const MANIFEST = 'manifest.txt';
+const RUN_STATE = 'run.txt';
+// Cleared at the start of a run, so a killed run cannot leave reports that look current.
+const REPORTS = [ MANIFEST, RUN_STATE, 'failures.txt', 'regressions.txt', 'improved.txt',
+                  'changed.txt', 'unknown.txt', 'new.txt', 'missing-golden.txt' ];
+
+/**
+ * A short, stable summary of what the edit history produced.  Must match
+ * BatchPovExporter.hashOf on the Java side -- SHA-256, first 8 bytes, lower-case hex --
+ * so a Java-recorded manifest can judge a JavaScript run.
+ */
+const hashOf = text =>
+  crypto .createHash( 'sha256' ) .update( text, 'utf8' ) .digest( 'hex' ) .slice( 0, 16 );
+
+const readManifest = file => {
+  const entries = new Map();
+  if ( ! fs .existsSync( file ) ) return entries;
+  for ( const line of fs .readFileSync( file, 'utf-8' ) .split( '\n' ) ) {
+    if ( ! line || line .startsWith( '#' ) ) continue;
+    const [ p, outcome, ...rest ] = line .split( '\t' );
+    if ( ! outcome ) continue;
+    entries .set( p, { outcome, detail: rest .join( '\t' ) } );
+  }
+  return entries;
+}
+
+/**
+ * How this run compares to the baseline, for one design.  Must agree with
+ * BatchPovExporter.judge: a timeout on either side is UNKNOWN and never a pass, and only
+ * REGRESSED fails the run.
+ */
+const judge = ( before, now, detail ) => {
+  if ( ! before ) return 'NEW';
+  if ( before.outcome === 'TIMEOUT' || now === 'TIMEOUT' ) return 'UNKNOWN';
+  if ( before.outcome === 'OK' ) {
+    if ( now !== 'OK' ) return 'REGRESSED';
+    return before.detail === detail ? 'UNCHANGED' : 'REGRESSED';
+  }
+  if ( now === 'OK' ) return 'IMPROVED';
+  return before.detail === detail ? 'UNCHANGED' : 'CHANGED';
+}
 
 /**
  * Everything the edit history produced, with the camera and lighting preamble removed -- the
@@ -212,65 +255,114 @@ const main = async () =>
   await Promise .all( resourceIndex .map( p => loadAndInjectResource( p, `/resources/${p}` ) ) );
   const core = await initialize();
 
-  let matched = 0, recorded = 0;
-  const differed = [], failed = [], missing = [];
+  // Clear stale reports before writing anything, so whatever is present afterwards belongs
+  // to this run.  A killed run otherwise leaves reports indistinguishable from a finished one.
+  fs .mkdirSync( output, { recursive: true } );
+  for ( const name of REPORTS ) {
+    const f = path .join( output, name );
+    if ( fs .existsSync( f ) ) fs .unlinkSync( f );
+  }
+  const writeRunState = ( state, done ) =>
+    fs .writeFileSync( path .join( output, RUN_STATE ),
+      [ `state\t${state}`, `started\t${new Date().toISOString()}`, `input\t${input}`,
+        `designs\t${done} of ${designs.length}`, `geometryOnly\t${geometryOnly}`,
+        `mode\t${golden ? 'compare' : 'record'}`,
+        ...( golden ? [ `golden\t${golden}` ] : [] ) ] .join( '\n' ) + '\n' );
+  writeRunState( 'RUNNING', 0 );
+
+  const baseline = golden ? readManifest( path .join( golden, MANIFEST ) ) : null;
+  if ( golden && baseline.size === 0 )
+    console .error( `  no manifest in ${golden} -- every design will be reported as NEW.`
+                  + `  Record a baseline with this version first.` );
+
+  const results = [];   // { relative, outcome, detail, verdict, difference }
 
   for ( const [ index, design ] of designs .entries() ) {
     const relative = path .relative( base, design ) .replace( /\.vZome$/i, '.pov' );
+    let outcome, detail, difference = null;
     try {
       const text = exportDesign( core, fs .readFileSync( design, 'utf-8' ) );
       const target = path .join( output, relative );
       fs .mkdirSync( path .dirname( target ), { recursive: true } );
       fs .writeFileSync( target, text );
+      outcome = 'OK';
+      const compared = geometryOnly ? geometryOf( text ) : text;
+      detail = hashOf( compared );
 
-      if ( ! golden )
-        recorded++;
-      else {
-        const expected = path .join( golden, relative );
-        if ( ! fs .existsSync( expected ) )
-          missing .push( { relative, detail: expected } );
-        else {
-          const want = fs .readFileSync( expected, 'utf-8' );
-          const left = geometryOnly ? geometryOf( want ) : want;
-          const right = geometryOnly ? geometryOf( text ) : text;
-          if ( left === right ) matched++;
-          else differed .push( { relative, detail: describeDifference( left, right ) } );
+      if ( golden ) {
+        const before = baseline .get( relative );
+        if ( before && before.outcome === 'OK' && before.detail !== detail ) {
+          // Both runs exported but the geometry moved; read the golden .pov to say where.
+          const expected = path .join( golden, relative );
+          const prefix = `hash ${before.detail} -> ${detail}`;
+          if ( fs .existsSync( expected ) ) {
+            const want = fs .readFileSync( expected, 'utf-8' );
+            const left = geometryOnly ? geometryOf( want ) : want;
+            difference = left === compared
+              ? `${prefix} (but the golden .pov matches; is the manifest stale?)`
+              : `${prefix}, ${describeDifference( left, compared )}`;
+          } else
+            difference = `${prefix} (no golden .pov to diff)`;
         }
       }
     } catch ( error ) {
-      failed .push( { relative, detail: `${error?.constructor?.name}: ${error?.message}` } );
+      outcome = 'FAILED';
+      detail = `${error?.constructor?.name}: ${error?.message}`;
+      const before = golden ? baseline .get( relative ) : null;
+      if ( golden )
+        difference = ( before ? `${before.outcome} ${before.detail}` : '(not in baseline)' )
+                   + `  ->  ${outcome} ${detail}`;
     }
+    const verdict = golden ? judge( baseline .get( relative ), outcome, detail ) : 'RECORDED';
+    if ( verdict !== 'REGRESSED' && verdict !== 'CHANGED' ) difference = null;
+    results .push( { relative, outcome, detail, verdict, difference } );
+
     if ( ( index + 1 ) % 25 === 0 || index + 1 === designs.length )
       console .log( `  ${index + 1}/${designs.length}` );
   }
 
+  // The manifest is this run's record of what happened, and the baseline for a later one.
+  fs .writeFileSync( path .join( output, MANIFEST ),
+    results .map( r => `${r.relative}\t${r.outcome}\t${(r.detail ?? '') .replace( /\t/g, ' ' )}` )
+            .join( '\n' ) + '\n' );
+
+  const of = v => results .filter( r => r.verdict === v );
+  const byPath = ( a, b ) => a.relative < b.relative ? -1 : a.relative > b.relative ? 1 : 0;
+
   console .log();
   if ( golden ) {
-    console .log( `  matched:        ${matched}` );
-    console .log( `  DIFFERED:       ${differed.length}` );
-    console .log( `  missing golden: ${missing.length}` );
+    console .log( `  unchanged:      ${of('UNCHANGED').length}` );
+    console .log( `  REGRESSED:      ${of('REGRESSED').length}` );
+    console .log( `  improved:       ${of('IMPROVED').length}` );
+    console .log( `  changed:        ${of('CHANGED').length}` );
+    console .log( `  unknown:        ${of('UNKNOWN').length}  (a timeout on one side or the other)` );
+    console .log( `  new:            ${of('NEW').length}` );
   } else
-    console .log( `  exported:       ${recorded}` );
-  console .log( `  failed:         ${failed.length}` );
+    console .log( `  recorded:       ${results.length}` );
+  console .log( `  (failed: ${results .filter( r => r.outcome !== 'OK' ).length})` );
 
-  for ( const r of differed ) console .log( `  DIFFERED  ${r.relative}  ${r.detail}` );
-  for ( const r of failed )   console .log( `  FAILED    ${r.relative}  ${r.detail}` );
+  for ( const r of of( 'REGRESSED' ) .sort( byPath ) )
+    console .log( `  REGRESSED  ${r.relative}${ r.difference ? '  ' + r.difference : '' }` );
 
-  fs .mkdirSync( output, { recursive: true } );
   const writeReport = ( name, rows ) => {
     const file = path .join( output, name );
     if ( ! rows.length ) { if ( fs .existsSync( file ) ) fs .unlinkSync( file ); return; }
-    fs .writeFileSync( file, rows .map( r => `${r.relative}  ${r.detail ?? ''}` ) .join( '\n' ) + '\n' );
+    fs .writeFileSync( file, rows .sort( byPath ) .map( r =>
+      `${r.relative}  ${r.outcome}  ${r.detail ?? ''}${ r.difference ? '\n      ' + r.difference : '' }`
+    ) .join( '\n' ) + '\n' );
     console .log( `  wrote ${file}` );
   };
-  writeReport( 'failures.txt', failed );
-  if ( golden ) {
-    writeReport( 'regressions.txt', differed );
-    writeReport( 'missing-golden.txt', missing );
-  }
+  writeReport( 'regressions.txt', of( 'REGRESSED' ) );
+  writeReport( 'improved.txt',    of( 'IMPROVED' ) );
+  writeReport( 'changed.txt',     of( 'CHANGED' ) );
+  writeReport( 'unknown.txt',     of( 'UNKNOWN' ) );
+  writeReport( 'new.txt',         of( 'NEW' ) );
+  writeReport( 'failures.txt',    results .filter( r => r.outcome !== 'OK' ) );
 
-  // Missing golden files are not a regression, just designs the baseline does not cover yet.
-  process .exit( failed.length || ( golden && differed.length ) ? 1 : 0 );
+  writeRunState( 'FINISHED', results.length );
+
+  // Only regressions fail: a baseline that records known failures is still a useful baseline.
+  process .exit( of( 'REGRESSED' ).length ? 1 : 0 );
 }
 
 main() .catch( e => { console .error( 'FAILED:', e?.stack ?? e ); process .exit( 1 ); } );

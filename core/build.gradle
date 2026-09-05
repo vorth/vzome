@@ -460,7 +460,7 @@ task batchPov( dependsOn: compileRegressionJava ) {
         // Merge the per-shard reports into one file per kind, so the result reads the same
         // whether the run used one worker or many.
         if ( workers > 1 ) {
-            [ 'manifest', 'failures', 'regressions', 'improved', 'changed', 'unknown', 'new' ].each { kind ->
+            [ 'manifest', 'run', 'failures', 'regressions', 'improved', 'changed', 'unknown', 'new' ].each { kind ->
                 def parts = (0..<workers).collect { new File( outputDir, "${kind}-${it}.txt" ) }
                                          .findAll { it.exists() }
                 def merged = new File( outputDir, "${kind}.txt" )
@@ -474,8 +474,43 @@ task batchPov( dependsOn: compileRegressionJava ) {
             }
         }
 
+        // One summary for the whole run.  Each worker prints its own block, which with six of
+        // them means six partial counts and no total; these are the real numbers, counted from
+        // the merged reports rather than by adding up what scrolled past.
+        def countLines = { String name ->
+            def f = new File( outputDir, name )
+            f.exists() ? f.readLines().count { it && !it.startsWith( '      ' ) } : 0
+        }
+        def manifest = new File( outputDir, 'manifest.txt' )
+        def total = manifest.exists() ? manifest.readLines().count { it.trim() } : 0
+        def regressed = countLines( 'regressions.txt' )
+
+        println ""
+        def comparing = project.hasProperty( 'povGolden' )
+        // A banner, because Gradle's own output is voluminous and this is the one part of it
+        // anybody actually wants to read.
+        def rule = '%' * 80
+        println ""
+        println rule
+        println rule
+        println "  ${comparing ? 'COMPARED' : 'RECORDED'} ${total} designs"
+        if ( comparing ) {
+            def improved = countLines( 'improved.txt' ), changed = countLines( 'changed.txt' )
+            def unknown  = countLines( 'unknown.txt' ),  fresh   = countLines( 'new.txt' )
+            println "    unchanged:  ${total - regressed - improved - changed - unknown - fresh}"
+            println "    REGRESSED:  ${regressed}"
+            println "    improved:   ${improved}"
+            println "    changed:    ${changed}"
+            println "    unknown:    ${unknown}   (a timeout on one side or the other)"
+            println "    new:        ${fresh}"
+        }
+        println "    (failed or timed out: ${countLines( 'failures.txt' )})"
+        println rule
+        println rule
+        println ""
+
         if ( failed > 0 )
-            throw new GradleException( "batchPov: ${failed} of ${workers} workers reported failures or regressions" )
+            throw new GradleException( "batchPov: ${regressed > 0 ? regressed + ' regression(s)' : failed + ' of ' + workers + ' workers reported a problem' }" )
     }
 }
 

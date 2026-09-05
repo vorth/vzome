@@ -172,6 +172,20 @@ public class BatchPovExporter
     static final String MANIFEST = "manifest.txt";
 
     /**
+     * Written when a run starts and rewritten when it finishes.  Without it there is no way
+     * to tell a finished output tree from one whose run was killed half way: the reports of
+     * an interrupted run stay on disk looking authoritative, which has already caused a
+     * partial run to be read as a complete one.
+     */
+    static final String RUN_STATE = "run.txt";
+
+    /** Reports a run produces; cleared at the start so no stale file can be mistaken for fresh. */
+    private static final String[] REPORTS = {
+        MANIFEST, "failures.txt", "regressions.txt", "improved.txt", "changed.txt",
+        "unknown.txt", "new.txt", "missing-golden.txt",
+    };
+
+    /**
      * A stable, short summary of what the edit history produced.  Comparing hashes rather
      * than whole files keeps a manifest small enough to read, diff and commit, while still
      * detecting any change: the ".pov" files stay on disk for investigating one that moved.
@@ -511,6 +525,8 @@ public class BatchPovExporter
         }
 
         Files .createDirectories( this .outputRoot );
+        clearStaleReports();
+        writeRunState( "RUNNING", designs .size(), 0, comparing );
 
         List<Result> results = new ArrayList<>();
         long started = System .currentTimeMillis();
@@ -548,7 +564,9 @@ public class BatchPovExporter
             watchdog .shutdownNow();
         }
 
-        return report( results, comparing, System .currentTimeMillis() - started );
+        int exitCode = report( results, comparing, System .currentTimeMillis() - started );
+        writeRunState( "FINISHED", designs .size(), results .size(), comparing );
+        return exitCode;
     }
 
     private int report( List<Result> results, boolean comparing, long elapsedMillis ) throws IOException
@@ -618,6 +636,42 @@ public class BatchPovExporter
                  .append( result .difference == null ? "" : "\n      " + result .difference )
                  .append( '\n' );
         writeText( name, text .toString(), results .isEmpty() );
+    }
+
+    /**
+     * Removes this shard's reports from a previous run.  A run that is killed leaves its
+     * reports behind, and they are indistinguishable from a completed run's; deleting them
+     * up front means anything present afterwards belongs to the run in progress.
+     */
+    private void clearStaleReports() throws IOException
+    {
+        for ( String name : REPORTS ) {
+            Files .deleteIfExists( this .outputRoot .resolve( name ) );
+            if ( this .split > 1 )
+                Files .deleteIfExists( this .outputRoot
+                        .resolve( name .replaceFirst( "\\.txt$", "-" + this .shard + ".txt" ) ) );
+        }
+    }
+
+    /**
+     * Records what this run is doing and whether it finished.  Shards each write their own,
+     * so a tree is complete only when every shard says FINISHED.
+     */
+    private void writeRunState( String state, int total, int done, boolean comparing ) throws IOException
+    {
+        String name = this .split > 1 ? RUN_STATE .replace( ".txt", "-" + this .shard + ".txt" ) : RUN_STATE;
+        StringBuilder text = new StringBuilder();
+        text .append( "state\t" ) .append( state ) .append( '\n' );
+        text .append( "started\t" ) .append( java.time.Instant .now() ) .append( '\n' );
+        text .append( "input\t" ) .append( this .inputRoot ) .append( '\n' );
+        text .append( "shard\t" ) .append( this .shard ) .append( " of " ) .append( this .split ) .append( '\n' );
+        text .append( "designs\t" ) .append( done ) .append( " of " ) .append( total ) .append( '\n' );
+        text .append( "timeout\t" ) .append( this .timeoutSeconds ) .append( "s\n" );
+        text .append( "geometryOnly\t" ) .append( this .geometryOnly ) .append( '\n' );
+        text .append( "mode\t" ) .append( comparing ? "compare" : "record" ) .append( '\n' );
+        if ( comparing )
+            text .append( "golden\t" ) .append( this .goldenRoot ) .append( '\n' );
+        Files .write( this .outputRoot .resolve( name ), text .toString() .getBytes( StandardCharsets .UTF_8 ) );
     }
 
     private void writeText( String name, String text, boolean empty ) throws IOException
