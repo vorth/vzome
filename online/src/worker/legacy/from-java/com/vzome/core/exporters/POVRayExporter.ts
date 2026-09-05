@@ -106,8 +106,15 @@ export class POVRayExporter extends DocumentExporter {
         }
         let numTransforms: number = 0;
         const shapes: java.util.HashSet<string> = <any>(new java.util.HashSet<any>());
-        const transforms: java.util.Map<AlgebraicMatrix, string> = <any>(new java.util.HashMap<any, any>());
-        const colors: java.util.Map<Color, string> = <any>(new java.util.HashMap<any, any>());
+        //  Keyed on the string form, NOT the object.  This deliberately DIVERGES from the
+        //  Java, which keys these maps on the AlgebraicMatrix / Color itself -- correct
+        //  there, because those have value-based equals/hashCode.  The transpiled
+        //  java.util.HashMap compares by reference instead, so equal matrices each got
+        //  their own transN declaration (every identity orientation, for instance),
+        //  bloating the output and diverging from Java's.  Do not "fix" this back toward
+        //  the Java: the two sides must differ here to produce the same file.
+        const transforms: java.util.Map<string, string> = <any>(new java.util.HashMap<any, any>());
+        const colors: java.util.Map<string, string> = <any>(new java.util.HashMap<any, any>());
         //  Emit in a deterministic order.  RenderedModel holds its manifestations in a
         //  HashSet keyed on a random per-object guid, so iteration order varied run to
         //  run: the object lines moved, and with them the lazily generated trans0/trans1
@@ -128,18 +135,20 @@ export class POVRayExporter extends DocumentExporter {
                     this.exportShape(shapeName, rm.getShape());
                 }
                 const transform: AlgebraicMatrix = rm.getOrientation();
-                let transformName: string = transforms.get(transform);
+                const transformKey: string = "" + transform;
+                let transformName: string = transforms.get(transformKey);
                 if (transformName == null){
                     transformName = "trans" + numTransforms++;
-                    transforms.put(transform, transformName);
+                    transforms.put(transformKey, transformName);
                     this.exportTransform(transformName, transform);
                 }
                 let color: Color = rm.getColor();
                 if (color == null)color = Color.WHITE_$LI$();
-                let colorName: string = colors.get(color);
+                const colorKey: string = "" + color;
+                let colorName: string = colors.get(colorKey);
                 if (colorName == null){
                     colorName = this.nameColor(color);
-                    colors.put(color, colorName);
+                    colors.put(colorKey, colorName);
                     this.exportColor(colorName, color);
                 }
                 instances.append("object { " + shapeName + " transform " + transformName + " translate ");
