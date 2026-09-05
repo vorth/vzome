@@ -15,7 +15,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -79,18 +81,63 @@ public class BatchPovExporter
         }
     } );
 
-    enum Status { MATCHED, DIFFERED, RECORDED, MISSING_GOLDEN, FAILED }
+    /**
+     * What happened to one design in ONE run.  This is what a manifest records; it says
+     * nothing about the baseline.
+     */
+    enum Outcome
+    {
+        OK,       // exported; the manifest carries a hash of the geometry
+        FAILED,   // threw; the manifest carries the exception text
+        TIMEOUT;  // took too long -- deliberately NOT the same as FAILED, see Verdict
+    }
+
+    /**
+     * How this run compares to the baseline, for one design.  The distinction that matters
+     * is between "worse than the baseline" (which fails the build) and merely "different"
+     * or "unknown" (which do not).  A baseline full of known failures is still a useful
+     * baseline: the question is never "is everything OK", it is "did anything get worse".
+     */
+    enum Verdict
+    {
+        UNCHANGED,      // same as the baseline, whatever the baseline said
+        REGRESSED,      // was OK and now differs or fails -- the only thing that fails a run
+        IMPROVED,       // the baseline recorded a failure and this run succeeded
+        CHANGED,        // failed before and fails now, but differently
+        UNKNOWN,        // a timeout on either side: we cannot tell, and must not call it a pass
+        NEW,            // not in the baseline at all
+        RECORDED;       // no baseline in play; we are recording one
+    }
 
     static class Result
     {
         final Path relative;
-        final Status status;
+        final Outcome outcome;
+        final Verdict verdict;
+        /** Hash of the geometry when OK; the exception text when FAILED; the limit when TIMEOUT. */
         final String detail;
+        /** How the difference reads, for the report.  Null unless something differs. */
+        final String difference;
 
-        Result( Path relative, Status status, String detail )
+        Result( Path relative, Outcome outcome, Verdict verdict, String detail, String difference )
         {
             this .relative = relative;
-            this .status = status;
+            this .outcome = outcome;
+            this .verdict = verdict;
+            this .detail = detail;
+            this .difference = difference;
+        }
+    }
+
+    /** One design's line in a manifest: what happened, and enough to compare against. */
+    static class Entry
+    {
+        final Outcome outcome;
+        final String detail;
+
+        Entry( Outcome outcome, String detail )
+        {
+            this .outcome = outcome;
             this .detail = detail;
         }
     }
@@ -108,6 +155,9 @@ public class BatchPovExporter
      */
     private boolean geometryOnly;
 
+    /** The baseline manifest, keyed by relative ".pov" path.  Null when recording. */
+    private Map<String, Entry> baseline;
+
     BatchPovExporter( Path inputRoot, Path outputRoot, Path goldenRoot, int shard, int split, int timeoutSeconds )
     {
         this .inputRoot = inputRoot;
@@ -116,6 +166,89 @@ public class BatchPovExporter
         this .shard = shard;
         this .split = split;
         this .timeoutSeconds = timeoutSeconds;
+    }
+
+    /** The manifest file name, written into the output root and read from the golden root. */
+    static final String MANIFEST = "manifest.txt";
+
+    /**
+     * A stable, short summary of what the edit history produced.  Comparing hashes rather
+     * than whole files keeps a manifest small enough to read, diff and commit, while still
+     * detecting any change: the ".pov" files stay on disk for investigating one that moved.
+     */
+    static String hashOf( String text )
+    {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest .getInstance( "SHA-256" );
+            byte[] bytes = digest .digest( text .getBytes( StandardCharsets .UTF_8 ) );
+            StringBuilder hex = new StringBuilder();
+            for ( int i = 0; i < 8; i++ )   // 8 bytes is ample to distinguish designs
+                hex .append( String .format( "%02x", bytes[ i ] ) );
+            return hex .toString();
+        } catch ( java.security.NoSuchAlgorithmException e ) {
+            throw new IllegalStateException( "SHA-256 is required by the Java platform", e );
+        }
+    }
+
+    /**
+     * Reads a manifest.  Lines are "path<TAB>OUTCOME<TAB>detail"; anything unparseable is
+     * skipped rather than failing the run, so a hand-edited manifest stays usable.
+     */
+    static Map<String, Entry> readManifest( Path file ) throws IOException
+    {
+        Map<String, Entry> entries = new LinkedHashMap<>();
+        if ( ! Files .isRegularFile( file ) )
+            return entries;
+        for ( String line : Files .readAllLines( file, StandardCharsets .UTF_8 ) ) {
+            if ( line .isEmpty() || line .startsWith( "#" ) )
+                continue;
+            String[] fields = line .split( "\t", 3 );
+            if ( fields .length < 2 )
+                continue;
+            try {
+                entries .put( fields[ 0 ],
+                        new Entry( Outcome .valueOf( fields[ 1 ] ), fields .length > 2 ? fields[ 2 ] : "" ) );
+            } catch ( IllegalArgumentException unknownOutcome ) {
+                // A manifest from a newer version; skip the line rather than abort.
+            }
+        }
+        return entries;
+    }
+
+    private void writeManifest( List<Result> results ) throws IOException
+    {
+        String name = this .split > 1 ? MANIFEST .replace( ".txt", "-" + this .shard + ".txt" ) : MANIFEST;
+        StringBuilder text = new StringBuilder();
+        for ( Result result : results )
+            text .append( result .relative ) .append( '\t' )
+                 .append( result .outcome ) .append( '\t' )
+                 .append( result .detail == null ? "" : result .detail .replace( '\t', ' ' ) )
+                 .append( '\n' );
+        Files .write( this .outputRoot .resolve( name ), text .toString() .getBytes( StandardCharsets .UTF_8 ) );
+    }
+
+    /**
+     * Compares one design's outcome against the baseline.  A timeout on either side yields
+     * UNKNOWN: if a change makes a design hang, it would otherwise time out on both runs and
+     * be reported as a match -- a severe regression reading as a pass.
+     */
+    static Verdict judge( Entry before, Outcome now, String detail )
+    {
+        if ( before == null )
+            return Verdict .NEW;
+        if ( before .outcome == Outcome .TIMEOUT || now == Outcome .TIMEOUT )
+            return Verdict .UNKNOWN;
+
+        if ( before .outcome == Outcome .OK ) {
+            if ( now != Outcome .OK )
+                return Verdict .REGRESSED;              // used to export, now fails
+            return before .detail .equals( detail ) ? Verdict .UNCHANGED : Verdict .REGRESSED;
+        }
+
+        // The baseline recorded a failure.
+        if ( now == Outcome .OK )
+            return Verdict .IMPROVED;
+        return before .detail .equals( detail ) ? Verdict .UNCHANGED : Verdict .CHANGED;
     }
 
     /**
@@ -219,21 +352,54 @@ public class BatchPovExporter
         Files .write( temp, exported .getBytes( StandardCharsets .UTF_8 ) );
         Files .move( temp, target, StandardCopyOption .REPLACE_EXISTING );
 
-        if ( this .goldenRoot == null )
-            return new Result( relativePov, Status .RECORDED, null );
+        // The manifest records a hash of whatever we would compare, so --geometry-only
+        // changes what the hash covers as well as what a diff reports.
+        String compared = this .geometryOnly ? geometryOf( exported ) : exported;
+        String hash = hashOf( compared );
 
-        Path golden = this .goldenRoot .resolve( relativePov );
-        if ( ! Files .exists( golden ) )
-            return new Result( relativePov, Status .MISSING_GOLDEN, golden .toString() );
+        if ( this .baseline == null )
+            return new Result( relativePov, Outcome .OK, Verdict .RECORDED, hash, null );
 
-        String expected = new String( Files .readAllBytes( golden ), StandardCharsets .UTF_8 );
-        String left = this .geometryOnly ? geometryOf( expected ) : expected;
-        String right = this .geometryOnly ? geometryOf( exported ) : exported;
-        if ( left .equals( right ) )
-            return new Result( relativePov, Status .MATCHED, null );
+        Entry before = this .baseline .get( relativePov .toString() );
+        Verdict verdict = judge( before, Outcome .OK, hash );
 
-        return new Result( relativePov, Status .DIFFERED, describeDifference( left, right ) );
+        String difference = null;
+        if ( verdict == Verdict .REGRESSED && before != null && before .outcome == Outcome .OK ) {
+            // Both runs exported, but the geometry moved.  Read the golden ".pov" itself to
+            // say WHERE, which the hash alone cannot.
+            Path golden = this .goldenRoot .resolve( relativePov );
+            String prefix = "hash " + before .detail + " -> " + hash;
+            if ( Files .isRegularFile( golden ) ) {
+                String expected = new String( Files .readAllBytes( golden ), StandardCharsets .UTF_8 );
+                String want = this .geometryOnly ? geometryOf( expected ) : expected;
+                // The manifest hash and the stored ".pov" can disagree if the manifest was
+                // hand-edited, or was recorded with a different --geometry-only setting.  Say
+                // so rather than printing a confusing "these are the same" diff.
+                difference = want .equals( compared )
+                        ? prefix + " (but the golden .pov matches; is the manifest stale?)"
+                        : prefix + ", " + describeDifference( want, compared );
+            }
+            else
+                difference = prefix + " (no golden .pov to diff)";
+        }
+        return new Result( relativePov, Outcome .OK, verdict, hash, difference );
     }
+
+    /** Builds the Result for a design that failed or timed out, judged against the baseline. */
+    private Result failure( Path relative, Outcome outcome, String detail )
+    {
+        Path relativePov = withPovSuffix( relative );
+        if ( this .baseline == null )
+            return new Result( relativePov, outcome, Verdict .RECORDED, detail, null );
+        Entry before = this .baseline .get( relativePov .toString() );
+        Verdict verdict = judge( before, outcome, detail );
+        String difference = null;
+        if ( verdict == Verdict .REGRESSED || verdict == Verdict .CHANGED )
+            difference = ( before == null ? "(not in baseline)" : before .outcome + " " + before .detail )
+                    + "  ->  " + outcome + " " + detail;
+        return new Result( relativePov, outcome, verdict, detail, difference );
+    }
+
 
     /**
      * Everything the edit history produced, with the camera and lighting preamble removed.
@@ -322,6 +488,13 @@ public class BatchPovExporter
                 designs .add( all .get( i ) );
 
         boolean comparing = this .goldenRoot != null;
+        if ( comparing ) {
+            this .baseline = readManifest( this .goldenRoot .resolve( MANIFEST ) );
+            if ( this .baseline .isEmpty() )
+                System .err .println( "  no manifest in " + this .goldenRoot
+                        + " -- every design will be reported as NEW."
+                        + "  Record a baseline with this version first." );
+        }
         // Machine-readable progress, for the parent process to aggregate across shards; see
         // the batchPov task.  Printed even when running standalone -- it is easy to ignore.
         System .out .println( "@total " + designs .size() );
@@ -358,17 +531,17 @@ public class BatchPovExporter
                     results .add( future .get( this .timeoutSeconds, TimeUnit .SECONDS ) );
                 } catch ( TimeoutException te ) {
                     future .cancel( true );
-                    results .add( new Result( relative, Status .FAILED,
-                            "timed out after " + this .timeoutSeconds + "s" ) );
+                    results .add( failure( relative, Outcome .TIMEOUT,
+                            this .timeoutSeconds + "s" ) );
                 } catch ( Throwable t ) {
                     Throwable cause = t .getCause() == null ? t : t .getCause();
                     String message = cause .getMessage();
-                    results .add( new Result( relative, Status .FAILED,
+                    results .add( failure( relative, Outcome .FAILED,
                             cause .getClass() .getSimpleName()
                             + ( message == null ? "" : ": " + message ) ) );
                 }
                 Result latest = results .get( results .size() - 1 );
-                System .out .println( "@progress " + latest .status + " " + latest .relative );
+                System .out .println( "@progress " + latest .verdict + " " + latest .relative );
                 System .out .flush();
             }
         } finally {
@@ -380,68 +553,85 @@ public class BatchPovExporter
 
     private int report( List<Result> results, boolean comparing, long elapsedMillis ) throws IOException
     {
-        List<Result> differed = new ArrayList<>();
-        List<Result> failed = new ArrayList<>();
-        List<Result> missing = new ArrayList<>();
-        int matched = 0, recorded = 0;
+        writeManifest( results );
+
+        Map<Verdict, List<Result>> byVerdict = new LinkedHashMap<>();
+        for ( Verdict v : Verdict .values() )
+            byVerdict .put( v, new ArrayList<>() );
         for ( Result result : results )
-            switch ( result .status ) {
-                case MATCHED:        matched++;                 break;
-                case RECORDED:       recorded++;                break;
-                case DIFFERED:       differed .add( result );   break;
-                case MISSING_GOLDEN: missing .add( result );    break;
-                case FAILED:         failed .add( result );     break;
-            }
+            byVerdict .get( result .verdict ) .add( result );
 
         Comparator<Result> byPath = Comparator .comparing( r -> r .relative .toString() );
-        Collections .sort( differed, byPath );
-        Collections .sort( failed, byPath );
-        Collections .sort( missing, byPath );
+        for ( List<Result> list : byVerdict .values() )
+            Collections .sort( list, byPath );
+
+        int failedNow = 0, timedOut = 0;
+        for ( Result result : results ) {
+            if ( result .outcome == Outcome .FAILED ) failedNow++;
+            if ( result .outcome == Outcome .TIMEOUT ) timedOut++;
+        }
 
         System .out .println();
         System .out .println( "Finished in " + ( elapsedMillis / 1000 ) + "s" );
         if ( comparing ) {
-            System .out .println( "  matched:        " + matched );
-            System .out .println( "  DIFFERED:       " + differed .size() );
-            System .out .println( "  missing golden: " + missing .size() );
+            System .out .println( "  unchanged:      " + byVerdict .get( Verdict .UNCHANGED ) .size() );
+            System .out .println( "  REGRESSED:      " + byVerdict .get( Verdict .REGRESSED ) .size() );
+            System .out .println( "  improved:       " + byVerdict .get( Verdict .IMPROVED ) .size() );
+            System .out .println( "  changed:        " + byVerdict .get( Verdict .CHANGED ) .size() );
+            System .out .println( "  unknown:        " + byVerdict .get( Verdict .UNKNOWN ) .size()
+                    + "  (a timeout on one side or the other)" );
+            System .out .println( "  new:            " + byVerdict .get( Verdict .NEW ) .size() );
         }
         else
-            System .out .println( "  exported:       " + recorded );
-        System .out .println( "  failed:         " + failed .size() );
+            System .out .println( "  recorded:       " + results .size() );
+        System .out .println( "  (failed: " + failedNow + ", timed out: " + timedOut + ")" );
 
-        for ( Result result : differed )
-            System .out .println( "  DIFFERED  " + result .relative + "  " + result .detail );
-        for ( Result result : failed )
-            System .out .println( "  FAILED    " + result .relative + "  " + result .detail );
+        // Only regressions are printed in full: they are what someone has to act on.
+        for ( Result result : byVerdict .get( Verdict .REGRESSED ) )
+            System .out .println( "  REGRESSED  " + result .relative
+                    + ( result .difference == null ? "" : "  " + result .difference ) );
 
-        writeReport( "failures.txt", failed );
-        if ( comparing ) {
-            writeReport( "regressions.txt", differed );
-            writeReport( "missing-golden.txt", missing );
-        }
+        writeVerdictReport( "regressions.txt", byVerdict .get( Verdict .REGRESSED ) );
+        writeVerdictReport( "improved.txt",    byVerdict .get( Verdict .IMPROVED ) );
+        writeVerdictReport( "changed.txt",     byVerdict .get( Verdict .CHANGED ) );
+        writeVerdictReport( "unknown.txt",     byVerdict .get( Verdict .UNKNOWN ) );
+        writeVerdictReport( "new.txt",         byVerdict .get( Verdict .NEW ) );
 
-        // Missing golden files are not a regression -- they are simply designs the baseline does
-        // not cover yet -- so they are reported but do not fail the run.
-        boolean bad = ! failed .isEmpty() || ( comparing && ! differed .isEmpty() );
-        return bad ? 1 : 0;
+        List<Result> troubled = new ArrayList<>();
+        for ( Result result : results )
+            if ( result .outcome != Outcome .OK )
+                troubled .add( result );
+        Collections .sort( troubled, byPath );
+        writeVerdictReport( "failures.txt", troubled );
+
+        // ONLY regressions fail the run.  A baseline that records known failures is still a
+        // useful baseline; improvements, timeouts and new designs are reported, not punished.
+        return byVerdict .get( Verdict .REGRESSED ) .isEmpty() ? 0 : 1;
     }
 
-    private void writeReport( String name, List<Result> results ) throws IOException
+    private void writeVerdictReport( String name, List<Result> results ) throws IOException
+    {
+        StringBuilder text = new StringBuilder();
+        for ( Result result : results )
+            text .append( result .relative ) .append( "  " ) .append( result .outcome )
+                 .append( "  " ) .append( result .detail == null ? "" : result .detail )
+                 .append( result .difference == null ? "" : "\n      " + result .difference )
+                 .append( '\n' );
+        writeText( name, text .toString(), results .isEmpty() );
+    }
+
+    private void writeText( String name, String text, boolean empty ) throws IOException
     {
         // Shards run as separate processes writing into one output tree, so each needs its own
         // report file; the Gradle task merges them when the run finishes.
         if ( this .split > 1 )
             name = name .replaceFirst( "\\.txt$", "-" + this .shard + ".txt" );
         Path report = this .outputRoot .resolve( name );
-        if ( results .isEmpty() ) {
+        if ( empty ) {
             Files .deleteIfExists( report );
             return;
         }
-        StringBuilder text = new StringBuilder();
-        for ( Result result : results )
-            text .append( result .relative ) .append( "  " )
-                 .append( result .detail == null ? "" : result .detail ) .append( "\n" );
-        Files .write( report, text .toString() .getBytes( StandardCharsets .UTF_8 ) );
+        Files .write( report, text .getBytes( StandardCharsets .UTF_8 ) );
         System .out .println( "  wrote " + report );
     }
 

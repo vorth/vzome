@@ -460,7 +460,7 @@ task batchPov( dependsOn: compileRegressionJava ) {
         // Merge the per-shard reports into one file per kind, so the result reads the same
         // whether the run used one worker or many.
         if ( workers > 1 ) {
-            [ 'failures', 'regressions', 'missing-golden' ].each { kind ->
+            [ 'manifest', 'failures', 'regressions', 'improved', 'changed', 'unknown', 'new' ].each { kind ->
                 def parts = (0..<workers).collect { new File( outputDir, "${kind}-${it}.txt" ) }
                                          .findAll { it.exists() }
                 def merged = new File( outputDir, "${kind}.txt" )
