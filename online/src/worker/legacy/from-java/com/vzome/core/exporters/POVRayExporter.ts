@@ -108,8 +108,19 @@ export class POVRayExporter extends DocumentExporter {
         const shapes: java.util.HashSet<string> = <any>(new java.util.HashSet<any>());
         const transforms: java.util.Map<AlgebraicMatrix, string> = <any>(new java.util.HashMap<any, any>());
         const colors: java.util.Map<Color, string> = <any>(new java.util.HashMap<any, any>());
+        //  Emit in a deterministic order.  RenderedModel holds its manifestations in a
+        //  HashSet keyed on a random per-object guid, so iteration order varied run to
+        //  run: the object lines moved, and with them the lazily generated trans0/trans1
+        //  names, so exporting one design twice produced two different files.  Sorting by
+        //  content -- never by guid -- makes two runs, and the two platforms, agree.
+        //  Mirrors POVRayExporter.compareForExport in core/.
+        const sorted: any[] = [];
         for(let index=this.mModel.iterator();index.hasNext();) {
-            let rm = index.next();
+            sorted.push(index.next());
+        }
+        sorted.sort(POVRayExporter.compareForExport);
+        for(let sortedIndex = 0; sortedIndex < sorted.length; sortedIndex++) {
+            let rm = sorted[sortedIndex];
             {
                 const shapeName: string = "S" + /* replaceAll */rm.getShapeKey().replace(new RegExp("[^A-Za-z0-9_]", 'g'),"_");
                 if (!shapes.contains(shapeName)){
@@ -204,28 +215,72 @@ export class POVRayExporter extends DocumentExporter {
         buf.append(POVRayExporter.FORMAT_$LI$().format(vector.z));
     }
 
+    //  The four keys together are exactly what the exporter emits per instance, so ties
+    //  are only possible between manifestations that would emit identical lines anyway.
+    /*private*/ static compareForExport(a: any, b: any): number {
+        let comparison: number = POVRayExporter.nullSafeCompare(a.getShapeKey(), b.getShapeKey());
+        if (comparison !== 0) return comparison;
+
+        const aOrientation: AlgebraicMatrix = a.getOrientation();
+        const bOrientation: AlgebraicMatrix = b.getOrientation();
+        comparison = POVRayExporter.nullSafeCompare(
+                aOrientation == null ? null : aOrientation.toString(),
+                bOrientation == null ? null : bOrientation.toString());
+        if (comparison !== 0) return comparison;
+
+        const aLocation: AlgebraicVector = a.getLocationAV();
+        const bLocation: AlgebraicVector = b.getLocationAV();
+        if (aLocation != null && bLocation != null) {
+            comparison = aLocation.compareTo(bLocation);
+            if (comparison !== 0) return comparison;
+        } else if (aLocation !== bLocation) {
+            return aLocation == null ? -1 : 1;
+        }
+
+        const aColor: Color = a.getColor();
+        const bColor: Color = b.getColor();
+        return POVRayExporter.nullSafeCompare(
+                aColor == null ? null : aColor.toString(),
+                bColor == null ? null : bColor.toString());
+    }
+
+    /*private*/ static nullSafeCompare(a: string, b: string): number {
+        if (a == null) return b == null ? 0 : -1;
+        if (b == null) return 1;
+        return a < b ? -1 : (a > b ? 1 : 0);
+    }
+
     /*private*/ exportShape(shapeName: string, poly: Polyhedron) {
         this.output.print("#declare " + shapeName + " = ");
         const vertices: java.util.List<AlgebraicVector> = poly.getVertexList();
         this.output.println$java_lang_Object("mesh {");
-        poly.getTriangleFaces();
+        //  Emit the triangles in a stable order.  Polyhedron holds its faces in a HashSet,
+        //  so the order they come out in is an artifact of the container and differs
+        //  between Java and the transpiled Javascript (whose HashSet is backed by an
+        //  insertion-ordered JS Map).  The triangles are identical either way, so sorting
+        //  by the text we are about to write makes both platforms produce the same file
+        //  without changing any geometry.
+        const triangles: string[] = [];
         for(let index=poly.getTriangleFaces().iterator();index.hasNext();) {
             let face = index.next();
             {
-                this.output.print("triangle {");
+                const buf: java.lang.StringBuffer = new java.lang.StringBuffer("triangle {");
                 for(let loopIndex = 0; loopIndex < face.vertices.length; loopIndex++) {
                     let index = face.vertices[loopIndex];
                     {
                         const loc: AlgebraicVector = vertices.get(index);
-                        const buf: java.lang.StringBuffer = new java.lang.StringBuffer();
                         buf.append("<");
                         this.appendVector(loc, buf);
                         buf.append(">");
-                        this.output.print(buf.toString());
                     }
                 }
-                this.output.println$java_lang_Object("}");
+                buf.append("}");
+                triangles.push(buf.toString());
             }
+        }
+        triangles.sort();
+        for(let t = 0; t < triangles.length; t++) {
+            this.output.println$java_lang_Object(triangles[t]);
         }
         this.output.println$java_lang_Object("}");
         this.output.flush();
