@@ -2,10 +2,6 @@
 
 REVISION=${BUILD_NUMBER:-'DEV'}
 
-LEGACY=online/src/worker/legacy
-CANDIES_IN=online/jsweetOut/core/candies
-CANDIES_OUT="$LEGACY/candies"
-
 banner() {
   echo '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
   echo '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
@@ -18,21 +14,9 @@ banner() {
   echo '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
 }
 
-verifyJava(){
-  JAVA_VER=$(java -version 2>&1 | head -1 | cut -d'"' -f2 | sed '/^1\./s///' | cut -d'.' -f1)
-  echo "detected Java $JAVA_VER"
-  if [ "$JAVA_VER" -ne 11 ]; then
-    echo "This script requires JAVA_HOME to point at a Java 11 JDK."
-    exit 1
-  fi
-}
-
 clean() {
-  rm -rf jsweet-branches || exit $?
   cd online
 
-  rm -rf .jsweet || exit $?
-  rm -rf jsweetOut || exit $?
   rm -rf dist || exit $?
   rm -rf node_modules || exit $?
   rm -rf serve/modules || exit $?
@@ -87,27 +71,6 @@ buildForProduction() {
     tar czvf online.tgz app modules
 }
 
-prepareJSweet(){
-  banner 'JSweet no longer builds successfully. See online/build.gradle for more details.'
-  # source cicd/prepare-jsweet.bash || exit $?
-}
-
-jsweet(){
-  export JAVA_HOME=`/usr/libexec/java_home -v 11`
-  rm -rf online/src/worker/legacy/ts
-  export JSWEET_BUNDLE=false
-  banner "running JSWEET with bundle $JSWEET_BUNDLE"
-  source cicd/jsweet-legacy-code.bash
-  mv online/jsweetOut/core/ts online/src/worker/legacy
-  export JSWEET_BUNDLE=true
-  banner "running JSWEET with bundle $JSWEET_BUNDLE"
-  source cicd/jsweet-legacy-code.bash || exit $?
-}
-
-devJava(){
-  banner 'We are no longer using JSweet automatically. You can still use the "jsweet" command here manually.'
-}
-
 initJs(){
   cd online
 
@@ -151,18 +114,6 @@ case $1 in
     devJs
     ;;
 
-  prepareJSweet)
-    prepareJSweet
-    ;;
-
-  jsweet)
-    jsweet
-    ;;
-
-  java)
-    devJava
-    ;;
-
   prod)
     productionBuild
     ;;
@@ -172,7 +123,7 @@ case $1 in
     ;;
 
   *)
-    banner 'no command (dev|java|prod|clean) provided'
+    banner 'no command (dev|prod|clean) provided'
     ;;
 esac
 
