@@ -52,6 +52,82 @@ third-party pages.
 
 ---
 
+## `ExportedVEFStrutGeometry` short-strut test measures the wrong quantity
+
+**A cross-platform defect: the Java is the reference implementation and has the same bug.
+Do not fix this on the JavaScript side alone.**
+
+Symptom: in the "Big Zome" style, blue struts render as a four-sided prism with pyramidal
+ends -- `FastDefaultStrutGeometry` -- instead of the exported shape.  Red and yellow look
+right.  The same thing happens on the desktop, so it is not a resource-loading problem:
+`bigzome/blue.vef` is found, parsed, and turned into an `ExportedVEFStrutGeometry`.
+
+The collapse happens later, in `ExportedVEFStrutGeometry.getStrutPolyhedron()`:
+
+```java
+if ( maxNonTipDistance > minTipDistance ) {
+    if ( shortGeometry != null )
+        return shortGeometry .getStrutPolyhedron( length );
+    else return null;
+}
+```
+
+The intent is "this strut is too short for the exported shape -- the tail end would overshoot
+the tip end, inverting the geometry, so fall back".  `bigzome` ships no `<orbit>-short.vef`
+(only `default` and `lifelike` do), so `shortGeometry` is `FastDefaultStrutGeometry`.
+
+### Why the test is wrong
+
+Both quantities are computed with `vertex.toRealVector().length()` -- Euclidean distance from
+the **origin**.  But "does the tail overshoot the tip" is a question about position **along
+the strut axis**, which is a dot product with the axis direction, not a radius.  For a shape
+with large off-axis extent, a vertex can be far from the origin without being any further
+along the strut, and the two quantities stop tracking each other.
+
+The giveaway is that the test is **not monotonic in length**, which a genuine "too short"
+test must be.  Measured for `bigzome` blue (`prototypeVector` is the unit +x axis):
+
+| length | minTipDistance | maxNonTipDistance | verdict |
+|---|---|---|---|
+| phi^0 | 0.2277 | 1.9868 | collapse |
+| phi^1 | 0.4571 | 1.9868 | collapse |
+| phi^2 | 0.7701 | 1.9868 | collapse |
+| phi^3 | 2.3203 | 1.9868 | **ok** |
+| phi^4 | 0.4210 | 1.9868 | **collapse** |
+
+It recovers at phi^3 and then fails again at phi^4, while the tip vector grows monotonically
+(|tip| = 6.85 at phi^4).  Once long enough, a strut cannot become too short again.
+
+### Why blue, and why Big Zome
+
+The test is most easily tripped by the shape with the largest off-axis extent.  Comparing the
+x-range of the tip-side (`fullScaleVertices`) set for the blue orbit:
+
+| style | tip-side x-range |
+|---|---|
+| solid connectors | [-1.00, 0.00] |
+| lifelike | [-1.00, 0.00] |
+| tiny connectors | [-1.00, 0.00] |
+| **Big Zome** | **[-7.28, 0.00]** |
+
+Every conventional style spans exactly one unit; `bigzome` blue spans 7.28.  Its own red and
+yellow span 2.87 and 2.40, so blue is an outlier even within its package -- consistent with
+`bigzome/blue.vef` dating from 2015 (`f582389ff`, "bigzome style, for Paul") while red and
+yellow were added in 2020 (`c2300c2e5`).  So the VEF is unusual data AND the test is wrong;
+either alone would not produce this.
+
+### Before changing anything
+
+- The likely fix is to project onto the axis (dot product with the normalised
+  `prototypeVector`) rather than take the radius.  **This is unverified.**
+- Any change alters geometry for every style and orbit, not just Big Zome.  The POV
+  regression suite currently has 112/112 exported designs agreeing with Java, so a
+  JavaScript-only change would regress all of them; the suite cannot validate the fix until
+  the Java changes too.
+- Reproduce with `bigzome` blue at phi^0..phi^4 and confirm monotonicity after the fix.
+
+---
+
 ## Shape keys do not include the style name
 
 `AbstractShapes` builds two kinds of content-derived shape key, and they are not symmetric:
