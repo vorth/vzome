@@ -81,7 +81,14 @@ const initializeDesign = ( loading, polygons, legacyDesign, core, clientEvents )
   if ( loading ) {
     // interpretation may take several seconds, which is why we already reported PARSE_COMPLETED
     interpreter .interpret( Step.DONE );
-    history .goToEdit( targetEdit )
+    //  targetEdit counts edits as written in the file, but goToEdit indexes the internal
+    //  history, which grows when an old-format file's edits are migrated.  Translating is
+    //  what keeps the history pointer consistent with the scene we render below; without
+    //  it the scene looks right (it comes from a snapshot taken during interpretation) but
+    //  the model underneath is rewound, so the first undo or redo jumps.
+    const internalTarget = interpreter .getInternalEditNumber( targetEdit );
+    if ( internalTarget !== undefined )
+      history .goToEdit( internalTarget )
   } // else in debug mode, we'll interpret incrementally
 
   // TODO: define a better contract for before/after.

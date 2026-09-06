@@ -177,8 +177,13 @@ const exportDesign = ( core, xml ) =>
 
   // Replay the whole edit history, as initializeDesign() does when loading normally.
   const renderHistory = new RenderHistory( design, true );
-  new Interpreter( design, renderHistory ) .interpret( Step.DONE );
-  design.history .goToEdit( design.targetEdit );
+  const interpreter = new Interpreter( design, renderHistory );
+  interpreter .interpret( Step.DONE );
+  //  design.targetEdit counts edits as written in the file; goToEdit indexes the internal
+  //  history, which is longer after migration.  Translate before rewinding.
+  const internalTarget = interpreter .getInternalEditNumber( design.targetEdit );
+  if ( internalTarget !== undefined )
+    design.history .goToEdit( internalTarget );
 
   // Older designs carry no saved camera or lighting, so fall back to the same defaults the
   // viewer uses (see defaultCamera / defaultLighting in viewer/context/camera.jsx).  Without
