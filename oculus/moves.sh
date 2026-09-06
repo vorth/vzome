@@ -1,5 +1,49 @@
 #!/bin/bash
 
+# Provenance
+# -----------
+# Added 2020-03-10 in commit ef7055b53, "All current VEF shapes now available",
+# together with the shape assets under oculus/Assets/Resources/Shapes.
+# It lived in core/src/main/resources/com/vzome/core/parts/ until it was moved
+# here, since its location inside a runtime resource tree made it look like part
+# of the shape-loading machinery.  It is not, and never was.
+#
+# Purpose
+# -------
+# A one-shot developer utility for the Unity/Oculus port.  It copies each .vef
+# shape file to ~/veftxt/ under a new name, for two Unity constraints:
+#
+#   * Unity's Resources.Load discovers text assets only by the .txt extension,
+#     so every .vef is re-extensioned to .txt.
+#   * Unity's resource discovery does not handle nested directories, so the
+#     shape package path is flattened into the file name: the two-level
+#     packages sqrtPhi/ and heptagon/ map their first "/" to "--", and the
+#     remaining "/" becomes "-".  ExportedVEFShapes.java reversed this when
+#     loading, via key.replace( "--", "/" ).
+#
+# The generated .txt files were then committed under
+# oculus/Assets/Resources/Shapes.
+#
+# Status: DORMANT.  Do not run this expecting it to do anything useful.
+# ---------------------------------------------------------------------------
+# The Java side of the mechanism is disabled: the key.replace( "--", "/" )
+# reversal in core/src/main/java/com/vzome/core/viewing/ExportedVEFShapes.java
+# is commented out, under a TODO to replace it with a custom ResourceLoader, so
+# the flattened names this script produces can no longer be resolved.  The
+# oculus/ project itself has not been touched since 2022, and the ~/veftxt/
+# output has not been regenerated since the original 2020 run.
+#
+# This script has NO connection to keeping vzome-online's shape resources in
+# sync with core.  That is handled by the resource marshalling in
+# cicd/online.bash.  It is kept here only as a record of how the Unity shape
+# assets were produced, should that port ever be revived.
+#
+# It is retained verbatim, with its original ~/veftxt/ destination and its
+# out-of-date file list left as they were; only these comments were added.
+# The list below was never hand-maintained -- it was regenerated wholesale by
+# the find(1) command noted further down.
+
+
 rename() { echo $1 | sed 's-./--' | sed 's=sqrtPhi/=sqrtPhi--=' | sed 's=heptagon/=heptagon--=' | sed 's=/=-=' | cut -f 1 -d . ; }
 move() { target=$( rename $1 ).txt; echo $target; cp $1 ~/veftxt/$target; }
 
@@ -15,6 +59,8 @@ move ./lifelike/connector.vef
 move ./lifelike/blue.vef
 move ./lifelike/yellow.vef
 move ./lifelike/red.vef
+move ./lifelike/yellow-short.vef
+move ./lifelike/red-short.vef
 move ./lifelike/green.vef
 move ./heptagon/antiprism/connector.vef
 move ./heptagon/antiprism/blue.vef
@@ -72,6 +118,8 @@ move ./default/olive.vef
 move ./default/apple.vef
 move ./default/lavender.vef
 move ./default/orange.vef
+move ./default/yellow-short.vef
+move ./default/red-short.vef
 move ./vienne2/connector.vef
 move ./vienne2/purple.vef
 move ./vienne2/orange.vef
@@ -129,3 +177,4 @@ move ./rootThreeOctaSmall/blue.vef
 move ./rootThreeOctaSmall/yellow.vef
 move ./rootThreeOctaSmall/red.vef
 move ./rootThreeOctaSmall/green.vef
+move ./root2Lifelike/connector.vef

@@ -8,6 +8,7 @@ import { JavaDomDocument, JavaDomElement } from './dom.js';
 import { configureLogging } from './logging.js'
 
 import allShapes from './resources/com/vzome/core/parts/index.js'
+import shapeColors from './resources/com/vzome/core/parts/colors.js'
 import groupResources from './resources/com/vzome/core/math/symmetry/index.js'
 
 import { BookmarkToolFactory } from './from-java/com/vzome/core/tools/BookmarkToolFactory.js';
@@ -396,6 +397,14 @@ export const loadAndInjectResource = async ( path, url ) =>
       await Promise.all( Object.entries( shapes ).map( ([ key, value ]) => loadAndInjectResource( `com/vzome/core/parts/${family}/${key}.vef`, value ) ) )
     }
   ) )
+
+  //  A few shape packages recolour an orbit -- in bigzome, blue struts are white, and
+  //  connectors are silver.  ExportedVEFShapes reads colors.properties in its constructor,
+  //  so these must be injected before any field app is constructed, alongside the shapes.
+  //  'vienne' ships one with no .vef files at all, so this is keyed separately from
+  //  allShapes rather than derived from it.
+  const shapeColorsReady = Promise.all( Object.entries( shapeColors )
+    .map( ([ pkg, url ]) => loadAndInjectResource( `com/vzome/core/parts/${pkg}/colors.properties`, url ) ) )
 
   // Static registry of every registrable field: NAMES and LABELS only, with no
   // FieldApplication construction.  A FieldApplication is heavy (it registers
@@ -866,7 +875,7 @@ export const initialize = async () =>
   // Fields are now constructed lazily (see fieldRegistry / getFieldApp), so we
   // only wait for the group symmetry resources (needed before any field-app
   // construction) and the shapes.
-  await Promise.all( [ groupResourcesReady, shapesReady ] );
+  await Promise.all( [ groupResourcesReady, shapesReady, shapeColorsReady ] );
   const parse = createParser( documentFactory );
   return {
     getFieldNames, getField, getFieldLabel, getSymmetry,
