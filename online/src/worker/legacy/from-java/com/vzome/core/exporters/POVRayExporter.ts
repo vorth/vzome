@@ -94,11 +94,15 @@ export class POVRayExporter extends DocumentExporter {
             for(let i: number = 0; i < 3; i++) {{
                 const columnSelect: AlgebraicVector = field.basisVector(3, i);
                 const columnI: RealVector = embedding.embedInR3(columnSelect);
-                this.output.print(columnI.x);
+                //  Through FORMAT, like every other number here: printing the raw float wrote
+                //  Java's "1.0, 0.0, 0.04486483" where Javascript wrote the full double,
+                //  "1, 0, 0.04486482962965965", so this one line differed on every embedded
+                //  design even when the geometry was identical.
+                this.output.print(POVRayExporter.FORMAT_$LI$().format(columnI.x));
                 this.output.print(", ");
-                this.output.print(columnI.y);
+                this.output.print(POVRayExporter.FORMAT_$LI$().format(columnI.y));
                 this.output.print(", ");
-                this.output.print(columnI.z);
+                this.output.print(POVRayExporter.FORMAT_$LI$().format(columnI.z));
                 this.output.print(", ");
             };}
             this.output.println$java_lang_Object(" 0, 0, 0 > }");
