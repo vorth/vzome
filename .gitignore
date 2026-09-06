@@ -60,6 +60,12 @@ deploy-to-dreamhost.sh
 
 online/src/revision.js
 
+# Shape resources, synced from core by cicd/online.bash (syncShapeResources),
+# along with the index.js files that enumerate them for bundling.  Core is the
+# source of truth; the .vZome design sources and .zomic legacy exports stay
+# there and are not copied.
+online/src/worker/legacy/resources/
+
 
 online/meta.json
 
